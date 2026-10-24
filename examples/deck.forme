@@ -1,0 +1,33 @@
+deck "Quartalsbericht Q3"
+theme "./themes/corporate.forme"
+
+slide @intro layout=title
+  fill @title "Quartalsbericht Q3"
+  fill @subtitle "Vertrieb & Marketing"
+
+section "Zahlen"
+
+slide @kpis layout=content
+  fill @title "Kennzahlen"
+  rect @card1 x=$margin y=260 w=520 h=320 radius=24 fill=$surface
+  rect @card2 like=@card1
+  rect @card3 like=@card1
+  distribute h @card1 @card2 @card3 within=content
+  align top @card1 @card2 @card3
+  text @kpi1 "1,2 Mio €" style=h1 in=@card1 pad=$space.l
+  image @chart "./img/umsatz.svg" x=$margin y=620 w=800 fit=contain radius=12
+  number figure @chart caption="Abb. {figure}: Umsatz nach Region"
+  notes "Wachstum im Süden betonen."
+
+slide @details layout=content
+  fill @title "Details – {section}"
+  list @points x=$margin y=260 w=900 style=body
+    item "**Umsatz** +12 % gegenüber Vorjahr"
+    item "Neue Märkte: *Österreich* und Schweiz"
+    item "Pilotprojekt gestartet" level=2
+  table @tbl x=1100 y=260 w=700 size=24
+    row "Region" "Q2" "Q3"
+    row "Nord" "0,4" "0,5"
+    row "Süd" "0,3" "0,45"
+  use @k1 kpi x=$margin y=700 w=400 h=240 label="Kunden" value="1.204"
+  arrow @a1 x=1100 y=700 x2=1500 y2=820 stroke=$primary stroke.width=6

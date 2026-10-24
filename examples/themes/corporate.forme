@@ -1,0 +1,34 @@
+theme "Corporate"
+size 1920x1080
+
+token margin 120
+token space.l 32
+color primary #1E40AF
+color surface #F3F4F6
+color muted #6B7280
+font heading "Inter" weight=700
+font body "Inter" weight=400
+
+style h1 font=heading size=64 color=$primary
+style body font=body size=28 line=1.4
+style footer font=body size=18 color=$muted
+style caption font=body size=20 color=$muted
+
+master default
+  background fill=#FFFFFF
+  text @pagenum "{slide.n}" style=footer x=(slide.w-$margin) y=(slide.h-60) anchor=right
+
+layout title master=default
+  background fill=$primary
+  hide @pagenum
+  slot @title style=h1 color=#FFFFFF x=$margin y=380 w=(slide.w-2*$margin)
+  slot @subtitle style=body color=#FFFFFF x=$margin y=@title.bottom+24
+
+layout content master=default
+  slot @title style=h1 x=$margin y=$margin w=(slide.w-2*$margin)
+  region content x=$margin y=240 w=(slide.w-2*$margin) h=(slide.h-360)
+
+component kpi w=520 h=320 label="Kennzahl" value="0"
+  rect @bg w=param.w h=param.h radius=24 fill=$surface
+  text @value param.value style=h1 x=32 y=48
+  text @label param.label style=body color=$muted x=32 y=(param.h-80)
