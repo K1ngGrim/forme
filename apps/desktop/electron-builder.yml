@@ -1,0 +1,33 @@
+# Packaging: `pnpm dist` builds an installer for the current platform into apps/desktop/dist.
+appId: de.k1nggrim.forme
+productName: Forme
+executableName: forme
+directories:
+  output: dist
+  buildResources: build
+# main, preload and renderer are fully bundled by electron-vite; no node_modules are shipped
+files:
+  - out/**
+  - package.json
+asar: true
+fileAssociations:
+  - ext: forme
+    name: Forme-Präsentation
+    role: Editor
+win:
+  target:
+    - nsis
+    - portable
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+portable:
+  artifactName: ${productName}-${version}-portable.${ext}
+mac:
+  target: dmg
+  category: public.app-category.productivity
+linux:
+  target: AppImage
+  executableName: forme
+  syncDesktopName: true
+  category: Office

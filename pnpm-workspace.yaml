@@ -4,9 +4,13 @@ packages:
 
 # Dependencies allowed to run install scripts (Electron downloads its binary there).
 # `allowBuilds` is read by pnpm >= 11, `onlyBuiltDependencies` by pnpm 10.
+# electron-winstaller (Squirrel) is not used: Windows builds use NSIS.
 allowBuilds:
   electron: true
   esbuild: true
+  electron-winstaller: false
 onlyBuiltDependencies:
   - electron
   - esbuild
+ignoredBuiltDependencies:
+  - electron-winstaller
