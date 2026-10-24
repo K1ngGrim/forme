@@ -997,8 +997,25 @@ function createUse(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null, id:
   if (!addNode(ctx, node, parent, op.verbSpan)) return;
   touch(ctx, node, op, src);
   const params: Props = { ...comp.defaults };
+  // like=@other copies position, size and all parameters of another instance
+  const like = op.args.find((a) => a.key === 'like');
+  if (like) {
+    const other = like.value.k === 'id' ? lookup(ctx, like.value.name) : undefined;
+    if (like.value.k !== 'id') report(ctx.env, '„like“ erwartet ein Objekt, z. B. like=@p1', like.value.span);
+    else if (!other) report(ctx.env, `Unbekanntes Objekt „@${like.value.name}“`, like.value.span);
+    else if (other.component !== compName) report(ctx.env, `„@${other.id}“ ist keine Instanz von „${compName}“`, like.value.span);
+    else {
+      for (const [k, v] of Object.entries(other.props)) {
+        if (!(k in comp.defaults) && k !== 'x' && k !== 'y' && k !== 'opacity') continue;
+        node.props[k] = v;
+        const p = other.prov[k];
+        if (p) node.prov[k] = { ...p, inherited: true, literal: false };
+        if (k in comp.defaults) params[k] = v;
+      }
+    }
+  }
   for (const a of op.args) {
-    if (!a.key) continue;
+    if (!a.key || a.key === 'like') continue;
     const v = evalExpr(ctx.env, a.value, axisOf(a.key));
     if (v === undefined) continue;
     setProp(node, a.key, v, argProv(op, src, a));

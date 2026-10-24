@@ -24,8 +24,9 @@ section "Motivation und Relevanz"
 slide @motivation layout=columns
   fill @title "Motivation und Relevanz"
   use @p1 panel x=$margin y=$content.y w=col1.w h=660 title="Herausforderung" body="Proprietäre RAN-Systeme sind teuer und unflexibel\n\nProbleme:\n**Hohe Kosten**\n**Langsame Innovation**"
-  use @p2 panel x=col2.x y=$content.y w=col2.w h=660 title="Lösungsansatz" body="Offene Standards ermöglichen Innovation und Wettbewerb\n\nProbleme:\n**Technologische Abhängigkeit**\n**Markteintrittsbarrieren**"
-  use @p3 panel x=col3.x y=$content.y w=col3.w h=660 title="Ziel" body="Effizienz und Zukunftssicherheit für 5G und darüber hinaus\n\nProbleme:\n**Hohe Investitionskosten**\n**Starre Netzwerke**"
+  use @p2 panel like=@p1 title="Lösungsansatz" body="Offene Standards ermöglichen Innovation und Wettbewerb\n\nProbleme:\n**Technologische Abhängigkeit**\n**Markteintrittsbarrieren**"
+  use @p3 panel like=@p1 title="Ziel" body="Effizienz und Zukunftssicherheit für 5G und darüber hinaus\n\nProbleme:\n**Hohe Investitionskosten**\n**Starre Netzwerke**"
+  distribute h @p1 @p2 @p3 within=content
   notes "Drei Perspektiven: Problem, Ansatz, Ziel."
 
 section "Was ist OpenRAN?"

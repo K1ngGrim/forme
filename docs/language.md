@@ -144,7 +144,7 @@ Alle Erzeugungs-Ops nehmen eine ID als erstes Argument. Fehlt sie, wird intern e
 | `image @id "pfad.png"` | Pfad | `x y w h fit=contain|cover|fill radius stroke` (ohne `h`: Seitenverhältnis des Bildes) |
 | `table @id` | – | `x y w cols="1,2,1" size color pad header=true header.fill header.color border stripe`; Kinder: `row "A" "B" "C"` |
 | `group @id` | – | `x y opacity`; Kinder sind Erzeugungs-/Änderungs-Ops mit Koordinaten **relativ** zur Gruppe (auch Bezüge wie `@a.bottom` liefern innerhalb der Gruppe relative Werte) |
-| `use @id komponente` | Komponentenname | `x y w h` und Parameter der Komponente |
+| `use @id komponente` | Komponentenname | `x y w h` und Parameter der Komponente; `like=@andere` übernimmt Position, Größe und Parameter einer anderen Instanz derselben Komponente |
 | `slot @id` | – (nur Layout/Master) | wie `text`, plus `kind=text|image placeholder="…"` |
 | `fill @slot "Inhalt"` | Slot, Text bzw. Bildpfad | weitere Schlüssel überschreiben Eigenschaften des Slots |
 

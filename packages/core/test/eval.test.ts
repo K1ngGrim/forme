@@ -106,6 +106,15 @@ describe('evaluator', () => {
     expect(node(c, 0, 'c').children[1]!.box.y).toBe(300 + 10 + 20 + 5);
   });
 
+  it('copies component instances with like=', () => {
+    const theme = 'theme "T"\ncomponent card w=200 h=100 title="x"\n  text @t param.title\n';
+    const s = evalSrc('slide @a\n  use @c1 card x=10 y=20 w=300 title="Eins"\n  use @c2 card like=@c1 title="Zwei"\n', theme);
+    const c2 = node(s, 0, 'c2');
+    expect(c2.box).toEqual({ x: 10, y: 20, w: 300, h: 100 });
+    expect(c2.children[0]!.props.text).toBe('Zwei');
+    expect(c2.prov.x!.inherited).toBe(true);
+  });
+
   it('rejects theme definitions in decks', () => {
     const s = evalSrc('token x 3\nslide @a\n');
     expect(s.diagnostics.some((d) => d.message.includes('Theme-Definition'))).toBe(true);
