@@ -109,7 +109,7 @@ export function completeLine(line: string, col: number, scene: DeckScene, slide:
   if (!m) return null;
   const word = m[1] as string;
   const from = col - word.length;
-  const positional = before.trim().split(/\s+/).length - 1;
+  const positional = before.trimStart().split(/\s+/).length - 1;
   const items: CompletionItem[] = [];
   if (verb === 'align' && positional === 1) items.push(...ALIGN_MODES.map((v) => ({ label: v, type: 'enum' as const })));
   if ((verb === 'distribute' || verb === 'stack') && positional === 1) items.push(...DIRECTIONS.map((v) => ({ label: v, type: 'enum' as const })));

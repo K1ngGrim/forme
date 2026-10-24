@@ -48,6 +48,73 @@ export interface EvaluateOptions {
   measurer?: TextMeasurer;
   /** Natural image sizes keyed by the path as written in the file. */
   imageSizes?: Record<string, ImageSize>;
+  /**
+   * Reuse slides whose source and context did not change since the last call
+   * (incremental re-evaluation). Pass the same object on every call.
+   */
+  cache?: EvalCache;
+}
+
+interface CacheEntry {
+  key: string;
+  scene: SlideScene;
+  blockStart: number;
+  line: number;
+  countersAfter: Record<string, number>;
+}
+
+/** Per-slide evaluation cache. Opaque to callers. */
+export interface EvalCache {
+  theme?: Document;
+  measurer?: TextMeasurer;
+  imageSizes?: Record<string, ImageSize>;
+  slides: Map<string, CacheEntry>;
+  /** Number of slides reused by the last evaluation (for tests and diagnostics). */
+  reused: number;
+}
+
+export function createEvalCache(): EvalCache {
+  return { slides: new Map(), reused: 0 };
+}
+
+/** Move all deck-file source positions of a cached slide by a delta. */
+function shiftSlide(scene: SlideScene, d: number, dl: number): void {
+  if (!d && !dl) return;
+  const seen = new Set<object>();
+  const shiftSpan = (sp: { start: number; end: number }): { start: number; end: number } => ({ start: sp.start + d, end: sp.end + d });
+  const ref = (r: OpRef): void => {
+    if (r.file !== 'deck' || seen.has(r)) return;
+    seen.add(r);
+    r.span = shiftSpan(r.span);
+    r.blockSpan = shiftSpan(r.blockSpan);
+    r.line += dl;
+  };
+  const prov = (p: Prov | undefined): void => {
+    if (!p || seen.has(p)) return;
+    seen.add(p);
+    if (p.op.file !== 'deck') return;
+    ref(p.op);
+    if (p.value) p.value = shiftSpan(p.value);
+  };
+  const node = (n: SceneNode): void => {
+    if (seen.has(n)) return;
+    seen.add(n);
+    ref(n.origin);
+    n.touchedBy.forEach(ref);
+    Object.values(n.prov).forEach(prov);
+    n.children.forEach(node);
+  };
+  ref(scene.op);
+  scene.nodes.forEach(node);
+  scene.byId.forEach(node);
+  prov(scene.background.prov);
+  for (const diag of scene.diagnostics) if (diag.file === 'deck') diag.span = shiftSpan(diag.span);
+  const targets = new Map<string, string[]>();
+  for (const [k, v] of scene.opTargets) {
+    const [file, line] = k.split(':');
+    targets.set(file === 'deck' ? `deck:${Number(line) + dl}` : k, v);
+  }
+  scene.opTargets = targets;
 }
 
 interface Src {
@@ -91,6 +158,7 @@ const DEFAULT_FILL = '#D1D5DB';
 const DEFAULT_TEXT = '#111827';
 
 let defaultThemeDoc: Document | null = null;
+let defaultMeasurer: TextMeasurer | undefined;
 
 export function defaultTheme(): Document {
   if (!defaultThemeDoc) defaultThemeDoc = parse(DEFAULT_THEME_SOURCE);
@@ -1418,7 +1486,7 @@ function isHiddenSlide(op: OpNode): boolean {
 
 /** Evaluate a deck into a scene graph. Pure: never throws, never touches the outside world. */
 export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene {
-  const m = opts.measurer ?? createMetricMeasurer();
+  const m = opts.measurer ?? (defaultMeasurer ??= createMetricMeasurer());
   const diags: Diagnostic[] = [];
   const deckEnv = baseEnv(deck, 'deck', diags);
   let title = '';
@@ -1480,6 +1548,15 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
   for (const d of themeDoc.diagnostics) diags.push({ ...d, file: 'theme' });
   for (const d of deck.diagnostics) diags.push({ ...d, file: 'deck' });
 
+  const cache = opts.cache;
+  if (cache && (cache.theme !== themeDoc || cache.measurer !== m || cache.imageSizes !== opts.imageSizes)) {
+    cache.slides.clear();
+    cache.theme = themeDoc;
+    cache.measurer = m;
+    if (opts.imageSizes) cache.imageSizes = opts.imageSizes;
+    else delete cache.imageSizes;
+  }
+  if (cache) cache.reused = 0;
   const total = slideOps.filter((s) => !isHiddenSlide(s.op)).length;
   const counters: Record<string, number> = { ...theme.counters, ...deckCounters };
   const slides: SlideScene[] = [];
@@ -1490,6 +1567,22 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
     const hidden = isHiddenSlide(op);
     if (!hidden) visible++;
     const id = slideIdOf(op, index);
+    const key = cache
+      ? [id, visible, total, sec, secN, title, JSON.stringify(counters), seenIds.has(id), deck.source.slice(op.line.start, op.blockEnd)].join('\u0000')
+      : '';
+    const cached = cache?.slides.get(id);
+    if (cache && cached && cached.key === key) {
+      shiftSlide(cached.scene, op.line.start - cached.blockStart, op.line.index - cached.line);
+      cached.blockStart = op.line.start;
+      cached.line = op.line.index;
+      cached.scene.index = index;
+      for (const k of Object.keys(counters)) delete counters[k];
+      Object.assign(counters, cached.countersAfter);
+      seenIds.add(id);
+      cache.reused++;
+      slides.push(cached.scene);
+      return;
+    }
     const slideDiags: Diagnostic[] = [];
     if (seenIds.has(id)) slideDiags.push(diag('error', `Folien-ID „@${id}“ ist bereits vergeben`, op.span, 'deck'));
     seenIds.add(id);
@@ -1578,16 +1671,12 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
     for (const c of op.children) evalOp(ctx, c, deckSrc, null, 'slide');
     for (const d of slideDiags) if (!d.file) d.file = env.file;
     scene.hasErrors = slideDiags.some((d) => d.severity === 'error' && d.file === 'deck');
-    slides.push(scene);
-  });
-
-  // attach syntax errors inside a slide block to that slide
-  for (const d of deck.diagnostics) {
-    if (d.severity !== 'error') continue;
-    for (const s of slides) {
-      if (d.span.start >= s.op.blockSpan.start && d.span.start <= s.op.blockSpan.end) s.hasErrors = true;
+    for (const d of deck.diagnostics) {
+      if (d.severity === 'error' && d.span.start >= scene.op.blockSpan.start && d.span.start <= scene.op.blockSpan.end) scene.hasErrors = true;
     }
-  }
+    slides.push(scene);
+    cache?.slides.set(id, { key, scene, blockStart: op.line.start, line: op.line.index, countersAfter: { ...counters } });
+  });
 
   const all = dedupe([...diags, ...slides.flatMap((s) => s.diagnostics)]);
   return {

@@ -2,6 +2,7 @@ import {
   applyEdits,
   collectImagePaths,
   computeEdit,
+  createEvalCache,
   createMetricMeasurer,
   evaluate,
   imageSize,
@@ -79,8 +80,11 @@ function makeFile(role: FileRole, path: string | null, source: string): SourceFi
   return { role, path, source, doc: parse(source), saved: source };
 }
 
+/** Slides whose source and context did not change are reused (only affected slides are re-evaluated). */
+const evalCache = createEvalCache();
+
 function evalScene(deck: SourceFile, theme: SourceFile | null, measurer: TextMeasurer, imageSizes: Record<string, ImageSize>): DeckScene {
-  return evaluate(deck.doc, { theme: theme ? theme.doc : null, measurer, imageSizes });
+  return evaluate(deck.doc, { theme: theme ? theme.doc : null, measurer, imageSizes, cache: evalCache });
 }
 
 const initialDeck = makeFile('deck', null, NEW_DECK_SOURCE);
@@ -402,6 +406,7 @@ export const actions = {
   async newDeck(): Promise<void> {
     if (!(await confirmDiscard())) return;
     const deck = makeFile('deck', null, NEW_DECK_SOURCE);
+    evalCache.slides.clear();
     set({ undoStack: [], redoStack: [], lastGood: {}, selection: [], mode: 'deck' });
     reevaluate({ deck, theme: null, themeError: null, revision: get().revision + 1, lastOrigin: 'load', slideId: null });
     set({ slideId: get().scene.slides[0]?.id ?? null });
@@ -414,6 +419,7 @@ export const actions = {
     const opened = file ?? (await api.openDialog());
     if (!opened) return;
     const deck = makeFile('deck', opened.path, opened.source);
+    evalCache.slides.clear();
     set({ undoStack: [], redoStack: [], lastGood: {}, selection: [], mode: 'deck', theme: null, themeError: null, imageSizes: {} });
     reevaluate({ deck, revision: get().revision + 1, lastOrigin: 'load', slideId: null });
     set({ slideId: get().scene.slides[0]?.id ?? null });
@@ -440,7 +446,12 @@ export const actions = {
       if (await api.writeText(theme.path, theme.source)) theme = { ...theme, saved: theme.source };
     }
     set({ deck: { ...get().deck, path, saved: s.deck.source }, theme });
-    if (pathChanged) await syncTheme(true);
+    if (pathChanged) {
+      // asset paths are relative to the deck: drop cached slides
+      evalCache.slides.clear();
+      reevaluate();
+      await syncTheme(true);
+    }
     api.watch([path, theme?.path].filter((p): p is string => !!p));
     updateTitle();
     toast('Gespeichert');

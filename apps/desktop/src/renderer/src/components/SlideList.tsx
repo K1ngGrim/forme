@@ -4,6 +4,18 @@ import { memo, useState } from 'react';
 import type { JSX } from 'react';
 import { actions, resolveAsset, useEditor } from '../store.js';
 
+/** Rendered thumbnails per slide object: unchanged slides are reused by the evaluator. */
+const thumbCache = new WeakMap<SlideScene, string>();
+
+function thumbSvg(scene: Parameters<typeof renderSlideSvg>[0], slide: SlideScene): string {
+  let svg = thumbCache.get(slide);
+  if (svg === undefined) {
+    svg = renderSlideSvg(scene, slide, { resolveAsset: (p) => resolveAsset(p), idPrefix: `th-${slide.id}-` });
+    thumbCache.set(slide, svg);
+  }
+  return svg;
+}
+
 const Thumb = memo(function Thumb(props: { slide: SlideScene; svg: string }): JSX.Element {
   return <div className="thumb-svg" dangerouslySetInnerHTML={{ __html: props.svg }} />;
 });
@@ -42,7 +54,7 @@ export function SlideList(): JSX.Element {
       <div className="slide-list-items">
         {scene.slides.map((s, i) => {
           const shown = s.hasErrors && lastGood[s.id] ? (lastGood[s.id] as SlideScene) : s;
-          const svg = renderSlideSvg(scene, shown, { resolveAsset: (p) => resolveAsset(p), idPrefix: `th-${s.id}-` });
+          const svg = thumbSvg(scene, shown);
           return (
             <div
               key={s.id}
