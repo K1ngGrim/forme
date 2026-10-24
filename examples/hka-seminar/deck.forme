@@ -1,0 +1,55 @@
+deck "Offene und Programmierbare zellulare Netze mit OpenRAN"
+theme "./theme.forme"
+
+slide @titel layout=title
+  fill @title "Offene und Programmierbare zellulare Netze mit OpenRAN"
+  fill @author "Florian Kaiser"
+
+section "Übersicht"
+
+slide @uebersicht layout=content
+  fill @title "Übersicht"
+  list @agenda x=$margin y=290 w=1100 style=body bullet=none
+    item "**Motivation und Relevanz**"
+    item "**Grundlagen 5G New Radio (NR)**"
+    item "**Was ist OpenRAN?**"
+    item "Überblick" level=2
+    item "Unterschied zum 5G RAN" level=2
+    item "Vorteile von OpenRAN" level=2
+    item "**Aktueller Entwicklungsstand**"
+    item "**Zusammenfassung und Fazit**"
+
+section "Motivation und Relevanz"
+
+slide @motivation layout=columns
+  fill @title "Motivation und Relevanz"
+  use @p1 panel x=$margin y=$content.y w=col1.w h=660 title="Herausforderung" body="Proprietäre RAN-Systeme sind teuer und unflexibel\n\nProbleme:\n**Hohe Kosten**\n**Langsame Innovation**"
+  use @p2 panel x=col2.x y=$content.y w=col2.w h=660 title="Lösungsansatz" body="Offene Standards ermöglichen Innovation und Wettbewerb\n\nProbleme:\n**Technologische Abhängigkeit**\n**Markteintrittsbarrieren**"
+  use @p3 panel x=col3.x y=$content.y w=col3.w h=660 title="Ziel" body="Effizienz und Zukunftssicherheit für 5G und darüber hinaus\n\nProbleme:\n**Hohe Investitionskosten**\n**Starre Netzwerke**"
+  notes "Drei Perspektiven: Problem, Ansatz, Ziel."
+
+section "Was ist OpenRAN?"
+
+slide @ueberblick layout=statement
+  fill @title "Überblick"
+  fill @statement "Offener Standard für Mobilfunknetze, der offene Schnittstellen und Komponenten für Interoperabilität definiert und eine flexible, anbieterunabhängige Netzwerkinfrastruktur ermöglicht"
+
+slide @unterschiede layout=content
+  fill @title "Unterschiede zu 5G NR"
+  table @vergleich x=$margin y=$content.y w=1664 style=table cols="1,2.4,2.4"
+    row "" "**5G RAN**" "**OpenRAN**"
+    row "**Hardware & Software**" "Proprietär und fest gekoppelt" "Entkoppelt – COTS-Hardware"
+    row "**Schnittstellen**" "Geschlossen – nicht standardisiert" "Offen – standardisierte Schnittstellen"
+    row "**Marktstruktur**" "Abhängig von wenigen großen Anbietern" "Mehr Anbieter – senkt die Markteintrittshürde"
+    row "**Innovation**" "Langsam – Innovation nur in geschlossenen Systemen" "Schneller – fördert Kreativität durch offene Standards"
+    row "**Flexibilität**" "Niedrig – Netzbetreiber im Vendor-Lock-in" "Hoch – Multi-Vendor-Strategie"
+
+section "Zusammenfassung und Fazit"
+
+slide @fazit layout=statement
+  fill @title "Zusammenfassung und Fazit"
+  fill @statement "Gute Basis für zukünftigen Netzausbau, auch im Hinblick auf „6G and beyond“\n\nBietet Schnittstellen für AI/ML, um zukünftig intelligentere Mobilfunknetze aufzubauen\n\nÖffnet die Tür für Anbieter zu mehr Wettbewerb und Innovation"
+
+slide @ende layout=closing
+  fill @title "Vielen Dank!"
+  fill @subtitle "Fragen und Diskussion"

@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1920 1080" width="1920" height="1080">
+<rect width="1920" height="1080" fill="#FFFFFF"/>
+<g>
+<ellipse cx="1900" cy="1250" rx="1500" ry="1500" fill="#F5F1F7"/>
+</g>
+<g>
+<ellipse cx="1900" cy="1250" rx="1000" ry="1000" fill="#EDE7F2"/>
+</g>
+<g>
+<ellipse cx="75" cy="950" rx="260" ry="260" fill="#F1ECF5"/>
+</g>
+<g>
+<ellipse cx="75" cy="950" rx="160" ry="160" fill="#E6DDEE"/>
+</g>
+<g>
+<ellipse cx="75" cy="950" rx="90" ry="90" fill="#DACFE5"/>
+</g>
+<g>
+<g>
+<ellipse cx="75" cy="920" rx="15" ry="15" fill="none" stroke="#575757" stroke-width="4"/>
+</g>
+<g>
+<ellipse cx="75" cy="920" rx="6" ry="6" fill="#575757"/>
+</g>
+<g>
+<line x1="75" y1="940" x2="36" y2="1080" stroke="#575757" stroke-width="7" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="75" y1="940" x2="114" y2="1080" stroke="#575757" stroke-width="7" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="64" y1="980" x2="96" y2="1015" stroke="#575757" stroke-width="6" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="86" y1="980" x2="54" y2="1015" stroke="#575757" stroke-width="6" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="51" y1="1025" x2="113" y2="1075" stroke="#575757" stroke-width="6" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="99" y1="1025" x2="37" y2="1075" stroke="#575757" stroke-width="6" stroke-linecap="round"/>
+</g>
+</g>
+<g>
+<ellipse cx="1845" cy="905" rx="220" ry="220" fill="#E5DCEC"/>
+</g>
+<g>
+<ellipse cx="1845" cy="905" rx="140" ry="140" fill="#D9CCE4"/>
+</g>
+<g>
+<ellipse cx="1845" cy="905" rx="75" ry="75" fill="#CDBCDB"/>
+</g>
+<g>
+<g>
+<ellipse cx="1845" cy="865" rx="15" ry="15" fill="none" stroke="#575757" stroke-width="4"/>
+</g>
+<g>
+<ellipse cx="1845" cy="865" rx="6" ry="6" fill="#575757"/>
+</g>
+<g>
+<line x1="1845" y1="885" x2="1806" y2="1025" stroke="#575757" stroke-width="7" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="1845" y1="885" x2="1884" y2="1025" stroke="#575757" stroke-width="7" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="1834" y1="925" x2="1866" y2="960" stroke="#575757" stroke-width="6" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="1856" y1="925" x2="1824" y2="960" stroke="#575757" stroke-width="6" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="1821" y1="970" x2="1883" y2="1020" stroke="#575757" stroke-width="6" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="1869" y1="970" x2="1807" y2="1020" stroke="#575757" stroke-width="6" stroke-linecap="round"/>
+</g>
+</g>
+<g>
+<rect x="0" y="1040" width="640" height="40" fill="#64378C"/>
+</g>
+<g>
+<rect x="640" y="1040" width="640" height="40" fill="#CFCFCF"/>
+</g>
+<g>
+<rect x="1280" y="1040" width="640" height="40" fill="#ADADAD"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="19" font-weight="400" fill="#FFFFFF">
+<tspan x="16" y="1066.91">
+<tspan>Offene und Programmierbare zellulare Netze mit OpenRAN</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="19" font-weight="400" fill="#64378C">
+<tspan x="830.34" y="1066.91">
+<tspan>Zusammenfassung und Fazit</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="19" font-weight="400" fill="#64378C">
+<tspan x="1892.22" y="1066.91">
+<tspan>6</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<rect x="128" y="128" width="1200" height="104" rx="52" fill="rgba(255,255,255,0.76)"/>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#000000">
+<tspan x="152" y="196.73">
+<tspan>Zusammenfassung und Fazit</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<rect x="128" y="272" width="1664" height="560" rx="32" fill="rgba(255,255,255,0.76)"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#000000">
+<tspan x="422.84" y="503.57">
+<tspan>Gute Basis für zukünftigen Netzausbau, auch im Hinblick auf „6G and beyond“</tspan>
+</tspan>
+<tspan x="960" y="545.62">
+</tspan>
+<tspan x="369.39" y="587.67">
+<tspan>Bietet Schnittstellen für AI/ML, um zukünftig intelligentere Mobilfunknetze aufzubauen</tspan>
+</tspan>
+<tspan x="960" y="629.72">
+</tspan>
+<tspan x="524.47" y="671.77">
+<tspan>Öffnet die Tür für Anbieter zu mehr Wettbewerb und Innovation</tspan>
+</tspan>
+</text>
+</g>
+</svg>

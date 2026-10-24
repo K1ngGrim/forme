@@ -1,0 +1,145 @@
+theme "HKA Seminar"
+size 1920x1080
+
+// Nachgebaut nach „Seminar_Präsentation.pptx“: Inter, HKA-Lila, Funkturm mit Ringen,
+// Titel in einer halbtransparenten Pille, dreiteilige Fußzeile.
+
+// ---------------------------------------------------------------- Farben
+color primary #64378C
+color ink #000000
+color muted #737373
+color tower #575757
+color panel rgba(255,255,255,0.76)
+color line #737373
+color foot.mid #CFCFCF
+color foot.right #ADADAD
+color ring1 #FAF8FB
+color ring2 #F3EFF6
+color ring3 #E9E3EF
+color ring4 #DED4E6
+color ring5 #D3C6DE
+color ring6 #C5B4D4
+
+// ---------------------------------------------------------------- Maße
+token margin 128
+token gap 48
+token content.y 272
+token content.w (slide.w-2*$margin)
+token content.h 720
+
+// ---------------------------------------------------------------- Schriften und Stile
+// Schriftdateien (SIL Open Font License, siehe fonts/): exakte Textvermessung und Einbettung ins PDF
+font heading "Inter" weight=700 file="./fonts/inter-latin-700-normal.woff"
+font body "Inter" weight=400 file="./fonts/inter-latin-400-normal.woff"
+font heading.italic "Inter" weight=700 italic=true file="./fonts/inter-latin-700-italic.woff"
+font body.italic "Inter" weight=400 italic=true file="./fonts/inter-latin-400-italic.woff"
+
+style title font=heading size=56 color=$ink line=1.2
+style h1 font=heading size=46 color=$ink line=1.2
+style h2 font=heading size=34 color=$primary line=1.25 align=center
+style lead font=body size=29 color=$ink line=1.45
+style body font=body size=23 color=$ink line=1.5
+style strong base=body font=heading
+style caption font=body size=19 color=$muted
+style footer font=body size=19 color=#FFFFFF
+style table font=body size=23 color=$ink pad=20 border=$line fill=$panel header.fill=$panel line=1.4
+
+counter figure start=0
+
+// ---------------------------------------------------------------- Komponenten
+
+// HKA-Wortmarke als Vektor (umfärbbar über color=)
+component hka w=268 h=69 color=#64378C
+  path @mark d="M0 99 L240 99 L240 133 L0 133 Z M101 0 L139 0 L139 230 L101 230 Z M258 0 L297 0 L297 230 L258 230 Z M375 0 L413 0 L413 89 L570 0 L570 44 L446 114 L575 189 L575 230 L413 135 L413 230 L375 230 Z M737 0 L780 0 L893 230 L845 230 L812 160 L697 160 L665 230 L618 230 Z M755 44 L716 125 L795 125 Z" w=param.w h=param.h fill=param.color
+
+// Funkturm (Gittermast mit Antenne)
+component tower w=90 h=180 color=#575757
+  ellipse @signal x=30 y=5 w=30 h=30 fill=none stroke=param.color stroke.width=4
+  ellipse @antenna x=39 y=14 w=12 h=12 fill=param.color
+  line @leg_l x=45 y=40 x2=6 y2=180 stroke=param.color stroke.width=7
+  line @leg_r x=45 y=40 x2=84 y2=180 stroke=param.color stroke.width=7
+  line @brace1 x=34 y=80 x2=66 y2=115 stroke=param.color stroke.width=6
+  line @brace2 x=56 y=80 x2=24 y2=115 stroke=param.color stroke.width=6
+  line @brace3 x=21 y=125 x2=83 y2=175 stroke=param.color stroke.width=6
+  line @brace4 x=69 y=125 x2=7 y2=175 stroke=param.color stroke.width=6
+
+// Inhaltskarte mit lila Überschrift
+component panel w=520 h=640 title="Überschrift" body="Text"
+  rect @bg w=param.w h=param.h radius=32 fill=$panel
+  text @heading param.title style=h2 x=32 y=40 w=(param.w-64)
+  text @text param.body style=body x=32 y=@heading.bottom+24 w=(param.w-64)
+
+// ---------------------------------------------------------------- Master
+
+// Titel- und Schlussfolien: Ringe um den Funkturm, keine Fußzeile
+master plain
+  background fill=#FFFFFF
+  ellipse @ring1 x=(70-2030) y=(925-2030) w=4060 h=4060 fill=$ring1
+  ellipse @ring2 x=(70-1490) y=(925-1490) w=2980 h=2980 fill=$ring2
+  ellipse @ring3 x=(70-905) y=(925-905) w=1810 h=1810 fill=$ring3
+  ellipse @ring4 x=(70-400) y=(925-400) w=800 h=800 fill=$ring4
+  ellipse @ring5 x=(70-200) y=(925-200) w=400 h=400 fill=$ring5
+  ellipse @ring6 x=(70-100) y=(925-100) w=200 h=200 fill=$ring6
+  use @tower tower x=25 y=880 w=90 h=200
+
+// Inhaltsfolien: große Kreisfläche rechts, zwei Funktürme, Fußzeile
+master default
+  background fill=#FFFFFF
+  ellipse @arc1 x=(1900-1500) y=(1250-1500) w=3000 h=3000 fill=#F5F1F7
+  ellipse @arc2 x=(1900-1000) y=(1250-1000) w=2000 h=2000 fill=#EDE7F2
+  ellipse @ringl1 x=(75-260) y=(950-260) w=520 h=520 fill=#F1ECF5
+  ellipse @ringl2 x=(75-160) y=(950-160) w=320 h=320 fill=#E6DDEE
+  ellipse @ringl3 x=(75-90) y=(950-90) w=180 h=180 fill=#DACFE5
+  use @towerl tower x=30 y=900 w=90 h=140
+  ellipse @ringr1 x=(1845-220) y=(905-220) w=440 h=440 fill=#E5DCEC
+  ellipse @ringr2 x=(1845-140) y=(905-140) w=280 h=280 fill=#D9CCE4
+  ellipse @ringr3 x=(1845-75) y=(905-75) w=150 h=150 fill=#CDBCDB
+  use @towerr tower x=1800 y=845 w=90 h=195
+  rect @foot1 x=0 y=1040 w=640 h=40 fill=$primary
+  rect @foot2 x=640 y=1040 w=640 h=40 fill=$foot.mid
+  rect @foot3 x=1280 y=1040 w=640 h=40 fill=$foot.right
+  text @foottitle "{deck.title}" style=footer x=16 y=1040 w=608 h=40 valign=middle
+  text @footsection "{section}" style=footer color=$primary x=640 y=1040 w=640 h=40 valign=middle align=center
+  text @pagenum "{slide.n}" style=footer color=$primary x=1904 y=1040 h=40 valign=middle anchor=right
+
+// ---------------------------------------------------------------- Layouts
+
+layout title master=plain
+  rect @titlebox x=128 y=380 w=1200 h=320 radius=40 fill=$panel
+  slot @title style=title x=152 y=410 w=1152 placeholder="Titel der Präsentation"
+  slot @author style=lead x=152 y=616 w=820 placeholder="Vor- und Nachname"
+  use @logo hka x=1034 y=616 w=268 h=69 color=$primary
+
+// Titel in der Pille, darunter freie Fläche
+layout content master=default
+  slot @title style=h1 x=$margin y=128 w=1200 h=104 pad=24 valign=middle fill=$panel radius=52 placeholder="Folientitel"
+  region content x=$margin y=$content.y w=$content.w h=$content.h
+
+// Drei Spalten für panel-Karten
+layout columns master=default
+  slot @title style=h1 x=$margin y=128 w=1200 h=104 pad=24 valign=middle fill=$panel radius=52 placeholder="Folientitel"
+  region content x=$margin y=$content.y w=$content.w h=$content.h
+  region col1 x=$margin y=$content.y w=(($content.w-2*$gap)/3) h=$content.h
+  region col2 x=(col1.right+$gap) y=$content.y w=col1.w h=$content.h
+  region col3 x=(col2.right+$gap) y=$content.y w=col1.w h=$content.h
+
+// Eine zentrale Aussage auf heller Fläche
+layout statement master=default
+  slot @title style=h1 x=$margin y=128 w=1200 h=104 pad=24 valign=middle fill=$panel radius=52 placeholder="Folientitel"
+  rect @card x=$margin y=$content.y w=$content.w h=560 radius=32 fill=$panel
+  slot @statement style=lead align=center x=($margin+120) y=($content.y+200) w=($content.w-240) placeholder="Kernaussage"
+
+// Kapiteltrenner
+layout section master=default
+  hide @footsection
+  rect @sectionbox x=$margin y=380 w=$content.w h=260 radius=40 fill=$panel
+  slot @title style=title align=center x=($margin+60) y=440 w=($content.w-120) placeholder="Kapitel"
+  slot @subtitle style=lead color=$muted align=center x=($margin+60) y=@title.bottom+20 w=($content.w-120) placeholder="Worum es geht"
+
+layout closing master=plain
+  rect @titlebox x=128 y=380 w=1200 h=320 radius=40 fill=$panel
+  slot @title style=title x=152 y=410 w=1152 placeholder="Vielen Dank!"
+  slot @subtitle style=lead x=152 y=@title.bottom+24 w=820 placeholder="Fragen und Diskussion"
+  use @logo hka x=1034 y=616 w=268 h=69 color=$primary
+
+layout blank master=default

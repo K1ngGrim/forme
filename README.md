@@ -26,6 +26,18 @@ pnpm test                                             # Unit- und Golden-Tests
 Die Sprachreferenz steht in [`docs/language.md`](docs/language.md), die Architektur und die
 Regeln in [`CLAUDE.md`](CLAUDE.md).
 
+## Templates
+
+| Ordner | Vorlage | Layouts | Komponenten |
+| --- | --- | --- | --- |
+| `examples/hka-seminar` | Seminar-Präsentation (Inter, Funkturm-Motiv, dreiteilige Fußzeile) | `title`, `content`, `columns`, `statement`, `section`, `closing`, `blank` | `panel`, `tower`, `hka` |
+| `examples/hka-projektarbeit` | Projektarbeit (Roboto, Karten, vertikale HKA-Marke, „Teil X von Y“) | `title`, `content`, `columns`, `split`, `section`, `closing`, `blank` | `card`, `ncard`, `callout`, `kpi`, `step`, `hka`, `hka_v` |
+
+Jeder Ordner enthält `theme.forme`, ein Beispiel-Deck `deck.forme` und die Schriften (SIL Open
+Font License). Für eine neue Präsentation den Ordner kopieren und `deck.forme` bearbeiten
+oder in einem eigenen Deck `theme "./pfad/zu/theme.forme"` angeben. Die HKA-Marke ist als
+Vektorpfad nachgebaut (`use @logo hka x=… y=… w=… h=… color=$primary`).
+
 ## Aufbau
 
 | Paket | Inhalt |

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1920 1080" width="1920" height="1080">
+<rect width="1920" height="1080" fill="#FFFFFF"/>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="25" font-weight="400" fill="#E13800">
+<tspan x="46" y="54.92">
+<tspan font-weight="700">Hochschule Karlsruhe</tspan>
+</tspan>
+<tspan x="46" y="83.67">
+<tspan>University of</tspan>
+</tspan>
+<tspan x="46" y="112.42">
+<tspan>Applied Sciences</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<g>
+<path d="M0 99 L240 99 L240 133 L0 133 Z M101 0 L139 0 L139 230 L101 230 Z M258 0 L297 0 L297 230 L258 230 Z M375 0 L413 0 L413 89 L570 0 L570 44 L446 114 L575 189 L575 230 L413 135 L413 230 L375 230 Z M737 0 L780 0 L893 230 L845 230 L812 160 L697 160 L665 230 L618 230 Z M755 44 L716 125 L795 125 Z" transform="translate(350 36) scale(0.37 0.37) translate(0 0)" fill="#E13800" vector-effect="non-scaling-stroke"/>
+</g>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="48" font-weight="400" fill="#595959">
+<tspan x="1160.2" y="104.41">
+<tspan>Projektarbeit – Informatik Master</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="101" font-weight="700" fill="#000000">
+<tspan x="357.3" y="395.12">
+<tspan>lego::lab: Schnittstellen zu</tspan>
+</tspan>
+<tspan x="555.83" y="516.32">
+<tspan>externen Displays</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="53" font-weight="400" fill="#334155">
+<tspan x="387.84" y="650.97">
+<tspan>Eine Middleware für entfernte Objekte über einen</tspan>
+</tspan>
+<tspan x="679.23" y="719.87">
+<tspan>anfragegetriebenen Bus</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="43" font-weight="400" font-style="italic" fill="#595959">
+<tspan x="50" y="1009.57">
+<tspan>Florian Kaiser</tspan>
+</tspan>
+</text>
+</g>
+</svg>

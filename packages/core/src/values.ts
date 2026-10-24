@@ -16,12 +16,16 @@ export interface EvalEnv {
   slideN: number;
   deckTotal: number;
   deckTitle: string;
+  /** Number of `section` ops in the deck. */
+  deckSections: number;
   section: string;
   sectionN: number;
   tokens: Record<string, PropValue>;
   counters: Record<string, number>;
   regions: Record<string, Box>;
   objects: Map<string, SceneNode> | null;
+  /** Origin of the enclosing group/component: references inside containers are relative. */
+  origin: { x: number; y: number };
   params: Record<string, PropValue> | null;
 }
 
@@ -139,6 +143,7 @@ function lookupName(env: EvalEnv, path: string[], e: Expr, axis: Axis): PropValu
     case 'deck':
       if (prop === 'total') return env.deckTotal;
       if (prop === 'title') return env.deckTitle;
+      if (prop === 'sections') return env.deckSections;
       return err(env, `Unbekannte Eigenschaft „deck.${prop}“`, e);
     case 'section':
       if (!prop) return env.section;
@@ -205,7 +210,8 @@ export function evalExpr(env: EvalEnv, e: Expr, axis: Axis = null): PropValue | 
             e.obj,
           );
         }
-        const v = boxMember(node.box, e.prop, axis);
+        const b = node.box;
+        const v = boxMember({ x: b.x - env.origin.x, y: b.y - env.origin.y, w: b.w, h: b.h }, e.prop, axis);
         if (v !== undefined) return v;
         const p = node.props[e.prop];
         if (p !== undefined) return p;

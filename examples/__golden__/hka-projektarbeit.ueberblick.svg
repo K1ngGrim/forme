@@ -1,0 +1,184 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1920 1080" width="1920" height="1080">
+<rect width="1920" height="1080" fill="#FFFFFF"/>
+<g>
+<g>
+<path d="M0 99 L240 99 L240 133 L0 133 Z M101 0 L139 0 L139 230 L101 230 Z M258 0 L297 0 L297 230 L258 230 Z M101 280 L139 280 L139 369 L296 280 L296 324 L172 394 L301 469 L301 510 L139 415 L139 510 L101 510 Z M130 560 L173 560 L286 790 L238 790 L205 720 L90 720 L58 790 L11 790 Z M148 604 L109 685 L188 685 Z" transform="translate(1800 724) scale(0.32 0.32) translate(0 0)" fill="#E13800" vector-effect="non-scaling-stroke"/>
+</g>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" font-style="italic" fill="#595959">
+<tspan x="76" y="1023.04">
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="27" font-weight="400" fill="#595959">
+<tspan x="1840.41" y="1031.1">
+<tspan>2</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="61" font-weight="700" fill="#0F2E2E">
+<tspan x="76" y="153.45">
+<tspan>Überblick</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<g>
+<ellipse cx="106" cy="286" rx="30" ry="30" fill="#674EA7"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="35" font-weight="700" fill="#FFFFFF">
+<tspan x="95.96" y="297.96">
+<tspan>1</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#0F2E2E">
+<tspan x="164" y="299.67">
+<tspan>Ausgangslage und Problem</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="816" y="295.49">
+<tspan>Hub, drei Einschränkungen, Anforderungen K1 bis K6</tspan>
+</tspan>
+</text>
+</g>
+</g>
+<g>
+<g>
+<ellipse cx="106" cy="394" rx="30" ry="30" fill="#674EA7"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="35" font-weight="700" fill="#FFFFFF">
+<tspan x="95.96" y="405.96">
+<tspan>2</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#0F2E2E">
+<tspan x="164" y="407.67">
+<tspan>Generische Architektur</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="816" y="403.49">
+<tspan>Fünf Schichten, drei Rollen, zwei Kanäle</tspan>
+</tspan>
+</text>
+</g>
+</g>
+<g>
+<g>
+<ellipse cx="106" cy="502" rx="30" ry="30" fill="#674EA7"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="35" font-weight="700" fill="#FFFFFF">
+<tspan x="95.96" y="513.96">
+<tspan>3</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#0F2E2E">
+<tspan x="164" y="515.67">
+<tspan>Referenzimplementierung</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="816" y="511.49">
+<tspan>Hardware, Bus, Frame, Codec, Objektmodell</tspan>
+</tspan>
+</text>
+</g>
+</g>
+<g>
+<g>
+<ellipse cx="106" cy="610" rx="30" ry="30" fill="#674EA7"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="35" font-weight="700" fill="#FFFFFF">
+<tspan x="95.96" y="621.96">
+<tspan>4</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#0F2E2E">
+<tspan x="164" y="623.67">
+<tspan>Praktische Vorführung</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="816" y="619.49">
+<tspan>Das Display am SPIKE Prime Hub</tspan>
+</tspan>
+</text>
+</g>
+</g>
+<g>
+<g>
+<ellipse cx="106" cy="718" rx="30" ry="30" fill="#674EA7"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="35" font-weight="700" fill="#FFFFFF">
+<tspan x="95.96" y="729.96">
+<tspan>5</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#0F2E2E">
+<tspan x="164" y="731.67">
+<tspan>Evaluation</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="816" y="727.49">
+<tspan>Übertragungsaufwand, Reaktionszeit, Anforderungen</tspan>
+</tspan>
+</text>
+</g>
+</g>
+<g>
+<g>
+<ellipse cx="106" cy="826" rx="30" ry="30" fill="#674EA7"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="35" font-weight="700" fill="#FFFFFF">
+<tspan x="95.96" y="837.96">
+<tspan>6</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#0F2E2E">
+<tspan x="164" y="839.67">
+<tspan>Grenzen und Ausblick</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="816" y="835.49">
+<tspan>Was fehlt und welcher Weg dorthin führt</tspan>
+</tspan>
+</text>
+</g>
+</g>
+</svg>

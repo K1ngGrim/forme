@@ -98,9 +98,22 @@ describe('evaluator', () => {
     expect(node(s, 0, 'g').box).toEqual({ x: 110, y: 110, w: 50, h: 50 });
   });
 
+  it('references inside groups and components are relative to the container', () => {
+    const s = evalSrc('slide @a\n  group @g x=100 y=100\n    rect @r x=10 y=10 w=50 h=50\n    rect @q x=@r.right y=@r.bottom w=10 h=10\n');
+    expect(node(s, 0, 'q').box).toEqual({ x: 160, y: 160, w: 10, h: 10 });
+    const theme = 'theme "T"\ncomponent card w=200 h=100\n  text @a "A" x=10 y=10 size=20 line=1\n  text @b "B" x=10 y=@a.bottom+5 size=20 line=1\n';
+    const c = evalSrc('slide @a\n  use @c card x=500 y=300\n', theme);
+    expect(node(c, 0, 'c').children[1]!.box.y).toBe(300 + 10 + 20 + 5);
+  });
+
   it('rejects theme definitions in decks', () => {
     const s = evalSrc('token x 3\nslide @a\n');
     expect(s.diagnostics.some((d) => d.message.includes('Theme-Definition'))).toBe(true);
+  });
+
+  it('counts sections', () => {
+    const s = evalSrc('section "A"\nslide @a\n  text @t "Teil {section.n} von {deck.sections}"\nsection "B"\nslide @b\n');
+    expect(node(s, 0, 't').props.text).toBe('Teil 1 von 2');
   });
 
   it('numbers hidden slides correctly', () => {

@@ -41,8 +41,8 @@ Einrückung mit **2 Leerzeichen**.
 alle Eigenschaften lesen (`@t.size`).
 
 **Eingebaute Namen:** `slide.w`, `slide.h`, `slide.n` (Foliennummer, ausgeblendete Folien
-zählen nicht mit), `slide.cx`, `slide.cy`, `deck.total`, `deck.title`, `section`,
-`section.n`, `counter.<name>` oder kurz `<name>` für Zähler, `<region>.x/.y/.w/.h/...`
+zählen nicht mit), `slide.cx`, `slide.cy`, `deck.total`, `deck.title`, `deck.sections`
+(Anzahl der Abschnitte), `section`, `section.n`, `counter.<name>` oder kurz `<name>` für Zähler, `<region>.x/.y/.w/.h/...`
 für Regionen des Layouts, `param.<name>` in Komponenten.
 
 ### Interpolation
@@ -143,7 +143,7 @@ Alle Erzeugungs-Ops nehmen eine ID als erstes Argument. Fehlt sie, wird intern e
 | `list @id` | – | wie `text` plus `bullet=disc|dash|number|none`; Kinder: `item "Text" [level=2]` |
 | `image @id "pfad.png"` | Pfad | `x y w h fit=contain|cover|fill radius stroke` (ohne `h`: Seitenverhältnis des Bildes) |
 | `table @id` | – | `x y w cols="1,2,1" size color pad header=true header.fill header.color border stripe`; Kinder: `row "A" "B" "C"` |
-| `group @id` | – | `x y opacity`; Kinder sind Erzeugungs-/Änderungs-Ops mit Koordinaten **relativ** zur Gruppe |
+| `group @id` | – | `x y opacity`; Kinder sind Erzeugungs-/Änderungs-Ops mit Koordinaten **relativ** zur Gruppe (auch Bezüge wie `@a.bottom` liefern innerhalb der Gruppe relative Werte) |
 | `use @id komponente` | Komponentenname | `x y w h` und Parameter der Komponente |
 | `slot @id` | – (nur Layout/Master) | wie `text`, plus `kind=text|image placeholder="…"` |
 | `fill @slot "Inhalt"` | Slot, Text bzw. Bildpfad | weitere Schlüssel überschreiben Eigenschaften des Slots |
@@ -192,7 +192,7 @@ angewendet.
 | --- | --- |
 | `counter` | `counter name [start=0]` (Deck- oder Theme-Ebene) |
 | `number` | `number <zähler> [@ziel] [caption="Abb. {figure}: …"] [pos=below|above] [gap=16] [style=caption]` |
-| `section` | `section "Name"` auf Deck-Ebene, verfügbar als `{section}` und `{section.n}` |
+| `section` | `section "Name"` auf Deck-Ebene, verfügbar als `{section}`, `{section.n}` und `{deck.sections}` |
 
 `number` erhöht den Zähler. Mit `caption` entsteht eine Beschriftung `@<ziel>_caption` unter
 (oder über) dem Ziel, standardmäßig mit dem Stil `caption` bzw. `footer`. Zähler laufen über

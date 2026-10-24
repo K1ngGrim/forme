@@ -1,0 +1,175 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1920 1080" width="1920" height="1080">
+<rect width="1920" height="1080" fill="#FFFFFF"/>
+<g>
+<g>
+<path d="M0 99 L240 99 L240 133 L0 133 Z M101 0 L139 0 L139 230 L101 230 Z M258 0 L297 0 L297 230 L258 230 Z M101 280 L139 280 L139 369 L296 280 L296 324 L172 394 L301 469 L301 510 L139 415 L139 510 L101 510 Z M130 560 L173 560 L286 790 L238 790 L205 720 L90 720 L58 790 L11 790 Z M148 604 L109 685 L188 685 Z" transform="translate(1800 724) scale(0.32 0.32) translate(0 0)" fill="#E13800" vector-effect="non-scaling-stroke"/>
+</g>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" font-style="italic" fill="#595959">
+<tspan x="76" y="1023.04">
+<tspan>Problem</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="27" font-weight="400" fill="#595959">
+<tspan x="1840.41" y="1031.1">
+<tspan>3</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="61" font-weight="700" fill="#0F2E2E">
+<tspan x="76" y="153.45">
+<tspan>Problemstellung: drei Einschränkungen zugleich</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<g>
+<rect x="76" y="232" width="533.33" height="400" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2"/>
+</g>
+<g>
+<rect x="76" y="232" width="533.33" height="10" rx="5" fill="#674EA7"/>
+</g>
+<g>
+<ellipse cx="138" cy="306" rx="30" ry="30" fill="#674EA7"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="35" font-weight="700" fill="#FFFFFF">
+<tspan x="127.96" y="317.96">
+<tspan>1</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#0F2E2E">
+<tspan x="188" y="319.67">
+<tspan>Anfragegetrieben</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="35" font-weight="400" fill="#334155">
+<tspan x="108" y="399.59">
+<tspan>Nur der Hub stößt</tspan>
+</tspan>
+<tspan x="108" y="446.84">
+<tspan>Übertragungen an. Das</tspan>
+</tspan>
+<tspan x="108" y="494.09">
+<tspan>Display kann antworten, aber</tspan>
+</tspan>
+<tspan x="108" y="541.34">
+<tspan>nichts von sich aus senden.</tspan>
+</tspan>
+</text>
+</g>
+</g>
+<g>
+<g>
+<rect x="649.33" y="232" width="533.33" height="400" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2"/>
+</g>
+<g>
+<rect x="649.33" y="232" width="533.33" height="10" rx="5" fill="#674EA7"/>
+</g>
+<g>
+<ellipse cx="711.33" cy="306" rx="30" ry="30" fill="#674EA7"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="35" font-weight="700" fill="#FFFFFF">
+<tspan x="701.29" y="317.96">
+<tspan>2</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#0F2E2E">
+<tspan x="761.33" y="319.67">
+<tspan>16 Byte je Paket</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="35" font-weight="400" fill="#334155">
+<tspan x="681.33" y="399.59">
+<tspan>Feste, sehr kleine Blockgröße.</tspan>
+</tspan>
+<tspan x="681.33" y="446.84">
+<tspan>Nachrichten üblicher Größe</tspan>
+</tspan>
+<tspan x="681.33" y="494.09">
+<tspan>passen nicht in ein Paket.</tspan>
+</tspan>
+</text>
+</g>
+</g>
+<g>
+<g>
+<rect x="1222.67" y="232" width="533.33" height="400" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2"/>
+</g>
+<g>
+<rect x="1222.67" y="232" width="533.33" height="10" rx="5" fill="#674EA7"/>
+</g>
+<g>
+<ellipse cx="1284.67" cy="306" rx="30" ry="30" fill="#674EA7"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="35" font-weight="700" fill="#FFFFFF">
+<tspan x="1274.63" y="317.96">
+<tspan>3</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#0F2E2E">
+<tspan x="1334.67" y="319.67">
+<tspan>Beschränkte Laufzeit</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="35" font-weight="400" fill="#334155">
+<tspan x="1254.67" y="399.59">
+<tspan>Pybricks: kein Netzwerkstack,</tspan>
+</tspan>
+<tspan x="1254.67" y="446.84">
+<tspan>keine Threads, Ganzzahlen</tspan>
+</tspan>
+<tspan x="1254.67" y="494.09">
+<tspan>nur bis 2³⁰−1.</tspan>
+</tspan>
+</text>
+</g>
+</g>
+<g>
+<g>
+<rect x="76" y="680" width="1680" height="270" rx="16" fill="#EDE9FE" stroke="#C4B5FD" stroke-width="2"/>
+</g>
+<g>
+<rect x="116" y="708" width="145.12" height="64.25" rx="26" fill="#674EA7"/>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="700" fill="#FFFFFF">
+<tspan x="130" y="750.04">
+<tspan>Leitfrage</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="37" font-weight="400" font-style="italic" fill="#0F2E2E">
+<tspan x="116" y="830.8">
+<tspan>Wie lässt sich eine Middleware entwerfen, die </tspan>
+<tspan font-weight="700">entfernte Objekte</tspan>
+<tspan> über eine anfragegetriebene</tspan>
+</tspan>
+<tspan x="116" y="882.6">
+<tspan>Verbindung mit sehr kleiner Paketgröße auf beschränkten Laufzeitumgebungen </tspan>
+<tspan font-weight="700">transparent nutzbar</tspan>
+</tspan>
+<tspan x="116" y="934.4">
+<tspan>macht?</tspan>
+</tspan>
+</text>
+</g>
+</g>
+</svg>

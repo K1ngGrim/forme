@@ -1,0 +1,233 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1920 1080" width="1920" height="1080">
+<rect width="1920" height="1080" fill="#FFFFFF"/>
+<g>
+<g>
+<path d="M0 99 L240 99 L240 133 L0 133 Z M101 0 L139 0 L139 230 L101 230 Z M258 0 L297 0 L297 230 L258 230 Z M101 280 L139 280 L139 369 L296 280 L296 324 L172 394 L301 469 L301 510 L139 415 L139 510 L101 510 Z M130 560 L173 560 L286 790 L238 790 L205 720 L90 720 L58 790 L11 790 Z M148 604 L109 685 L188 685 Z" transform="translate(1800 724) scale(0.32 0.32) translate(0 0)" fill="#E13800" vector-effect="non-scaling-stroke"/>
+</g>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" font-style="italic" fill="#595959">
+<tspan x="76" y="1023.04">
+<tspan>Evaluation</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="27" font-weight="400" fill="#595959">
+<tspan x="1840.41" y="1031.1">
+<tspan>6</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="61" font-weight="700" fill="#0F2E2E">
+<tspan x="76" y="153.45">
+<tspan>Funktionaler Nachweis und Messaufbau</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<g>
+<rect x="76" y="232" width="533.33" height="240" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2"/>
+</g>
+<g>
+<rect x="76" y="232" width="533.33" height="10" rx="5" fill="#674EA7"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="85" font-weight="700" fill="#674EA7">
+<tspan x="108" y="354.18">
+<tspan>640</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="108" y="415.74">
+<tspan>Aufrufe in vier Läufen, keine</tspan>
+</tspan>
+<tspan x="108" y="454.89">
+<tspan>Wiederholung, kein Fehlschlag</tspan>
+</tspan>
+</text>
+</g>
+</g>
+<g>
+<g>
+<rect x="649.33" y="232" width="533.33" height="240" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2"/>
+</g>
+<g>
+<rect x="649.33" y="232" width="533.33" height="10" rx="5" fill="#674EA7"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="85" font-weight="700" fill="#674EA7">
+<tspan x="681.33" y="354.18">
+<tspan>8 × 20</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="681.33" y="415.74">
+<tspan>Textlängen × Wiederholungen je</tspan>
+</tspan>
+<tspan x="681.33" y="454.89">
+<tspan>Konfiguration</tspan>
+</tspan>
+</text>
+</g>
+</g>
+<g>
+<g>
+<rect x="1222.67" y="232" width="533.33" height="240" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2"/>
+</g>
+<g>
+<rect x="1222.67" y="232" width="533.33" height="10" rx="5" fill="#674EA7"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="85" font-weight="700" fill="#674EA7">
+<tspan x="1254.67" y="354.18">
+<tspan>4</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="1254.67" y="415.74">
+<tspan>Konfigurationen: 13 oder 7 Byte</tspan>
+</tspan>
+<tspan x="1254.67" y="454.89">
+<tspan>Nutzlast, MessagePack oder JSON</tspan>
+</tspan>
+</text>
+</g>
+</g>
+<g>
+<rect x="76" y="520" width="560" height="73.7" fill="#674EA7"/>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="700" fill="#FFFFFF">
+<tspan x="94" y="566.76">
+<tspan>Konfiguration</tspan>
+</tspan>
+</text>
+<rect x="636" y="520" width="280" height="73.7" fill="#674EA7"/>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="700" fill="#FFFFFF">
+<tspan x="654" y="566.76">
+<tspan>Round Trips</tspan>
+</tspan>
+</text>
+<rect x="916" y="520" width="280" height="73.7" fill="#674EA7"/>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="700" fill="#FFFFFF">
+<tspan x="934" y="566.76">
+<tspan>Median</tspan>
+</tspan>
+</text>
+<rect x="1196" y="520" width="280" height="73.7" fill="#674EA7"/>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="700" fill="#FFFFFF">
+<tspan x="1214" y="566.76">
+<tspan>Minimum</tspan>
+</tspan>
+</text>
+<rect x="1476" y="520" width="280" height="73.7" fill="#674EA7"/>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="700" fill="#FFFFFF">
+<tspan x="1494" y="566.76">
+<tspan>Maximum</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="94" y="640.46">
+<tspan>MessagePack, 13 Byte</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="654" y="640.46">
+<tspan>4 bis 13</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="934" y="640.46">
+<tspan>920 ms</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="1214" y="640.46">
+<tspan>457 ms</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="1494" y="640.46">
+<tspan>1499 ms</tspan>
+</tspan>
+</text>
+<rect x="76" y="667.4" width="560" height="73.7" fill="#F8FAFC"/>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="94" y="714.16">
+<tspan>MessagePack, 7 Byte</tspan>
+</tspan>
+</text>
+<rect x="636" y="667.4" width="280" height="73.7" fill="#F8FAFC"/>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="654" y="714.16">
+<tspan>5 bis 23</tspan>
+</tspan>
+</text>
+<rect x="916" y="667.4" width="280" height="73.7" fill="#F8FAFC"/>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="934" y="714.16">
+<tspan>1434 ms</tspan>
+</tspan>
+</text>
+<rect x="1196" y="667.4" width="280" height="73.7" fill="#F8FAFC"/>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="1214" y="714.16">
+<tspan>571 ms</tspan>
+</tspan>
+</text>
+<rect x="1476" y="667.4" width="280" height="73.7" fill="#F8FAFC"/>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="1494" y="714.16">
+<tspan>2642 ms</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="94" y="787.86">
+<tspan>JSON, 13 Byte</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="654" y="787.86">
+<tspan>6 bis 15</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="934" y="787.86">
+<tspan>1085 ms</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="1214" y="787.86">
+<tspan>685 ms</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="29" font-weight="400" fill="#334155">
+<tspan x="1494" y="787.86">
+<tspan>1716 ms</tspan>
+</tspan>
+</text>
+<g stroke="#E2E8F0" stroke-width="2" fill="none">
+<rect x="76" y="520" width="1680" height="294.8"/>
+<line x1="76" y1="593.7" x2="1756" y2="593.7"/>
+<line x1="76" y1="667.4" x2="1756" y2="667.4"/>
+<line x1="76" y1="741.1" x2="1756" y2="741.1"/>
+<line x1="636" y1="520" x2="636" y2="814.8"/>
+<line x1="916" y1="520" x2="916" y2="814.8"/>
+<line x1="1196" y1="520" x2="1196" y2="814.8"/>
+<line x1="1476" y1="520" x2="1476" y2="814.8"/>
+</g>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Roboto&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="27" font-weight="400" fill="#595959">
+<tspan x="76" y="856.9">
+<tspan>Tab. 1: Messwerte je Konfiguration</tspan>
+</tspan>
+</text>
+</g>
+</svg>

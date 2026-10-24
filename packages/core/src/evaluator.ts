@@ -206,6 +206,7 @@ function baseEnv(src: Document, file: FileRole, diags: Diagnostic[]): EvalEnv {
     slideN: 1,
     deckTotal: 1,
     deckTitle: '',
+    deckSections: 0,
     section: '',
     sectionN: 0,
     tokens: {},
@@ -213,6 +214,7 @@ function baseEnv(src: Document, file: FileRole, diags: Diagnostic[]): EvalEnv {
     regions: {},
     objects: null,
     params: null,
+    origin: { x: 0, y: 0 },
   };
 }
 
@@ -972,7 +974,11 @@ function createOp(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null): voi
   refresh(ctx, node);
 
   if (kind === 'group') {
+    const savedOrigin = ctx.env.origin;
+    const o = originOf(ctx, node);
+    ctx.env.origin = { x: o.x + num(node.props.x, 0), y: o.y + num(node.props.y, 0) };
     for (const c of op.children) evalOp(ctx, c, src, node, 'group');
+    ctx.env.origin = savedOrigin;
     refresh(ctx, node);
   }
 }
@@ -999,7 +1005,9 @@ function createUse(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null, id:
     params[a.key] = v;
   }
   // evaluate component body in the theme file with local ids
-  const saved = { comp: ctx.componentObjects, params: ctx.env.params, objects: ctx.env.objects, src: ctx.env.src, file: ctx.env.file };
+  const saved = { comp: ctx.componentObjects, params: ctx.env.params, objects: ctx.env.objects, src: ctx.env.src, file: ctx.env.file, origin: ctx.env.origin };
+  const o = originOf(ctx, node);
+  ctx.env.origin = { x: o.x + num(node.props.x, 0), y: o.y + num(node.props.y, 0) };
   const local = new Map<string, SceneNode>();
   ctx.componentObjects = local;
   ctx.env.params = params;
@@ -1012,6 +1020,7 @@ function createUse(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null, id:
   ctx.env.objects = saved.objects;
   ctx.env.src = saved.src;
   ctx.env.file = saved.file;
+  ctx.env.origin = saved.origin;
   refresh(ctx, node);
 }
 
@@ -1568,7 +1577,7 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
     if (!hidden) visible++;
     const id = slideIdOf(op, index);
     const key = cache
-      ? [id, visible, total, sec, secN, title, JSON.stringify(counters), seenIds.has(id), deck.source.slice(op.line.start, op.blockEnd)].join('\u0000')
+      ? [id, visible, total, sec, secN, sectionN, title, JSON.stringify(counters), seenIds.has(id), deck.source.slice(op.line.start, op.blockEnd)].join('\u0000')
       : '';
     const cached = cache?.slides.get(id);
     if (cache && cached && cached.key === key) {
@@ -1614,6 +1623,7 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
       slideN: scene.n,
       deckTotal: total,
       deckTitle: title,
+      deckSections: sectionN,
       section: sec,
       sectionN: secN,
       tokens: theme.tokens,
@@ -1621,6 +1631,7 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
       regions: scene.regions,
       objects: scene.byId,
       params: null,
+      origin: { x: 0, y: 0 },
     };
     const ctx: Ctx = {
       theme,

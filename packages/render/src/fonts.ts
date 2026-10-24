@@ -22,6 +22,33 @@ interface Entry {
 }
 
 /**
+ * Advance width in font units. Glyph by glyph with pair kerning: opentype.js' full shaping
+ * (`getAdvanceWidth`) throws on some GSUB lookups found in common fonts (e.g. Roboto).
+ * Returns -1 if the font cannot be measured at all.
+ */
+function advance(font: Font, text: string): number {
+  try {
+    let w = 0;
+    let prev: ReturnType<Font['charToGlyph']> | null = null;
+    for (const ch of text) {
+      const g = font.charToGlyph(ch);
+      w += g.advanceWidth ?? 0;
+      if (prev) {
+        try {
+          w += font.getKerningValue(prev, g);
+        } catch {
+          // kerning table not readable: ignore
+        }
+      }
+      prev = g;
+    }
+    return w;
+  } catch {
+    return -1;
+  }
+}
+
+/**
  * Measurer based on real font files (theme `font ... file=`). Falls back to the
  * deterministic metric measurer for families without a loaded file, so editor,
  * CLI and PDF export lay text out identically.
@@ -52,10 +79,10 @@ export function createFontMeasurer(fonts: LoadedFont[]): TextMeasurer {
       const key = `${e.family}|${e.weight}|${e.italic}|${text}`;
       let w = cache.get(key);
       if (w === undefined) {
-        w = e.font.getAdvanceWidth(text, 1000, { kerning: true });
+        w = advance(e.font, text);
         cache.set(key, w);
       }
-      return (w / 1000) * spec.size;
+      return w < 0 ? fallback.width(text, spec) : (w / e.font.unitsPerEm) * spec.size;
     },
     ascent(spec) {
       const e = pick(spec);

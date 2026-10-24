@@ -1,0 +1,222 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1920 1080" width="1920" height="1080">
+<rect width="1920" height="1080" fill="#FFFFFF"/>
+<g>
+<ellipse cx="1900" cy="1250" rx="1500" ry="1500" fill="#F5F1F7"/>
+</g>
+<g>
+<ellipse cx="1900" cy="1250" rx="1000" ry="1000" fill="#EDE7F2"/>
+</g>
+<g>
+<ellipse cx="75" cy="950" rx="260" ry="260" fill="#F1ECF5"/>
+</g>
+<g>
+<ellipse cx="75" cy="950" rx="160" ry="160" fill="#E6DDEE"/>
+</g>
+<g>
+<ellipse cx="75" cy="950" rx="90" ry="90" fill="#DACFE5"/>
+</g>
+<g>
+<g>
+<ellipse cx="75" cy="920" rx="15" ry="15" fill="none" stroke="#575757" stroke-width="4"/>
+</g>
+<g>
+<ellipse cx="75" cy="920" rx="6" ry="6" fill="#575757"/>
+</g>
+<g>
+<line x1="75" y1="940" x2="36" y2="1080" stroke="#575757" stroke-width="7" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="75" y1="940" x2="114" y2="1080" stroke="#575757" stroke-width="7" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="64" y1="980" x2="96" y2="1015" stroke="#575757" stroke-width="6" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="86" y1="980" x2="54" y2="1015" stroke="#575757" stroke-width="6" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="51" y1="1025" x2="113" y2="1075" stroke="#575757" stroke-width="6" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="99" y1="1025" x2="37" y2="1075" stroke="#575757" stroke-width="6" stroke-linecap="round"/>
+</g>
+</g>
+<g>
+<ellipse cx="1845" cy="905" rx="220" ry="220" fill="#E5DCEC"/>
+</g>
+<g>
+<ellipse cx="1845" cy="905" rx="140" ry="140" fill="#D9CCE4"/>
+</g>
+<g>
+<ellipse cx="1845" cy="905" rx="75" ry="75" fill="#CDBCDB"/>
+</g>
+<g>
+<g>
+<ellipse cx="1845" cy="865" rx="15" ry="15" fill="none" stroke="#575757" stroke-width="4"/>
+</g>
+<g>
+<ellipse cx="1845" cy="865" rx="6" ry="6" fill="#575757"/>
+</g>
+<g>
+<line x1="1845" y1="885" x2="1806" y2="1025" stroke="#575757" stroke-width="7" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="1845" y1="885" x2="1884" y2="1025" stroke="#575757" stroke-width="7" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="1834" y1="925" x2="1866" y2="960" stroke="#575757" stroke-width="6" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="1856" y1="925" x2="1824" y2="960" stroke="#575757" stroke-width="6" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="1821" y1="970" x2="1883" y2="1020" stroke="#575757" stroke-width="6" stroke-linecap="round"/>
+</g>
+<g>
+<line x1="1869" y1="970" x2="1807" y2="1020" stroke="#575757" stroke-width="6" stroke-linecap="round"/>
+</g>
+</g>
+<g>
+<rect x="0" y="1040" width="640" height="40" fill="#64378C"/>
+</g>
+<g>
+<rect x="640" y="1040" width="640" height="40" fill="#CFCFCF"/>
+</g>
+<g>
+<rect x="1280" y="1040" width="640" height="40" fill="#ADADAD"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="19" font-weight="400" fill="#FFFFFF">
+<tspan x="16" y="1066.91">
+<tspan>Offene und Programmierbare zellulare Netze mit OpenRAN</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="19" font-weight="400" fill="#64378C">
+<tspan x="875.61" y="1066.91">
+<tspan>Was ist OpenRAN?</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="19" font-weight="400" fill="#64378C">
+<tspan x="1892.73" y="1066.91">
+<tspan>5</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<rect x="128" y="128" width="1200" height="104" rx="52" fill="rgba(255,255,255,0.76)"/>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#000000">
+<tspan x="152" y="196.73">
+<tspan>Unterschiede zu 5G NR</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<rect x="128" y="272" width="1664" height="433.2" fill="rgba(255,255,255,0.76)"/>
+<rect x="128" y="272" width="286.9" height="72.2" fill="rgba(255,255,255,0.76)"/>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="700" fill="#000000">
+<tspan x="148" y="316.47">
+</tspan>
+</text>
+<rect x="414.9" y="272" width="688.55" height="72.2" fill="rgba(255,255,255,0.76)"/>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="700" fill="#000000">
+<tspan x="434.9" y="316.47">
+<tspan font-weight="700">5G RAN</tspan>
+</tspan>
+</text>
+<rect x="1103.45" y="272" width="688.55" height="72.2" fill="rgba(255,255,255,0.76)"/>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="700" fill="#000000">
+<tspan x="1123.45" y="316.47">
+<tspan font-weight="700">OpenRAN</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="400" fill="#000000">
+<tspan x="148" y="388.67">
+<tspan font-weight="700">Hardware &amp; Software</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="400" fill="#000000">
+<tspan x="434.9" y="388.67">
+<tspan>Proprietär und fest gekoppelt</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="400" fill="#000000">
+<tspan x="1123.45" y="388.67">
+<tspan>Entkoppelt – COTS-Hardware</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="400" fill="#000000">
+<tspan x="148" y="460.87">
+<tspan font-weight="700">Schnittstellen</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="400" fill="#000000">
+<tspan x="434.9" y="460.87">
+<tspan>Geschlossen – nicht standardisiert</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="400" fill="#000000">
+<tspan x="1123.45" y="460.87">
+<tspan>Offen – standardisierte Schnittstellen</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="400" fill="#000000">
+<tspan x="148" y="533.07">
+<tspan font-weight="700">Marktstruktur</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="400" fill="#000000">
+<tspan x="434.9" y="533.07">
+<tspan>Abhängig von wenigen großen Anbietern</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="400" fill="#000000">
+<tspan x="1123.45" y="533.07">
+<tspan>Mehr Anbieter – senkt die Markteintrittshürde</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="400" fill="#000000">
+<tspan x="148" y="605.27">
+<tspan font-weight="700">Innovation</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="400" fill="#000000">
+<tspan x="434.9" y="605.27">
+<tspan>Langsam – Innovation nur in geschlossenen Systemen</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="400" fill="#000000">
+<tspan x="1123.45" y="605.27">
+<tspan>Schneller – fördert Kreativität durch offene Standards</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="400" fill="#000000">
+<tspan x="148" y="677.47">
+<tspan font-weight="700">Flexibilität</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="400" fill="#000000">
+<tspan x="434.9" y="677.47">
+<tspan>Niedrig – Netzbetreiber im Vendor-Lock-in</tspan>
+</tspan>
+</text>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="400" fill="#000000">
+<tspan x="1123.45" y="677.47">
+<tspan>Hoch – Multi-Vendor-Strategie</tspan>
+</tspan>
+</text>
+<g stroke="#737373" stroke-width="2" fill="none">
+<rect x="128" y="272" width="1664" height="433.2"/>
+<line x1="128" y1="344.2" x2="1792" y2="344.2"/>
+<line x1="128" y1="416.4" x2="1792" y2="416.4"/>
+<line x1="128" y1="488.6" x2="1792" y2="488.6"/>
+<line x1="128" y1="560.8" x2="1792" y2="560.8"/>
+<line x1="128" y1="633" x2="1792" y2="633"/>
+<line x1="414.9" y1="272" x2="414.9" y2="705.2"/>
+<line x1="1103.45" y1="272" x2="1103.45" y2="705.2"/>
+</g>
+</g>
+</svg>
