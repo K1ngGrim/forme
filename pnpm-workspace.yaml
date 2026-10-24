@@ -1,3 +1,12 @@
 packages:
   - packages/*
   - apps/*
+
+# Dependencies allowed to run install scripts (Electron downloads its binary there).
+# `allowBuilds` is read by pnpm >= 11, `onlyBuiltDependencies` by pnpm 10.
+allowBuilds:
+  electron: true
+  esbuild: true
+onlyBuiltDependencies:
+  - electron
+  - esbuild
