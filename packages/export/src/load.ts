@@ -28,15 +28,23 @@ async function tryRead(path: string): Promise<Uint8Array | null> {
   }
 }
 
+export interface LoadOverrides {
+  /** In-memory deck source (e.g. unsaved editor state). */
+  deckSource?: string;
+  /** In-memory theme source. */
+  themeSource?: string | null;
+}
+
 /** Load a deck from disk: theme, fonts and image sizes included. */
-export async function loadDeck(deckPath: string): Promise<LoadedDeck> {
+export async function loadDeck(deckPath: string, over: LoadOverrides = {}): Promise<LoadedDeck> {
   const abs = resolve(deckPath);
   const baseDir = dirname(abs);
-  const source = await readFile(abs, 'utf8');
+  const source = over.deckSource ?? (await readFile(abs, 'utf8'));
   const deck = parse(source);
   const rel = themePathOf(deck);
   const themeAbs = rel ? resolve(baseDir, rel) : null;
-  const theme = themeAbs ? parse(await readFile(themeAbs, 'utf8')) : null;
+  const themeSrc = themeAbs ? (over.themeSource ?? (await readFile(themeAbs, 'utf8'))) : null;
+  const theme = themeSrc !== null ? parse(themeSrc) : null;
   const themeDir = themeAbs ? dirname(themeAbs) : baseDir;
   const resolvePath = (p: string): string => (isAbsolute(p) ? p : resolve(baseDir, p));
   // first pass: discover fonts and images

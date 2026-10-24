@@ -49,10 +49,19 @@ describe('edit engine', () => {
     );
   });
 
-  it('rule 2: layout objects are overridden at the top of the slide', () => {
-    const src = 'slide @a layout=content\n  fill @title "Hallo"\n';
+  it('rule 2: overrides go after the last op targeting the object', () => {
+    const src = 'slide @a\n  rect @r x=(1+1) y=0\n  rect @q y=0\n  align top @r @q\n';
+    expect(run(src, { type: 'move', slide: 'a', ids: ['r'], dx: 5, dy: 0 })).toBe('slide @a\n  rect @r x=(1+1) y=0\n  rect @q y=0\n  align top @r @q\n  set @r x=7\n');
+  });
+
+  it('rule 2: layout objects are overridden after the ops touching them', () => {
+    const src = 'slide @a layout=content\n  fill @title "Hallo"\n  rect @r\n';
     expect(run(src, { type: 'move', slide: 'a', ids: ['title'], dx: 0, dy: 10 })).toBe(
-      'slide @a layout=content\n  set @title y=130\n  fill @title "Hallo"\n',
+      'slide @a layout=content\n  fill @title "Hallo"\n  set @title y=130\n  rect @r\n',
+    );
+    // untouched layout objects: at the top of the slide
+    expect(run('slide @a layout=content\n  rect @r\n', { type: 'move', slide: 'a', ids: ['pagenum'], dx: 0, dy: -10 })).toBe(
+      'slide @a layout=content\n  set @pagenum y=990\n  rect @r\n',
     );
   });
 
@@ -66,6 +75,12 @@ describe('edit engine', () => {
     const theme = 'theme "T"\nlayout content\n  slot @title x=120 y=100\n';
     const out = run('slide @a layout=content\n', { type: 'move', slide: 'a', ids: ['title'], dx: 10, dy: 0 }, 'theme', theme);
     expect(out).toBe('theme "T"\nlayout content\n  slot @title x=130 y=100\n');
+  });
+
+  it('theme mode overrides expressions inside the layout block', () => {
+    const theme = 'theme "T"\ntoken m 100\nlayout content\n  slot @title x=$m y=100\n  region content\n';
+    const out = run('slide @a layout=content\n', { type: 'move', slide: 'a', ids: ['title'], dx: 10, dy: 0 }, 'theme', theme);
+    expect(out).toBe('theme "T"\ntoken m 100\nlayout content\n  slot @title x=$m y=100\n  set @title x=110\n  region content\n');
   });
 
   it('move ops adjust their relative amount', () => {

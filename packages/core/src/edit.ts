@@ -1,5 +1,5 @@
 import type { FileRole, Span } from './diagnostics.js';
-import { escapeString } from './lexer.js';
+import { escapeString, unescapeString } from './lexer.js';
 import type { Document, OpNode } from './parser.js';
 import { argByKey, positional, walkOps } from './parser.js';
 import type { WriteValue } from './printer.js';
@@ -101,6 +101,7 @@ class Builder {
   readonly themeEdits: TextEdit[] = [];
   readonly warnings: string[] = [];
   readonly overrides = new Map<string, Override>();
+  readonly themeOverrides = new Map<string, Override>();
   readonly appended = new Map<OpNode, string[]>();
   readonly replaced = new Set<string>();
   error: string | undefined;
@@ -160,8 +161,17 @@ class Builder {
       } else if (!prov && node.origin.file === 'theme' && isCreation(node.origin.verb)) {
         const op = this.opOf('theme', node.origin.line);
         if (op) this.appendArg('theme', op, key, text);
+      } else if (node.origin.file === 'theme' && node.origin.scope !== 'component') {
+        // expression in the theme: override inside the same master/layout block
+        const writer = prov && prov.op.file === 'theme' && !prov.inherited ? this.opOf('theme', prov.op.line) : null;
+        const own = this.opOf('theme', node.origin.line);
+        const anchor = writer && own && writer.span.start > own.span.start ? writer : own;
+        if (!anchor) return;
+        const ov = this.themeOverrides.get(node.id) ?? { node, props: new Map(), anchor };
+        ov.props.set(key, text);
+        this.themeOverrides.set(node.id, ov);
       } else {
-        this.error = `„${key}“ von @${node.id} ist im Theme nicht als Literal definiert und kann hier nicht geändert werden`;
+        this.error = `@${node.id} ist nicht im Theme definiert – im Theme-Modus nur Theme-Objekte bearbeiten`;
       }
       return;
     }
@@ -179,9 +189,13 @@ class Builder {
     }
     // rule 2: override with a set line after the last writer in this slide
     let anchor = prov && this.inSlide(prov.op) ? this.opOf('deck', prov.op.line) : null;
-    // never place the override before the object exists (e.g. like= copies)
-    const own = this.inSlide(node.origin) ? this.opOf('deck', node.origin.line) : null;
-    if (own && (!anchor || own.span.start > anchor.span.start)) anchor = own;
+    // never place the override before the object exists (like= copies) or before a later op
+    // that targets it (e.g. an align that happened not to change this property)
+    for (const ref of [node.origin, ...node.touchedBy]) {
+      if (!this.inSlide(ref)) continue;
+      const op = this.opOf('deck', ref.line);
+      if (op && (!anchor || op.span.start > anchor.span.start)) anchor = op;
+    }
     const ov = this.overrides.get(node.id) ?? { node, props: new Map(), anchor: null };
     ov.props.set(key, text);
     if (anchor && (!ov.anchor || anchor.span.start > ov.anchor.span.start)) ov.anchor = anchor;
@@ -210,13 +224,15 @@ class Builder {
       const file: FileRole = this.ctx.deck.lines[op.line.index]?.op === op ? 'deck' : 'theme';
       this.push(file, { from: op.span.end, to: op.span.end, insert: ' ' + args.join(' ') });
     }
-    for (const ov of this.overrides.values()) this.flushOverride(ov);
+    for (const ov of this.overrides.values()) this.flushOverride(ov, 'deck');
+    for (const ov of this.themeOverrides.values()) this.flushOverride(ov, 'theme');
   }
 
-  flushOverride(ov: Override): void {
-    const slideOp = this.slideOp();
+  flushOverride(ov: Override, file: FileRole): void {
+    const doc = this.doc(file);
+    const slideOp = file === 'deck' ? this.slideOp() : null;
     const anchor = ov.anchor;
-    const siblings = anchor ? (anchor.parent ? anchor.parent.children : this.ctx.deck.ops) : slideOp.children;
+    const siblings = anchor ? (anchor.parent ? anchor.parent.children : doc.ops) : (slideOp as OpNode).children;
     const next = anchor ? siblings[siblings.indexOf(anchor) + 1] : siblings[0];
     if (next && next.verb === 'set') {
       const targets = positional(next).filter((a) => a.value.k === 'id');
@@ -224,16 +240,16 @@ class Builder {
         const extra: string[] = [];
         for (const [k, t] of ov.props) {
           const a = argByKey(next, k);
-          if (a) this.replace('deck', a.value.span, t);
+          if (a) this.replace(file, a.value.span, t);
           else extra.push(`${k}=${t}`);
         }
-        if (extra.length) this.push('deck', { from: next.span.end, to: next.span.end, insert: ' ' + extra.join(' ') });
+        if (extra.length) this.push(file, { from: next.span.end, to: next.span.end, insert: ' ' + extra.join(' ') });
         return;
       }
     }
     const line = `set @${ov.node.id} ${[...ov.props].map(([k, t]) => `${k}=${t}`).join(' ')}`;
-    if (anchor) this.push('deck', { from: anchor.blockEnd, to: anchor.blockEnd, insert: `\n${' '.repeat(anchor.indent)}${line}` });
-    else this.push('deck', { from: slideOp.line.end, to: slideOp.line.end, insert: `\n${bodyIndent(slideOp)}${line}` });
+    if (anchor) this.push(file, { from: anchor.blockEnd, to: anchor.blockEnd, insert: `\n${' '.repeat(anchor.indent)}${line}` });
+    else if (slideOp) this.push(file, { from: slideOp.line.end, to: slideOp.line.end, insert: `\n${bodyIndent(slideOp)}${line}` });
   }
 
   result(extra: Partial<EditResult> = {}): EditResult {
@@ -546,8 +562,27 @@ function textIntent(ctx: EditContext, b: Builder, slide: SlideScene, id: string,
     const at = slideOp.line.end;
     return { file: 'deck', edits: [{ from: at, to: at, insert: `\n${bodyIndent(slideOp)}fill @${id} ${escapeString(text)}` }], warnings: [], select: [id] };
   }
+  // strings on this slide are replaced in place, interpolations included
+  if (prov && prov.value && b.inSlide(prov.op) && ctx.deck.source[prov.value.start] === '"' && !prov.semantic && !prov.inherited) {
+    b.replace('deck', prov.value, escapeString(text));
+    return b.result({ select: [id] });
+  }
   b.writeProp(node, key, text);
   return b.result({ select: [id] });
+}
+
+/** Raw (unevaluated) text of a node's text property, so editing keeps `{interpolation}`. */
+export function rawText(deck: Document, theme: Document | null, node: SceneNode): string {
+  if (node.kind === 'list') return (node.items ?? []).map((i) => `${'  '.repeat(Math.max(0, i.level - 1))}${i.text}`).join('\n');
+  const key = node.kind === 'image' ? 'src' : 'text';
+  const prov = node.prov[key];
+  const value = node.props[key];
+  if (prov && prov.value) {
+    const src = (prov.op.file === 'theme' ? theme?.source : deck.source) ?? '';
+    const raw = src.slice(prov.value.start, prov.value.end);
+    if (raw.startsWith('"')) return unescapeString(raw);
+  }
+  return typeof value === 'string' ? value : '';
 }
 
 function duplicateIntent(ctx: EditContext, slide: SlideScene, ids: string[]): EditResult {

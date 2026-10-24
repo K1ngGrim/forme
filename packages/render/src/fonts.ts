@@ -1,6 +1,11 @@
 import type { FontSpec, TextMeasurer } from '@forme/core';
 import { createMetricMeasurer } from '@forme/core';
-import opentype from 'opentype.js';
+import * as opentypeNs from 'opentype.js';
+import type { Font } from 'opentype.js';
+
+// opentype.js ships ESM named exports and a UMD default; support both
+const ot = opentypeNs as unknown as { parse?: (b: ArrayBuffer) => Font; default?: { parse: (b: ArrayBuffer) => Font } };
+const parseFont = (b: ArrayBuffer): Font => (ot.parse ?? (ot.default as { parse: (b: ArrayBuffer) => Font }).parse)(b);
 
 export interface LoadedFont {
   family: string;
@@ -13,7 +18,7 @@ interface Entry {
   family: string;
   weight: number;
   italic: boolean;
-  font: opentype.Font;
+  font: Font;
 }
 
 /**
@@ -26,7 +31,7 @@ export function createFontMeasurer(fonts: LoadedFont[]): TextMeasurer {
   const entries: Entry[] = [];
   for (const f of fonts) {
     try {
-      entries.push({ family: f.family.toLowerCase(), weight: f.weight, italic: f.italic, font: opentype.parse(f.data) });
+      entries.push({ family: f.family.toLowerCase(), weight: f.weight, italic: f.italic, font: parseFont(f.data) });
     } catch {
       // unreadable font: ignore, fallback metrics are used
     }
