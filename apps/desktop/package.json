@@ -5,11 +5,12 @@
   "type": "module",
   "main": "out/main/index.js",
   "scripts": {
-    "dev": "electron-vite dev",
+    "dev": "tsx scripts/ensure-electron.ts && electron-vite dev",
     "build": "electron-vite build",
-    "start": "electron-vite preview",
+    "start": "tsx scripts/ensure-electron.ts && electron-vite preview",
     "typecheck": "tsc -p tsconfig.node.json && tsc -p tsconfig.web.json",
-    "test:e2e": "electron-vite build && playwright test"
+    "test:e2e": "tsx scripts/ensure-electron.ts && electron-vite build && playwright test",
+    "ensure-electron": "tsx scripts/ensure-electron.ts"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.6",
@@ -34,6 +35,7 @@
     "@vitejs/plugin-react": "^5.0.0",
     "electron": "^38.2.0",
     "electron-vite": "^4.0.1",
+    "tsx": "^4.19.2",
     "vite": "^7.1.0"
   }
 }
