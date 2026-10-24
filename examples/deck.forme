@@ -15,7 +15,7 @@ slide @kpis layout=content
   distribute h @card1 @card2 @card3 within=content
   align top @card1 @card2 @card3
   text @kpi1 "1,2 Mio €" style=h1 in=@card1 pad=$space.l
-  image @chart "./img/umsatz.svg" x=$margin y=620 w=800 fit=contain radius=12
+  image @chart "./img/umsatz.svg" x=$margin y=620 w=760 h=340 fit=contain radius=12
   number figure @chart caption="Abb. {figure}: Umsatz nach Region"
   notes "Wachstum im Süden betonen."
 

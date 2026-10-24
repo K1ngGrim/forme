@@ -10,7 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "pnpm --filter @forme/desktop test:e2e",
-    "typecheck": "tsc -b packages/core packages/render packages/export && pnpm --filter @forme/desktop typecheck",
+    "typecheck": "pnpm -r typecheck",
     "forme": "tsx packages/export/src/cli.ts"
   },
   "devDependencies": {
@@ -20,6 +20,9 @@
     "vitest": "^2.1.8"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["electron", "esbuild"]
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
   }
 }

@@ -1,0 +1,15 @@
+{
+  "name": "@forme/export",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "bin": { "forme": "src/cli.ts" },
+  "scripts": { "typecheck": "tsc -p ." },
+  "dependencies": {
+    "@forme/core": "workspace:*",
+    "@forme/render": "workspace:*",
+    "pptxgenjs": "^4.0.1",
+    "playwright-core": "1.56.1"
+  }
+}

@@ -11,3 +11,4 @@ export * from './vocab.js';
 export * from './evaluator.js';
 export * from './builtin.js';
 export * from './edit.js';
+export * from './imagesize.js';
