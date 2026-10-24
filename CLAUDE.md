@@ -75,10 +75,10 @@ Hinweise:
 - Die CLI druckt PDFs mit headless Chromium (playwright-core). Falls keins installiert ist:
   `npx playwright install chromium` oder Pfad per `FORME_CHROMIUM` setzen. Die App selbst
   nutzt Electrons `printToPDF`.
-- `pnpm dev`, `start` und `test:e2e` prüfen vorher, ob das Electron-Binary installiert ist,
-  und laden es sonst nach (`apps/desktop/scripts/ensure-electron.ts`). pnpm überspringt
-  Electrons Installationsskript, solange Build-Skripte nicht freigegeben sind (Freigabe steht
-  in `pnpm-workspace.yaml`).
+- `pnpm dev` und `start` laufen über `apps/desktop/scripts/electron-vite.ts`: Es löst das
+  Electron-Binary vom App-Ordner aus auf, lädt es bei Bedarf nach und übergibt es per
+  `ELECTRON_EXEC_PATH` an electron-vite (dessen eigene Suche im pnpm-Store kann ins Leere
+  laufen). Build-Skripte für Electron sind in `pnpm-workspace.yaml` freigegeben.
 - Golden-Snapshots der Beispiele liegen in `examples/__golden__/`. Aktualisieren mit
   `pnpm test -u`, danach den Diff prüfen.
 - Pakete werden nicht vorgebaut: `core`, `render` und `export` werden als TypeScript-Quellen

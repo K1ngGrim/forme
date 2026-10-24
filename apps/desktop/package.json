@@ -5,12 +5,11 @@
   "type": "module",
   "main": "out/main/index.js",
   "scripts": {
-    "dev": "tsx scripts/ensure-electron.ts && electron-vite dev",
+    "dev": "tsx scripts/electron-vite.ts dev",
     "build": "electron-vite build",
-    "start": "tsx scripts/ensure-electron.ts && electron-vite preview",
+    "start": "tsx scripts/electron-vite.ts preview",
     "typecheck": "tsc -p tsconfig.node.json && tsc -p tsconfig.web.json",
-    "test:e2e": "tsx scripts/ensure-electron.ts && electron-vite build && playwright test",
-    "ensure-electron": "tsx scripts/ensure-electron.ts"
+    "test:e2e": "electron-vite build && playwright test"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.6",
