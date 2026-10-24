@@ -66,6 +66,8 @@ pnpm dev          Electron-App im Dev-Modus
 pnpm test         alle Vitest-Tests (core, render, export)
 pnpm test:e2e     Playwright E2E gegen die gebaute App (Linux ohne Display: xvfb-run -a pnpm test:e2e)
 pnpm build        Produktions-Build der App (apps/desktop/out)
+pnpm dist         Installer für das aktuelle Betriebssystem (apps/desktop/dist):
+                  Windows: NSIS-Setup + portable .exe, macOS: .dmg, Linux: AppImage
 pnpm typecheck    tsc für alle Pakete
 pnpm forme render <deck.forme> --out out.pdf   CLI: rendern ohne UI (.pdf/.pptx/.odp/.html/.svg)
 pnpm forme check <deck.forme>                  CLI: nur Diagnosen ausgeben
