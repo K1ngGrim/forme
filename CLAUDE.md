@@ -60,15 +60,25 @@ examples/       Beispiel-Decks und -Themes (dienen auch als Golden-Tests)
 
 ## Befehle
 
-(Beim ersten Setup anlegen und hier aktuell halten.)
-
 ```
+pnpm install      Abhängigkeiten installieren (lädt auch das Electron-Binary)
 pnpm dev          Electron-App im Dev-Modus
-pnpm test         alle Vitest-Tests
-pnpm test:e2e     Playwright E2E
-pnpm build        Produktions-Build
-pnpm forme render <deck.forme> --out out.pdf   CLI: rendern ohne UI (für Tests/Debugging)
+pnpm test         alle Vitest-Tests (core, render, export)
+pnpm test:e2e     Playwright E2E gegen die gebaute App (Linux ohne Display: xvfb-run -a pnpm test:e2e)
+pnpm build        Produktions-Build der App (apps/desktop/out)
+pnpm typecheck    tsc für alle Pakete
+pnpm forme render <deck.forme> --out out.pdf   CLI: rendern ohne UI (.pdf/.pptx/.odp/.html/.svg)
+pnpm forme check <deck.forme>                  CLI: nur Diagnosen ausgeben
 ```
+
+Hinweise:
+- Die CLI druckt PDFs mit headless Chromium (playwright-core). Falls keins installiert ist:
+  `npx playwright install chromium` oder Pfad per `FORME_CHROMIUM` setzen. Die App selbst
+  nutzt Electrons `printToPDF`.
+- Golden-Snapshots der Beispiele liegen in `examples/__golden__/`. Aktualisieren mit
+  `pnpm test -u`, danach den Diff prüfen.
+- Pakete werden nicht vorgebaut: `core`, `render` und `export` werden als TypeScript-Quellen
+  importiert (electron-vite bündelt sie, die CLI läuft über tsx).
 
 ---
 
