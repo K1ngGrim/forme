@@ -6,10 +6,10 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { dirname, extname, join, resolve } from 'node:path';
 import type { Browser, Page } from 'playwright-core';
-import { chromium } from 'playwright-core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Decks } from '../src/decks.js';
 import { FormeEditorProvider } from '../src/editor.js';
+import { BROWSER_HOOK_TIMEOUT, launchBrowser } from './browser.js';
 import * as vscode from './mock-vscode.js';
 import { openDoc, saveDocument, showEditor, state, typeText } from './mock-vscode.js';
 
@@ -70,10 +70,7 @@ async function drag(id: string, dx: number, dy: number): Promise<void> {
 }
 
 beforeAll(async () => {
-  for (const opts of [{}, { channel: 'chrome' }]) {
-    browser = await chromium.launch(opts).catch(() => null);
-    if (browser) break;
-  }
+  browser = await launchBrowser();
   if (!browser) return;
   dir = mkdtempSync(join(tmpdir(), 'forme-editor-'));
   writeFileSync(join(dir, 'theme.forme'), THEME);
@@ -98,7 +95,7 @@ beforeAll(async () => {
   const port = (server.address() as { port: number }).port;
   state.webviewBase = `http://localhost:${port}`;
 
-  provider = new FormeEditorProvider(vscode.Uri.file(join(dir, 'ext')), new Decks(), async (_uri, kind) => {
+  provider = new FormeEditorProvider(vscode.Uri.file(join(dir, 'ext')) as never, new Decks(), async (_uri, kind) => {
     exported.push(kind);
   });
   doc = openDoc(join(dir, 'deck.forme'));
@@ -117,14 +114,14 @@ beforeAll(async () => {
   // the webview document is served from the same origin as its resources
   writeFileSync(join(dir, 'editor.html'), panel.webview.html);
   await page.goto(`${state.webviewBase}${join(dir, 'editor.html')}`);
-  await page.waitForSelector('.slide-svg g[data-id="box"]', { timeout: 20_000 });
-}, 120_000);
+  await page.waitForSelector('.slide-svg g[data-id="box"]', { timeout: 30_000 });
+}, BROWSER_HOOK_TIMEOUT);
 
 afterAll(async () => {
   await browser?.close();
   server?.close();
   if (dir) rmSync(dir, { recursive: true, force: true });
-});
+}, BROWSER_HOOK_TIMEOUT);
 
 describe('Forme editor in VS Code', () => {
   it('opens the deck with its theme, without project dialog, code view hidden', async (ctx) => {

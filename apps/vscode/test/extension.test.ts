@@ -3,9 +3,9 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { buildSync } from 'esbuild';
 import type { Browser } from 'playwright-core';
-import { chromium } from 'playwright-core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { HostMessage, PreviewSlide } from '../src/protocol.js';
+import { BROWSER_HOOK_TIMEOUT, launchBrowser } from './browser.js';
 import * as vscode from './mock-vscode.js';
 import { openDoc, showEditor, state, typeText } from './mock-vscode.js';
 
@@ -163,12 +163,9 @@ describe('extension', () => {
 describe('webview in Chromium', () => {
   let browser: Browser | null = null;
   beforeAll(async () => {
-    for (const opts of [{}, { channel: 'chrome' }]) {
-      browser = await chromium.launch(opts).catch(() => null);
-      if (browser) break;
-    }
-  });
-  afterAll(async () => browser?.close());
+    browser = await launchBrowser();
+  }, BROWSER_HOOK_TIMEOUT);
+  afterAll(async () => browser?.close(), BROWSER_HOOK_TIMEOUT);
 
   it('drag in the preview moves the object in the file', async (ctx) => {
     if (!browser) ctx.skip();

@@ -29,8 +29,11 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+      # Chromium for the webview tests (VS Code extension) and the end-to-end tests
+      - run: pnpm --filter @forme/web exec playwright install --with-deps chromium
       - run: pnpm typecheck
       - run: pnpm test
+      - run: pnpm test:e2e
       - run: pnpm build
       # documentation as a sub page of the app: /<repo>/docs/
       - run: pnpm build:docs && cp -r apps/docs/dist apps/web/dist/docs
