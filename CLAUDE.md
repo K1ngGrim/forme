@@ -87,6 +87,9 @@ Hinweise:
   importiert (Vite bündelt sie, die CLI läuft über tsx). `core`, `render` und `@forme/export`
   dürfen keine Node-APIs verwenden; Node-Code gehört nach `@forme/export/node`.
 - Die Vorlagen im Startdialog sind die Ordner unter `examples/` (zur Build-Zeit eingebunden).
+- GitHub Pages: `.github/workflows/pages.yml` prüft jeden Push/PR (Typecheck, Tests, Build) und
+  veröffentlicht `apps/web/dist` vom Standard-Branch. `base: './'` in `vite.config.ts` beibehalten,
+  damit die Seite unter `/<repo>/` funktioniert.
 
 ---
 

@@ -26,7 +26,18 @@ pnpm test                                             # Unit- und Golden-Tests
 ```
 
 `pnpm build` erzeugt reine HTML/JS/CSS-Dateien. Sie lassen sich auf jedem Webserver hosten
-(z. B. GitHub Pages) oder lokal mit `pnpm preview` ausliefern.
+oder lokal mit `pnpm preview` ausliefern.
+
+## GitHub Pages
+
+Die App wird automatisch nach **https://k1nggrim.github.io/forme/** veröffentlicht
+(`.github/workflows/pages.yml`). Jeder Push und jeder Pull Request läuft durch Typecheck,
+Tests und Build; veröffentlicht wird nur der Standard-Branch. Manuell geht es über
+„Actions → Pages → Run workflow“.
+
+Einmalig einrichten: unter „Settings → Pages → Build and deployment“ als Quelle
+**GitHub Actions** wählen. Weil die Seite mit relativen Pfaden gebaut wird (`base: './'`),
+läuft sie unter jedem Unterpfad, auch in Forks.
 
 ## Wo liegen meine Dateien?
 
