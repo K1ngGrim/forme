@@ -14,3 +14,4 @@ export * from './edit.js';
 export * from './imagesize.js';
 export * from './complete.js';
 export * from './templates.js';
+export * from './highlight.js';

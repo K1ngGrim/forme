@@ -8,7 +8,7 @@ import { EditorState as CMState, RangeSetBuilder, StateEffect, StateField } from
 import type { Extension } from '@codemirror/state';
 import { Decoration, drawSelection, EditorView, highlightActiveLine, highlightActiveLineGutter, keymap, lineNumbers, ViewPlugin, WidgetType } from '@codemirror/view';
 import type { DecorationSet, ViewUpdate } from '@codemirror/view';
-import { lex } from '@forme/core';
+import { classifyTokens, lex } from '@forme/core';
 import type { Token } from '@forme/core';
 import { completeLine } from '@forme/core';
 import { actions, displaySlide, useEditor } from '../store.js';
@@ -43,36 +43,6 @@ const MARKS: Record<string, Decoration> = {
   interp: mark('cm-forme-interp'),
 };
 
-/** Classify the tokens of one line: verb, keys, values. Uses the real core lexer. */
-function classify(tokens: Token[]): [Token, string][] {
-  const out: [Token, string][] = [];
-  let seenVerb = false;
-  for (let i = 0; i < tokens.length; i++) {
-    const t = tokens[i] as Token;
-    if (t.kind === 'ws' || t.kind === 'newline') continue;
-    if (t.kind === 'ident' && !seenVerb) {
-      seenVerb = true;
-      out.push([t, 'verb']);
-      continue;
-    }
-    seenVerb = true;
-    if (t.kind === 'ident') {
-      // key = ident (.ident)* '='
-      let j = i + 1;
-      while (tokens[j]?.kind === 'punct' && tokens[j]?.text === '.' && tokens[j + 1]?.kind === 'ident') j += 2;
-      if (tokens[j]?.kind === 'punct' && tokens[j]?.text === '=' && (i === 0 || tokens[i - 1]?.kind === 'ws')) {
-        for (let k = i; k < j; k++) out.push([tokens[k] as Token, 'key']);
-        i = j - 1;
-        continue;
-      }
-      continue;
-    }
-    if (t.kind === 'dim') out.push([t, 'number']);
-    else if (t.kind in MARKS) out.push([t, t.kind]);
-  }
-  return out;
-}
-
 function buildHighlights(view: EditorView): DecorationSet {
   const b = new RangeSetBuilder<Decoration>();
   const doc = view.state.doc;
@@ -81,7 +51,7 @@ function buildHighlights(view: EditorView): DecorationSet {
     while (pos <= to) {
       const line = doc.lineAt(pos);
       const toks = lex(line.text);
-      for (const [t, kind] of classify(toks)) {
+      for (const [t, kind] of classifyTokens(toks)) {
         const start = line.from + t.start;
         const end = line.from + t.end;
         if (kind === 'color') b.add(start, start, Decoration.widget({ widget: new SwatchWidget(t.text), side: -1 }));
