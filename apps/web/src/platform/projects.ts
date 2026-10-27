@@ -11,6 +11,8 @@ import { baseName, normalizePath } from './paths.js';
  */
 export type ProjectInfo =
   | { kind: 'local'; id: string; name: string; deckPath: string; updated: number }
+  /** Opened by the VS Code extension (files come from VS Code, nothing is stored here). */
+  | { kind: 'host'; id: string; name: string; deckPath: string; updated: number }
   | { kind: 'folder'; id: string; name: string; deckPath: string; updated: number; handle: FileSystemDirectoryHandle };
 
 export interface OpenProject {
@@ -31,10 +33,12 @@ export async function listProjects(): Promise<ProjectInfo[]> {
 }
 
 export function fsFor(info: ProjectInfo): ProjectFS {
+  if (info.kind === 'host') throw new Error('Projekte aus VS Code kommen über die Erweiterung');
   return info.kind === 'local' ? new LocalFS(info.id) : new FolderFS(info.handle);
 }
 
 export async function saveInfo(info: ProjectInfo): Promise<void> {
+  if (info.kind === 'host') return; // VS Code owns these files, nothing to remember here
   await idbPut(info.kind === 'local' ? STORES.projects : STORES.folders, info);
 }
 
@@ -62,6 +66,7 @@ export async function openProject(info: ProjectInfo): Promise<OpenProject | null
 }
 
 export async function deleteProject(info: ProjectInfo): Promise<void> {
+  if (info.kind === 'host') return;
   if (info.kind === 'local') {
     await new LocalFS(info.id).removeAll();
     await idbDelete(STORES.projects, info.id);

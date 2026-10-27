@@ -3,7 +3,7 @@ import { normalizePath } from './paths.js';
 
 /** Files of one project. Paths are project-relative ("deck.forme", "img/a.png"). */
 export interface ProjectFS {
-  readonly kind: 'local' | 'folder';
+  readonly kind: 'local' | 'folder' | 'host';
   readText(path: string): Promise<string | null>;
   readBytes(path: string): Promise<Uint8Array | null>;
   writeText(path: string, text: string): Promise<void>;

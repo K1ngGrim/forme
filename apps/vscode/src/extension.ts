@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import { Decks, isForme, LANGUAGE_ID, liveSource, toRange } from './decks.js';
 import type { OutlineSymbol } from './language.js';
 import { colorsIn, definitionsOf, hoverText, idAt, isThemeSource, outline, referencesOf, toHex } from './language.js';
+import { EDITOR_VIEW_TYPE, FormeEditorProvider } from './editor.js';
 import { Preview, PREVIEW_VIEW_TYPE } from './preview.js';
 import { idsAt } from './view.js';
 
@@ -59,6 +60,7 @@ function toSymbol(doc: vscode.TextDocument, s: OutlineSymbol): vscode.DocumentSy
 export function activate(context: vscode.ExtensionContext): void {
   const decks = new Decks();
   const output = vscode.window.createOutputChannel('Forme');
+  const editors = new FormeEditorProvider(context.extensionUri, decks, (uri, kind) => exportDeck(uri, kind));
   const previews = new Map<string, Preview>();
   const timers = new Map<string, ReturnType<typeof setTimeout>>();
   lastFormeEditor = vscode.window.activeTextEditor && isForme(vscode.window.activeTextEditor.document) ? vscode.window.activeTextEditor : undefined;
@@ -201,10 +203,25 @@ export function activate(context: vscode.ExtensionContext): void {
 
     vscode.commands.registerCommand('forme.openPreview', (uri?: vscode.Uri) => openPreview(uri, false)),
     vscode.commands.registerCommand('forme.openPreviewToSide', (uri?: vscode.Uri) => openPreview(uri, true)),
-    vscode.commands.registerCommand('forme.export', (uri?: vscode.Uri) => exportDeck(uri)),
+    vscode.commands.registerCommand('forme.export', (uri?: vscode.Uri, kind?: OutputFormat) => exportDeck(uri, kind)),
     vscode.commands.registerCommand('forme.exportPdf', (uri?: vscode.Uri) => exportDeck(uri, 'pdf')),
     vscode.commands.registerCommand('forme.exportPptx', (uri?: vscode.Uri) => exportDeck(uri, 'pptx')),
     vscode.commands.registerCommand('forme.newProject', newProject),
+
+    // the full editor (canvas, toolbar, slide list, inspector) as a VS Code editor for .forme files
+    vscode.window.registerCustomEditorProvider(EDITOR_VIEW_TYPE, editors, { webviewOptions: { retainContextWhenHidden: true } }),
+    vscode.commands.registerCommand('forme.openEditor', async (uri?: vscode.Uri) => {
+      const target = uri ?? vscode.window.activeTextEditor?.document.uri ?? lastFormeEditor?.document.uri;
+      if (!target) {
+        void vscode.window.showInformationMessage('Zuerst eine .forme-Datei öffnen.');
+        return;
+      }
+      await vscode.commands.executeCommand('vscode.openWith', target, EDITOR_VIEW_TYPE, vscode.ViewColumn.Active);
+    }),
+    // keys VS Code would otherwise handle itself (undo, chords, debug …) while the Forme editor is active
+    ...(['undo', 'redo', 'commandLine', 'themeMode', 'present', 'toggleCode'] as const).map((command) =>
+      vscode.commands.registerCommand(`forme.editor.${command}`, () => editors.active()?.post({ type: 'command', command })),
+    ),
 
     vscode.window.registerWebviewPanelSerializer(PREVIEW_VIEW_TYPE, {
       async deserializeWebviewPanel(panel: vscode.WebviewPanel, state: unknown): Promise<void> {

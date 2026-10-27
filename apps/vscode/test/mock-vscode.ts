@@ -1,6 +1,7 @@
 // A small in-memory stand-in for the `vscode` module: enough to activate the extension, call its
 // providers, open the preview and apply workspace edits. Used with vi.mock('vscode').
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+
 
 type Listener<T> = (e: T) => void;
 
@@ -62,6 +63,14 @@ export class Uri {
 export class MockDocument {
   languageId = 'forme';
   version = 1;
+  isDirty = false;
+  saves = 0;
+  async save(): Promise<boolean> {
+    writeFileSync(this.uri.fsPath, this.text);
+    this.isDirty = false;
+    this.saves++;
+    return true;
+  }
   constructor(
     readonly uri: Uri,
     public text: string,
@@ -97,6 +106,13 @@ export const DiagnosticSeverity = enumOf('Error', 'Warning', 'Information', 'Hin
 export const SymbolKind = enumOf('File', 'Module', 'Namespace', 'Package', 'Class', 'Method', 'Property', 'Field', 'Constructor', 'Enum', 'Interface', 'Function', 'Variable', 'Constant', 'String', 'Number', 'Boolean', 'Array', 'Object', 'Key', 'Null', 'EnumMember', 'Struct');
 export const CompletionItemKind = enumOf('Text', 'Method', 'Function', 'Constructor', 'Field', 'Variable', 'Class', 'Interface', 'Module', 'Property', 'Unit', 'Value', 'Enum', 'Keyword', 'Snippet', 'Color', 'File', 'Reference', 'Folder', 'EnumMember', 'Constant');
 export const ViewColumn = { Active: -1, Beside: -2 };
+export const FileType = { Unknown: 0, File: 1, Directory: 2, SymbolicLink: 64 };
+export class RelativePattern {
+  constructor(
+    readonly base: Uri,
+    readonly pattern: string,
+  ) {}
+}
 export const ProgressLocation = { Notification: 15 };
 export const OverviewRulerLane = { Center: 2 };
 export const TextEditorRevealType = { InCenterIfOutsideViewport: 2 };
@@ -181,11 +197,17 @@ export const state = {
   editors: [] as MockEditor[],
   inputBox: undefined as string | undefined,
   warningAnswer: undefined as string | undefined,
+  customEditors: {} as Record<string, unknown>,
+  /** Base URL for webview resources (tests serve files over HTTP: module scripts need it). */
+  webviewBase: '' as string,
+  executed: [] as unknown[][],
+  shown: [] as string[],
 };
 
 const onOpen = new EventEmitter<MockDocument>();
 const onChange = new EventEmitter<{ document: MockDocument; contentChanges: unknown[] }>();
 const onSelection = new EventEmitter<{ textEditor: MockEditor; selections: Selection[] }>();
+const onWillSave = new EventEmitter<{ document: MockDocument; waitUntil(p: Promise<unknown>): void }>();
 const noopEvent = new EventEmitter<unknown>().event;
 
 export class MockEditor {
@@ -210,11 +232,14 @@ export class MockPanel {
   readonly posted: unknown[] = [];
   title: string;
   iconPath: unknown;
+  active = true;
   webview = {
     options: {} as { localResourceRoots?: Uri[] },
     html: '',
-    cspSource: 'file:',
-    asWebviewUri: (u: Uri): Uri => u,
+    get cspSource(): string {
+      return state.webviewBase ? new URL(state.webviewBase).origin : 'file:';
+    },
+    asWebviewUri: (u: Uri): Uri | { toString(): string } => (state.webviewBase ? { toString: () => `${state.webviewBase}${u.fsPath}` } : u),
     onDidReceiveMessage: this.received.event,
     postMessage: async (m: unknown): Promise<boolean> => {
       this.posted.push(m);
@@ -254,6 +279,7 @@ export function showEditor(doc: MockDocument): MockEditor {
 export function typeText(doc: MockDocument, text: string): void {
   doc.text = text;
   doc.version++;
+  doc.isDirty = true;
   onChange.fire({ document: doc, contentChanges: [{}] });
 }
 
@@ -292,6 +318,14 @@ export const window = {
     return p;
   },
   registerWebviewPanelSerializer: () => ({ dispose() {} }),
+  registerCustomEditorProvider: (viewType: string, provider: unknown) => {
+    state.customEditors[viewType] = provider;
+    return { dispose() {} };
+  },
+  showTextDocument: async (doc: MockDocument) => {
+    state.shown.push(doc.uri.fsPath);
+    return showEditor(doc);
+  },
   showInformationMessage: async (m: string) => (state.messages.push(m), undefined),
   showWarningMessage: async (m: string) => (state.messages.push(m), state.warningAnswer),
   showErrorMessage: async (m: string) => (state.messages.push(m), undefined),
@@ -305,6 +339,8 @@ export const workspace = {
     return state.docs;
   },
   workspaceFolders: undefined,
+  getWorkspaceFolder: (): undefined => undefined,
+  onWillSaveTextDocument: onWillSave.event,
   onDidOpenTextDocument: onOpen.event,
   onDidChangeTextDocument: onChange.event,
   onDidSaveTextDocument: noopEvent,
@@ -326,7 +362,12 @@ export const workspace = {
     return true;
   },
   findFiles: async () => [],
-  fs: { readFile: async (u: Uri) => readFileSync(u.fsPath) },
+  fs: {
+    readFile: async (u: Uri) => readFileSync(u.fsPath),
+    writeFile: async (u: Uri, data: Uint8Array) => writeFileSync(u.fsPath, data),
+    stat: async (u: Uri) => ({ mtime: statSync(u.fsPath).mtimeMs }),
+    readDirectory: async (u: Uri) => readdirSync(u.fsPath, { withFileTypes: true }).map((e) => [e.name, e.isDirectory() ? FileType.Directory : FileType.File] as [string, number]),
+  },
   getConfiguration: () => ({ get: () => undefined }),
   createFileSystemWatcher: () => ({ onDidChange: noopEvent, onDidCreate: noopEvent, dispose() {} }),
 };
@@ -336,6 +377,19 @@ export const commands = {
     state.commands[name] = fn;
     return { dispose() {} };
   },
+  executeCommand: async (name: string, ...args: unknown[]) => {
+    state.executed.push([name, ...args]);
+    return state.commands[name]?.(...args);
+  },
 };
+
+/** Simulate Ctrl+S on a document (VS Code fires onWillSave, then saves). */
+export async function saveDocument(doc: MockDocument): Promise<void> {
+  const waits: Promise<unknown>[] = [];
+  onWillSave.fire({ document: doc, waitUntil: (p) => waits.push(p) });
+  await Promise.all(waits);
+  await doc.save();
+}
+
 
 export const env = { openExternal: async () => true };

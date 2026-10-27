@@ -65,8 +65,26 @@ Im Repository: `pnpm forme <befehl>`. Als eigenständiges Programm:
 
 ## VS Code
 
-Die Erweiterung bringt Forme in VS Code: die Sprache mit allen Editor-Funktionen und eine
-Live-Vorschau, in der man Folien direkt bearbeitet.
+Die Erweiterung bringt Forme in VS Code: die Sprache mit allen Editor-Funktionen, eine
+Live-Vorschau neben dem Code und den kompletten Forme-Editor als eigenen Editor-Tab.
+
+### Forme-Editor
+
+„Forme: Im Forme-Editor öffnen“ (Symbol oben rechts, Rechtsklick im Explorer oder „Öffnen mit …“)
+zeigt eine `.forme`-Datei im vollständigen Editor der Web-App: Canvas, Werkzeuge zum Zeichnen,
+Ausrichten und Verteilen, Folienliste, Inspector, Kommandozeile, Theme-Modus und Präsentieren.
+
+- Die Datei bleibt ein normales Textdokument von VS Code. Jede Geste wird als kleine Textänderung
+  geschrieben; der Texteditor daneben („Text daneben“) zeigt sie sofort, und was dort getippt wird,
+  erscheint sofort auf dem Canvas.
+- Klick auf ein Objekt springt im Texteditor zu seiner Zeile, der Cursor im Text markiert das
+  Objekt auf dem Canvas.
+- Strg+Z/Strg+Umschalt+Z nutzen einen gemeinsamen Verlauf für Deck und Theme, Strg+S speichert
+  das Deck und ein im Theme-Modus geändertes Theme, Strg+K öffnet die Kommandozeile,
+  Strg+Umschalt+T schaltet den Theme-Modus, F5 präsentiert.
+- „Code“ blendet zusätzlich die Code-Ansicht der Web-App im Tab ein.
+- Export (PDF, PPTX, ODP) läuft über die Erweiterung, wie „Forme: Exportieren …“.
+- Der Editor sieht nur Dateien im Arbeitsbereichsordner der Präsentation.
 
 ### Sprache
 

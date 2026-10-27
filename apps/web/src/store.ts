@@ -18,6 +18,9 @@ import { assetUrl, invalidateAsset, onAssetsLoaded, prepareAssets, resetAssets }
 import { buildPptx, printPdf } from './platform/export.js';
 import type { ProjectFS } from './platform/fs.js';
 import { folderAccessSupported } from './platform/fs.js';
+import { host, HostFS } from './platform/host.js';
+import type { HostToEditor } from './platform/host-protocol.js';
+import { diffEdit, textHash } from './platform/host-protocol.js';
 import { baseName, relativeTo, resolveFrom } from './platform/paths.js';
 import type { OpenProject, ProjectInfo } from './platform/projects.js';
 import { downloadBlob, listProjects, openProject, safeFileName, saveInfo, saveToFolder, touchProject, zipProject } from './platform/projects.js';
@@ -83,6 +86,8 @@ export interface EditorState {
   saving: boolean;
   /** Bumped when images/fonts finished loading (re-render). */
   assetVersion: number;
+  /** Code view next to the canvas (in VS Code hidden by default: its own text editor is the code view). */
+  codeVisible: boolean;
 }
 
 const toastId = { n: 0 };
@@ -128,6 +133,7 @@ export const useEditor = create<EditorState>(() => ({
   projectsOpen: false,
   saving: false,
   assetVersion: 0,
+  codeVisible: !host,
 }));
 
 const get = useEditor.getState;
@@ -258,6 +264,14 @@ async function syncTheme(force = false): Promise<void> {
 // ---------------------------------------------------------------------------
 // Text changes (the single path for every modification)
 
+/** In VS Code the file lives in VS Code: every change made here is sent there as a text edit. */
+function pushToHost(role: FileRole, before: string, after: string): void {
+  const file = role === 'theme' ? get().theme : get().deck;
+  const edit = diffEdit(before, after);
+  if (!host || !file?.path || !edit) return;
+  host.post({ type: 'edit', path: file.path, hash: textHash(before), edits: [edit] });
+}
+
 const GROUP_MS = 1000;
 
 function commit(role: FileRole, text: string, origin: ChangeOrigin, opts: { group?: string | null; select?: string[]; slideId?: string | null } = {}): void {
@@ -288,6 +302,7 @@ function commit(role: FileRole, text: string, origin: ChangeOrigin, opts: { grou
   }
   if (opts.slideId !== undefined) partial.slideId = opts.slideId;
   reevaluate(partial);
+  if (origin !== 'external' && origin !== 'load') pushToHost(role, file.source, text);
   if (role === 'deck' && themePathOf(next.doc) !== themePathOf(file.doc)) void syncTheme();
   if (role === 'theme') void loadFonts();
   updateTitle();
@@ -425,6 +440,7 @@ export const actions = {
     const file = entry.file === 'theme' ? s.theme : s.deck;
     if (!file) return;
     const next: SourceFile = { ...file, source: entry.before, doc: parse(entry.before) };
+    pushToHost(entry.file, file.source, entry.before);
     reevaluate({
       [entry.file]: next,
       undoStack: s.undoStack.slice(0, -1),
@@ -445,6 +461,7 @@ export const actions = {
     const file = entry.file === 'theme' ? s.theme : s.deck;
     if (!file) return;
     const next: SourceFile = { ...file, source: entry.after, doc: parse(entry.after) };
+    pushToHost(entry.file, file.source, entry.after);
     reevaluate({
       [entry.file]: next,
       redoStack: s.redoStack.slice(0, -1),
@@ -514,7 +531,7 @@ export const actions = {
     seenModified.clear();
     evalCache.slides.clear();
     try {
-      localStorage.setItem('forme.lastProject', JSON.stringify({ kind: project.info.kind, id: project.info.id }));
+      if (project.info.kind !== 'host') localStorage.setItem('forme.lastProject', JSON.stringify({ kind: project.info.kind, id: project.info.id }));
     } catch {
       // storage unavailable (private mode): only the last-project shortcut is lost
     }
@@ -530,6 +547,10 @@ export const actions = {
   },
 
   async save(): Promise<boolean> {
+    if (host) {
+      host.post({ type: 'save' });
+      return true;
+    }
     if (autosaveTimer) {
       clearTimeout(autosaveTimer);
       autosaveTimer = null;
@@ -600,6 +621,11 @@ export const actions = {
   async exportDeck(kind: ExportKind): Promise<void> {
     const s = get();
     if (s.exporting) return;
+    if (host) {
+      // printing and downloads do not work in a webview: the extension exports from disk
+      host.post({ type: 'export', kind });
+      return;
+    }
     if (kind === 'odp') {
       toast('ODP braucht LibreOffice und ist im Browser nicht verfügbar. Per CLI: pnpm forme render deck.forme --out deck.odp', 'error');
       return;
@@ -645,8 +671,25 @@ export const actions = {
     set({ zoomFit: get().zoomFit + 1 });
   },
 
+  showCode(on: boolean): void {
+    set({ codeVisible: on });
+  },
+
+  /** An image or font of the project changed on disk. */
+  assetChanged(path: string): void {
+    invalidateAsset(path);
+    const s = get();
+    const sizes = Object.fromEntries(Object.entries(s.imageSizes).filter(([p]) => projectPath(p) !== path));
+    reevaluate({ imageSizes: sizes, assetVersion: s.assetVersion + 1 });
+    if (s.scene.theme.fonts.some((f) => f.file && resolveFrom(s.theme?.path ?? s.deck.path ?? 'deck.forme', f.file) === path)) void loadFonts();
+  },
+
   /** Start: reopen the last browser project, otherwise show the project dialog. */
   async init(): Promise<void> {
+    if (host) {
+      connectHost();
+      return;
+    }
     let last: { kind: string; id: string } | null = null;
     try {
       last = JSON.parse(localStorage.getItem('forme.lastProject') ?? 'null') as { kind: string; id: string } | null;
@@ -664,6 +707,7 @@ export const actions = {
 /** Before switching projects: browser projects are saved, folders ask about unsaved edits. */
 async function flushOrConfirm(): Promise<boolean> {
   const s = get();
+  if (s.project?.kind === 'host') return true;
   if (s.project?.kind === 'local') {
     if (autosaveTimer) clearTimeout(autosaveTimer);
     autosaveTimer = null;
@@ -671,6 +715,59 @@ async function flushOrConfirm(): Promise<boolean> {
     return true;
   }
   return !isDirty(s) || window.confirm('Ungespeicherte Änderungen verwerfen?');
+}
+
+/** Inside VS Code: the extension says which deck to open and reports changes made there. */
+function connectHost(): void {
+  const bridge = host;
+  if (!bridge) return;
+  const fs = new HostFS(bridge);
+  const roleOf = (path: string): FileRole | null => {
+    const s = get();
+    return s.deck.path === path ? 'deck' : s.theme?.path === path ? 'theme' : null;
+  };
+  bridge.on((m: HostToEditor) => {
+    switch (m.type) {
+      case 'init':
+        void actions.openProject({ info: { kind: 'host', id: 'vscode', name: m.name, deckPath: m.deckPath, updated: Date.now() }, fs }).then(() => {
+          if (m.mode === 'theme') actions.setMode('theme');
+        });
+        break;
+      case 'text':
+        actions.fileChanged(m.path, m.text);
+        break;
+      case 'cursor': {
+        const role = roleOf(m.path);
+        if (role) actions.cursorMoved(role, m.offset);
+        break;
+      }
+      case 'asset':
+        actions.assetChanged(m.path);
+        break;
+      case 'command':
+        if (m.command === 'undo') actions.undo();
+        else if (m.command === 'redo') actions.redo();
+        else if (m.command === 'commandLine') actions.focusCommandLine();
+        else if (m.command === 'themeMode') actions.setMode(get().mode === 'theme' ? 'deck' : 'theme');
+        else if (m.command === 'present') actions.present(true);
+        else if (m.command === 'toggleCode') actions.showCode(!get().codeVisible);
+        break;
+      default:
+        break;
+    }
+  });
+  // canvas selection -> highlight the object's ops in VS Code's text editor
+  useEditor.subscribe((s, prev) => {
+    if (s.selection === prev.selection || s.selectionOrigin !== 'canvas') return;
+    const file = activeFile(s);
+    const slide = displaySlide(s)?.slide;
+    if (!file.path || !slide) return;
+    const nodes = s.selection.map((id) => slide.byId.get(id)).filter((n) => !!n);
+    const spans = nodes.flatMap((n) => n.touchedBy.filter((o) => o.file === file.role).map((o) => o.span));
+    const origin = nodes[0]?.origin.file === file.role ? nodes[0].origin.span : (spans[0] ?? null);
+    bridge.post({ type: 'select', path: file.path, reveal: origin, spans });
+  });
+  bridge.post({ type: 'ready' });
 }
 
 function pickFile(accept: string): Promise<File | null> {

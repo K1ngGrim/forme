@@ -1,55 +1,267 @@
 {
   "name": "forme-vscode",
   "displayName": "Forme",
-  "description": "Präsentationen als Code: Syntax, Fehler, Autovervollständigung und eine Live-Vorschau, in der man Objekte direkt verschieben kann.",
+  "description": "Präsentationen als Code: Syntax, Fehler, Autovervollständigung, Live-Vorschau und der komplette Forme-Editor mit Canvas als VS Code-Editor.",
   "version": "0.1.0",
   "publisher": "k1nggrim",
   "private": true,
-  "repository": { "type": "git", "url": "https://github.com/K1ngGrim/forme" },
-  "engines": { "vscode": "^1.90.0" },
-  "categories": ["Programming Languages", "Visualization"],
-  "keywords": ["forme", "presentation", "slides", "präsentation"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/K1ngGrim/forme"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Visualization"
+  ],
+  "keywords": [
+    "forme",
+    "presentation",
+    "slides",
+    "präsentation"
+  ],
   "icon": "media/icon.png",
   "main": "./dist/extension.cjs",
-  "activationEvents": ["onWebviewPanel:forme.preview"],
+  "activationEvents": [
+    "onWebviewPanel:forme.preview",
+    "onCustomEditor:forme.editor"
+  ],
   "contributes": {
     "languages": [
       {
         "id": "forme",
-        "aliases": ["Forme", "forme"],
-        "extensions": [".forme"],
+        "aliases": [
+          "Forme",
+          "forme"
+        ],
+        "extensions": [
+          ".forme"
+        ],
         "configuration": "./language-configuration.json",
-        "icon": { "light": "./media/icon.svg", "dark": "./media/icon.svg" }
+        "icon": {
+          "light": "./media/icon.svg",
+          "dark": "./media/icon.svg"
+        }
       }
     ],
-    "grammars": [{ "language": "forme", "scopeName": "source.forme", "path": "./syntaxes/forme.tmLanguage.json" }],
+    "grammars": [
+      {
+        "language": "forme",
+        "scopeName": "source.forme",
+        "path": "./syntaxes/forme.tmLanguage.json"
+      }
+    ],
     "commands": [
-      { "command": "forme.openPreviewToSide", "title": "Vorschau an der Seite öffnen", "category": "Forme", "icon": "$(open-preview)" },
-      { "command": "forme.openPreview", "title": "Vorschau öffnen", "category": "Forme" },
-      { "command": "forme.export", "title": "Exportieren …", "category": "Forme", "icon": "$(export)" },
-      { "command": "forme.exportPdf", "title": "Als PDF exportieren", "category": "Forme" },
-      { "command": "forme.exportPptx", "title": "Als PowerPoint (PPTX) exportieren", "category": "Forme" },
-      { "command": "forme.newProject", "title": "Neue Präsentation aus Vorlage …", "category": "Forme" }
+      {
+        "command": "forme.openEditor",
+        "title": "Im Forme-Editor öffnen",
+        "category": "Forme",
+        "icon": "$(layout)"
+      },
+      {
+        "command": "forme.openPreviewToSide",
+        "title": "Vorschau an der Seite öffnen",
+        "category": "Forme",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "forme.openPreview",
+        "title": "Vorschau öffnen",
+        "category": "Forme"
+      },
+      {
+        "command": "forme.export",
+        "title": "Exportieren …",
+        "category": "Forme",
+        "icon": "$(export)"
+      },
+      {
+        "command": "forme.exportPdf",
+        "title": "Als PDF exportieren",
+        "category": "Forme"
+      },
+      {
+        "command": "forme.exportPptx",
+        "title": "Als PowerPoint (PPTX) exportieren",
+        "category": "Forme"
+      },
+      {
+        "command": "forme.newProject",
+        "title": "Neue Präsentation aus Vorlage …",
+        "category": "Forme"
+      },
+      {
+        "command": "forme.editor.undo",
+        "title": "Rückgängig (Forme-Editor)",
+        "category": "Forme",
+        "enablement": "activeCustomEditorId == forme.editor"
+      },
+      {
+        "command": "forme.editor.redo",
+        "title": "Wiederholen (Forme-Editor)",
+        "category": "Forme",
+        "enablement": "activeCustomEditorId == forme.editor"
+      },
+      {
+        "command": "forme.editor.commandLine",
+        "title": "Kommandozeile (Forme-Editor)",
+        "category": "Forme",
+        "enablement": "activeCustomEditorId == forme.editor"
+      },
+      {
+        "command": "forme.editor.themeMode",
+        "title": "Theme-Modus umschalten (Forme-Editor)",
+        "category": "Forme",
+        "enablement": "activeCustomEditorId == forme.editor"
+      },
+      {
+        "command": "forme.editor.present",
+        "title": "Präsentieren (Forme-Editor)",
+        "category": "Forme",
+        "enablement": "activeCustomEditorId == forme.editor"
+      },
+      {
+        "command": "forme.editor.toggleCode",
+        "title": "Code-Ansicht umschalten (Forme-Editor)",
+        "category": "Forme",
+        "enablement": "activeCustomEditorId == forme.editor"
+      }
     ],
     "menus": {
       "editor/title": [
-        { "command": "forme.openPreviewToSide", "when": "editorLangId == forme", "group": "navigation" },
-        { "command": "forme.export", "when": "editorLangId == forme", "group": "navigation" }
+        {
+          "command": "forme.openEditor",
+          "when": "editorLangId == forme && activeEditor != 'workbench.editors.webviewEditor'",
+          "group": "navigation"
+        },
+        {
+          "command": "forme.openPreviewToSide",
+          "when": "editorLangId == forme",
+          "group": "navigation"
+        },
+        {
+          "command": "forme.export",
+          "when": "editorLangId == forme",
+          "group": "navigation"
+        },
+        {
+          "command": "forme.openPreviewToSide",
+          "when": "activeCustomEditorId == forme.editor",
+          "group": "navigation"
+        }
       ],
       "explorer/context": [
-        { "command": "forme.openPreviewToSide", "when": "resourceExtname == .forme", "group": "navigation" },
-        { "command": "forme.export", "when": "resourceExtname == .forme", "group": "navigation" }
+        {
+          "command": "forme.openEditor",
+          "when": "resourceExtname == .forme",
+          "group": "navigation"
+        },
+        {
+          "command": "forme.openPreviewToSide",
+          "when": "resourceExtname == .forme",
+          "group": "navigation"
+        },
+        {
+          "command": "forme.export",
+          "when": "resourceExtname == .forme",
+          "group": "navigation"
+        }
       ],
       "commandPalette": [
-        { "command": "forme.openPreview", "when": "editorLangId == forme" },
-        { "command": "forme.openPreviewToSide", "when": "editorLangId == forme" },
-        { "command": "forme.export", "when": "editorLangId == forme" },
-        { "command": "forme.exportPdf", "when": "editorLangId == forme" },
-        { "command": "forme.exportPptx", "when": "editorLangId == forme" }
+        {
+          "command": "forme.openPreview",
+          "when": "editorLangId == forme"
+        },
+        {
+          "command": "forme.openPreviewToSide",
+          "when": "editorLangId == forme"
+        },
+        {
+          "command": "forme.export",
+          "when": "editorLangId == forme"
+        },
+        {
+          "command": "forme.exportPdf",
+          "when": "editorLangId == forme"
+        },
+        {
+          "command": "forme.exportPptx",
+          "when": "editorLangId == forme"
+        },
+        {
+          "command": "forme.openEditor",
+          "when": "editorLangId == forme || activeCustomEditorId == forme.editor"
+        },
+        {
+          "command": "forme.editor.undo",
+          "when": "activeCustomEditorId == forme.editor"
+        },
+        {
+          "command": "forme.editor.redo",
+          "when": "activeCustomEditorId == forme.editor"
+        },
+        {
+          "command": "forme.editor.commandLine",
+          "when": "activeCustomEditorId == forme.editor"
+        },
+        {
+          "command": "forme.editor.themeMode",
+          "when": "activeCustomEditorId == forme.editor"
+        },
+        {
+          "command": "forme.editor.present",
+          "when": "activeCustomEditorId == forme.editor"
+        },
+        {
+          "command": "forme.editor.toggleCode",
+          "when": "activeCustomEditorId == forme.editor"
+        }
       ]
     },
     "keybindings": [
-      { "command": "forme.openPreviewToSide", "key": "ctrl+k v", "mac": "cmd+k v", "when": "editorLangId == forme" }
+      {
+        "command": "forme.openPreviewToSide",
+        "key": "ctrl+k v",
+        "mac": "cmd+k v",
+        "when": "editorLangId == forme"
+      },
+      {
+        "command": "forme.editor.undo",
+        "key": "ctrl+z",
+        "mac": "cmd+z",
+        "when": "activeCustomEditorId == forme.editor"
+      },
+      {
+        "command": "forme.editor.redo",
+        "key": "ctrl+shift+z",
+        "mac": "cmd+shift+z",
+        "when": "activeCustomEditorId == forme.editor"
+      },
+      {
+        "command": "forme.editor.redo",
+        "key": "ctrl+y",
+        "mac": "cmd+y",
+        "when": "activeCustomEditorId == forme.editor"
+      },
+      {
+        "command": "forme.editor.commandLine",
+        "key": "ctrl+k",
+        "mac": "cmd+k",
+        "when": "activeCustomEditorId == forme.editor"
+      },
+      {
+        "command": "forme.editor.themeMode",
+        "key": "ctrl+shift+t",
+        "mac": "cmd+shift+t",
+        "when": "activeCustomEditorId == forme.editor"
+      },
+      {
+        "command": "forme.editor.present",
+        "key": "f5",
+        "when": "activeCustomEditorId == forme.editor"
+      }
     ],
     "configuration": {
       "title": "Forme",
@@ -60,7 +272,19 @@
           "markdownDescription": "Pfad zu Chrome, Edge oder Chromium für den PDF-Export. Leer: Forme sucht selbst (Playwright-Chromium, Google Chrome, Microsoft Edge)."
         }
       }
-    }
+    },
+    "customEditors": [
+      {
+        "viewType": "forme.editor",
+        "displayName": "Forme-Editor (Canvas)",
+        "selector": [
+          {
+            "filenamePattern": "*.forme"
+          }
+        ],
+        "priority": "option"
+      }
+    ]
   },
   "scripts": {
     "build": "node scripts/build.mjs",

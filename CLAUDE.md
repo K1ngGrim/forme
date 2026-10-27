@@ -99,7 +99,10 @@ Hinweise:
   dürfen keine Node-APIs verwenden; Node-Code gehört nach `@forme/export/node`.
 - Die Vorlagen im Startdialog sind die Ordner unter `examples/` (zur Build-Zeit eingebunden).
 - VS Code: Die Erweiterung nutzt `core`, `render` und `@forme/export/node` direkt (kein
-  Sprachserver). Vorschau-Gesten laufen über dieselben Intents und `computeEdit` wie die Web-App
+  Sprachserver). Der Forme-Editor in VS Code ist die unveränderte Web-App (`apps/web`, beim
+  Bauen nach `apps/vscode/dist/editor`), die zur Laufzeit erkennt, dass sie in einem Webview
+  läuft (`platform/host.ts`): Dateien kommen über die Erweiterung, jede Änderung geht als
+  Text-Edit zurück (`CustomTextEditorProvider`, `apps/vscode/src/editor.ts`). Vorschau-Gesten laufen über dieselben Intents und `computeEdit` wie die Web-App
   und werden als `WorkspaceEdit` angewendet (VS Codes Undo-Stack). Tests laufen mit einer
   nachgebauten `vscode`-API (`apps/vscode/test/mock-vscode.ts`), das Webview-Skript in Chromium.
 - Dokumentation: Die Seiten sind Abschnitte aus `docs/*.md`; welche Überschrift zu welcher Seite

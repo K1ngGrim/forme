@@ -12,6 +12,7 @@ import { Toolbar } from './components/Toolbar.js';
 import type { SceneNode, SlideScene } from '@forme/core';
 import { flowParent } from './canvas/geometry.js';
 import { ProjectDialog } from './components/ProjectDialog.js';
+import { inVsCode } from './platform/host.js';
 import { actions, displaySlide, isDirty, useEditor } from './store.js';
 import type { Tool } from './store.js';
 
@@ -108,6 +109,7 @@ export function runMenu(cmd: MenuCommand): void {
 
 export function App(): JSX.Element {
   const presenting = useEditor((s) => s.presenting);
+  const codeVisible = useEditor((s) => s.codeVisible);
   const [split, setSplit] = useState(0.42);
   const dragging = useRef(false);
 
@@ -115,6 +117,9 @@ export function App(): JSX.Element {
     void actions.init();
     const onKey = (e: KeyboardEvent): void => {
       const mod = e.ctrlKey || e.metaKey;
+      // In VS Code these keys belong to VS Code (save, undo, quick open …); the extension binds
+      // them to Forme commands while this editor is active and sends them here.
+      if (inVsCode() && ((mod && 'sopkzy'.includes(e.key.toLowerCase())) || (mod && e.shiftKey && e.key.toLowerCase() === 't') || e.key === 'F5')) return;
       if (mod && e.key.toLowerCase() === 's') {
         e.preventDefault();
         void actions.save();
@@ -224,16 +229,20 @@ export function App(): JSX.Element {
       <div className="workspace">
         <SlideList />
         <div className="main-area">
-          <div className="code-pane" style={{ width: `${split * 100}%` }}>
-            <CodeView />
-          </div>
-          <div
-            className="splitter"
-            onMouseDown={() => {
-              dragging.current = true;
-              document.body.classList.add('resizing');
-            }}
-          />
+          {codeVisible && (
+            <>
+              <div className="code-pane" style={{ width: `${split * 100}%` }}>
+                <CodeView />
+              </div>
+              <div
+                className="splitter"
+                onMouseDown={() => {
+                  dragging.current = true;
+                  document.body.classList.add('resizing');
+                }}
+              />
+            </>
+          )}
           <div className="canvas-pane">
             <Canvas />
           </div>
@@ -244,7 +253,7 @@ export function App(): JSX.Element {
       <StatusBar />
       <Toasts />
       {presenting && <Presenter />}
-      <ProjectDialog />
+      {!inVsCode() && <ProjectDialog />}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import type { ArrangeVerb } from '@forme/core';
 import type { JSX, MouseEvent, ReactNode } from 'react';
 import { folderAccessSupported } from '../platform/fs.js';
+import { host, inVsCode } from '../platform/host.js';
 import { actions, displaySlide, toast, useEditor } from '../store.js';
 import type { Tool } from '../store.js';
 
@@ -39,7 +40,7 @@ const ICONS = {
 };
 
 /** The docs are deployed next to the app (GitHub Pages: /forme/docs/); the dev server has no copy. */
-const DOCS_URL = import.meta.env.DEV ? 'https://k1nggrim.github.io/forme/docs/' : './docs/';
+const DOCS_URL = import.meta.env.DEV || inVsCode() ? 'https://k1nggrim.github.io/forme/docs/' : './docs/';
 
 function Btn(props: { title: string; onClick: (e: MouseEvent) => void; active?: boolean; disabled?: boolean; children: ReactNode; testid?: string }): JSX.Element {
   return (
@@ -63,6 +64,7 @@ export function Toolbar(): JSX.Element {
   const canUndo = useEditor((s) => s.undoStack.length > 0);
   const canRedo = useEditor((s) => s.redoStack.length > 0);
   const projectKind = useEditor((s) => s.project?.kind ?? null);
+  const codeVisible = useEditor((s) => s.codeVisible);
   const exporting = useEditor((s) => s.exporting);
   const hasTheme = useEditor((s) => !!s.theme);
 
@@ -108,34 +110,48 @@ export function Toolbar(): JSX.Element {
 
   return (
     <div className="toolbar" data-testid="toolbar">
-      <div className="tb-group">
-        <Btn title="Projekte: neu, öffnen, importieren (Strg+O)" onClick={() => actions.showProjects(true)} testid="projects">
-          {ICONS.open}
-        </Btn>
-        <Btn
-          title={projectKind === 'folder' ? 'Speichern in den Ordner (Strg+S)' : 'Wird automatisch im Browser gespeichert (Strg+S)'}
-          onClick={() => void actions.save()}
-          testid="save"
-        >
-          {ICONS.save}
-        </Btn>
-        <select
-          className="tb-export"
-          value=""
-          onChange={(e) => {
-            if (e.target.value === 'zip') void actions.downloadZip();
-            if (e.target.value === 'folder') void actions.saveToFolder();
-          }}
-          title="Projekt sichern"
-          data-testid="file-menu"
-        >
-          <option value="">Datei …</option>
-          <option value="zip">Als ZIP herunterladen</option>
-          <option value="folder" disabled={!folderAccessSupported() || projectKind === 'folder'}>
-            In Ordner auf dem Rechner speichern{folderAccessSupported() ? '' : ' (nur Chrome/Edge)'}
-          </option>
-        </select>
-      </div>
+      {inVsCode() ? (
+        <div className="tb-group">
+          <Btn title="Speichern (Strg+S)" onClick={() => void actions.save()} testid="save">
+            {ICONS.save}
+          </Btn>
+          <Btn title="Code-Ansicht im Editor ein-/ausblenden" active={codeVisible} onClick={() => actions.showCode(!codeVisible)} testid="toggle-code">
+            <span className="tb-label">Code</span>
+          </Btn>
+          <Btn title="Datei im Texteditor von VS Code daneben öffnen" onClick={() => host?.post({ type: 'openText' })} testid="open-text">
+            <span className="tb-label">Text daneben</span>
+          </Btn>
+        </div>
+      ) : (
+        <div className="tb-group">
+          <Btn title="Projekte: neu, öffnen, importieren (Strg+O)" onClick={() => actions.showProjects(true)} testid="projects">
+            {ICONS.open}
+          </Btn>
+          <Btn
+            title={projectKind === 'folder' ? 'Speichern in den Ordner (Strg+S)' : 'Wird automatisch im Browser gespeichert (Strg+S)'}
+            onClick={() => void actions.save()}
+            testid="save"
+          >
+            {ICONS.save}
+          </Btn>
+          <select
+            className="tb-export"
+            value=""
+            onChange={(e) => {
+              if (e.target.value === 'zip') void actions.downloadZip();
+              if (e.target.value === 'folder') void actions.saveToFolder();
+            }}
+            title="Projekt sichern"
+            data-testid="file-menu"
+          >
+            <option value="">Datei …</option>
+            <option value="zip">Als ZIP herunterladen</option>
+            <option value="folder" disabled={!folderAccessSupported() || projectKind === 'folder'}>
+              In Ordner auf dem Rechner speichern{folderAccessSupported() ? '' : ' (nur Chrome/Edge)'}
+            </option>
+          </select>
+        </div>
+      )}
       <div className="tb-group">
         <Btn title="Rückgängig (Strg+Z)" disabled={!canUndo} onClick={() => actions.undo()} testid="undo">{ICONS.undo}</Btn>
         <Btn title="Wiederholen (Strg+Umschalt+Z)" disabled={!canRedo} onClick={() => actions.redo()} testid="redo">{ICONS.redo}</Btn>
@@ -183,10 +199,10 @@ export function Toolbar(): JSX.Element {
           data-testid="export"
         >
           <option value="">{exporting ? `Exportiere ${exporting.toUpperCase()} …` : 'Exportieren …'}</option>
-          <option value="pdf">PDF (Druckdialog)</option>
+          <option value="pdf">{inVsCode() ? 'PDF' : 'PDF (Druckdialog)'}</option>
           <option value="pptx">PowerPoint (PPTX)</option>
-          <option value="odp" disabled>
-            OpenDocument (ODP) – nur per CLI
+          <option value="odp" disabled={!inVsCode()}>
+            {inVsCode() ? 'OpenDocument (ODP, braucht LibreOffice)' : 'OpenDocument (ODP) – nur per CLI'}
           </option>
         </select>
         <Btn title="Präsentieren (F5)" onClick={() => actions.present(true)} testid="present">

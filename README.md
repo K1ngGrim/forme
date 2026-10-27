@@ -64,7 +64,9 @@ findet ein installiertes Chrome oder Edge selbst.
 
 ## VS Code
 
-Die Erweiterung in `apps/vscode` bringt Forme in den Editor: Hervorhebung, Fehler beim Tippen
+Die Erweiterung in `apps/vscode` bringt Forme in den Editor, einschließlich des kompletten
+Forme-Editors mit Canvas als eigenem Tab („Forme: Im Forme-Editor öffnen“), der mit dem
+Texteditor synchron bleibt. Dazu: Hervorhebung, Fehler beim Tippen
 (auch im Theme), Autovervollständigung, Gliederung, Gehe zu Definition (bis ins Theme),
 Umbenennen von IDs, Farbwähler und eine Live-Vorschau (`Strg+K V`). In der Vorschau lassen sich
 Objekte verschieben, skalieren, löschen und Texte bearbeiten; das ändert die Datei mit minimalen

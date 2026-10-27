@@ -29,10 +29,10 @@ export function StatusBar(): JSX.Element {
         {d?.stale ? ' (veraltet)' : ''}
       </span>
       <span className="st-save" data-testid="save-state">
-        {!project ? '' : saving ? 'Speichert …' : dirty ? (project.kind === 'folder' ? 'Ungespeichert (Strg+S)' : 'Ungespeichert') : project.kind === 'folder' ? 'Gespeichert' : 'Im Browser gespeichert'}
+        {!project ? '' : project.kind === 'host' ? 'Datei in VS Code (Speichern mit Strg+S)' : saving ? 'Speichert …' : dirty ? (project.kind === 'folder' ? 'Ungespeichert (Strg+S)' : 'Ungespeichert') : project.kind === 'folder' ? 'Gespeichert' : 'Im Browser gespeichert'}
       </span>
       <span className="st-path" title={themePath ?? ''}>
-        {project ? `${project.name}${project.kind === 'folder' ? ' (Ordner)' : ''} · ${deckPath ?? ''}` : 'Kein Projekt'}
+        {project ? `${project.name}${project.kind === 'folder' ? ' (Ordner)' : project.kind === 'host' ? ' (VS Code)' : ''} · ${deckPath ?? ''}` : 'Kein Projekt'}
         {themePath ? ` · Theme: ${themePath}` : themeError ? ' · Theme fehlt' : ' · Standard-Theme'}
       </span>
     </div>
