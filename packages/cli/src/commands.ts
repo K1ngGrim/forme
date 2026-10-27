@@ -5,12 +5,12 @@ import { basename, dirname, extname, relative, resolve } from 'node:path';
 import type { Diagnostic } from '@forme/core';
 import { TEMPLATES } from '@forme/core';
 import type { LoadCache, LoadedDeck, OutputFormat } from '@forme/export/node';
-import { ChromiumSession, createLoadCache, formatOf, loadDeck, OUTPUT_FORMATS, writeOutput } from '@forme/export/node';
+import { ChromiumSession, createLoadCache, formatOf, loadDeck, OUTPUT_FORMATS, writeOutput, writeTemplate } from '@forme/export/node';
 import type { Args } from './args.js';
 import { stringOption } from './args.js';
 import type { Style } from './report.js';
 import { diagnosticJson, formatDiagnostic } from './report.js';
-import { findTemplate, writeTemplate } from './templates.js';
+import { findTemplate, templateRoot } from './templates.js';
 
 export interface Io {
   cwd: string;
@@ -192,7 +192,7 @@ export async function init(args: Args, io: Io): Promise<number> {
   const t = findTemplate(id);
   if (!t) throw new Error(`Unbekannte Vorlage „${id}“. Verfügbar: ${TEMPLATES.map((x) => x.id).join(', ')}`);
   const target = resolve(io.cwd, args.positional[0] ?? '.');
-  const { written, skipped } = await writeTemplate(t, target);
+  const { written, skipped } = await writeTemplate(t, templateRoot(), target);
   for (const f of written) io.out(`  ${io.style.green('+')} ${f}`);
   for (const f of skipped) io.err(`  ${io.style.yellow('=')} ${f} ${io.style.dim('(existiert, unverändert)')}`);
   const deck = relative(io.cwd, resolve(target, t.deck)) || t.deck;

@@ -6,5 +6,11 @@ packages:
 # `allowBuilds` is read by pnpm >= 11, `onlyBuiltDependencies` by pnpm 10.
 allowBuilds:
   esbuild: true
+  keytar: false
+  '@vscode/vsce-sign': false
 onlyBuiltDependencies:
   - esbuild
+# Not needed for `vsce package` (publishing credentials only).
+ignoredBuiltDependencies:
+  - keytar
+  - '@vscode/vsce-sign'

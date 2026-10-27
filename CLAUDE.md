@@ -60,6 +60,7 @@ packages/
   cli/       Kommandozeile `forme` (compile, watch, check, init), bündelbar zu einer Datei
 apps/
   web/       Browser-App: Editor-UI, Projekte (IndexedDB/Ordner), Export im Browser
+  vscode/    VS Code-Erweiterung: Sprache, Diagnosen, Vorschau mit direkter Manipulation, Export
 docs/
   language.md   Sprachreferenz (verbindlich, bei jeder Sprachänderung aktualisieren)
 examples/       Beispiel-Decks und -Themes (dienen auch als Golden-Tests)
@@ -80,6 +81,7 @@ pnpm forme watch <deck.forme> [out]    CLI: bei jeder Änderung neu rendern
 pnpm forme check <deck.forme> [--json] CLI: nur Diagnosen ausgeben
 pnpm forme init [ordner] -t <vorlage>  CLI: Projekt aus einer Vorlage anlegen
 pnpm --filter @forme/cli bundle        CLI als eine Datei nach packages/cli/dist (npm install -g)
+pnpm --filter forme-vscode package     VS Code-Erweiterung als apps/vscode/forme.vsix
 ```
 
 Hinweise:
@@ -92,6 +94,10 @@ Hinweise:
   importiert (Vite bündelt sie, die CLI läuft über tsx). `core`, `render` und `@forme/export`
   dürfen keine Node-APIs verwenden; Node-Code gehört nach `@forme/export/node`.
 - Die Vorlagen im Startdialog sind die Ordner unter `examples/` (zur Build-Zeit eingebunden).
+- VS Code: Die Erweiterung nutzt `core`, `render` und `@forme/export/node` direkt (kein
+  Sprachserver). Vorschau-Gesten laufen über dieselben Intents und `computeEdit` wie die Web-App
+  und werden als `WorkspaceEdit` angewendet (VS Codes Undo-Stack). Tests laufen mit einer
+  nachgebauten `vscode`-API (`apps/vscode/test/mock-vscode.ts`), das Webview-Skript in Chromium.
 - GitHub Pages: `.github/workflows/pages.yml` prüft jeden Push/PR (Typecheck, Tests, Build) und
   veröffentlicht `apps/web/dist` vom Standard-Branch. `base: './'` in `vite.config.ts` beibehalten,
   damit die Seite unter `/<repo>/` funktioniert.

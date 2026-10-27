@@ -3,3 +3,4 @@ export * from './chromium.js';
 export * from './load.js';
 export * from './odp.js';
 export * from './output.js';
+export * from './templates.js';

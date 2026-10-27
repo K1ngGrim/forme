@@ -50,7 +50,6 @@ await writeFile(
       bin: { forme: 'forme.mjs' },
       engines: { node: '>=20' },
       dependencies: { 'playwright-core': '1.56.1' },
-      license: 'MIT',
     },
     null,
     2,

@@ -1,0 +1,79 @@
+{
+  "name": "forme-vscode",
+  "displayName": "Forme",
+  "description": "Präsentationen als Code: Syntax, Fehler, Autovervollständigung und eine Live-Vorschau, in der man Objekte direkt verschieben kann.",
+  "version": "0.1.0",
+  "publisher": "k1nggrim",
+  "private": true,
+  "repository": { "type": "git", "url": "https://github.com/K1ngGrim/forme" },
+  "engines": { "vscode": "^1.90.0" },
+  "categories": ["Programming Languages", "Visualization"],
+  "keywords": ["forme", "presentation", "slides", "präsentation"],
+  "icon": "media/icon.png",
+  "main": "./dist/extension.cjs",
+  "activationEvents": ["onWebviewPanel:forme.preview"],
+  "contributes": {
+    "languages": [
+      {
+        "id": "forme",
+        "aliases": ["Forme", "forme"],
+        "extensions": [".forme"],
+        "configuration": "./language-configuration.json",
+        "icon": { "light": "./media/icon.svg", "dark": "./media/icon.svg" }
+      }
+    ],
+    "grammars": [{ "language": "forme", "scopeName": "source.forme", "path": "./syntaxes/forme.tmLanguage.json" }],
+    "commands": [
+      { "command": "forme.openPreviewToSide", "title": "Vorschau an der Seite öffnen", "category": "Forme", "icon": "$(open-preview)" },
+      { "command": "forme.openPreview", "title": "Vorschau öffnen", "category": "Forme" },
+      { "command": "forme.export", "title": "Exportieren …", "category": "Forme", "icon": "$(export)" },
+      { "command": "forme.exportPdf", "title": "Als PDF exportieren", "category": "Forme" },
+      { "command": "forme.exportPptx", "title": "Als PowerPoint (PPTX) exportieren", "category": "Forme" },
+      { "command": "forme.newProject", "title": "Neue Präsentation aus Vorlage …", "category": "Forme" }
+    ],
+    "menus": {
+      "editor/title": [
+        { "command": "forme.openPreviewToSide", "when": "editorLangId == forme", "group": "navigation" },
+        { "command": "forme.export", "when": "editorLangId == forme", "group": "navigation" }
+      ],
+      "explorer/context": [
+        { "command": "forme.openPreviewToSide", "when": "resourceExtname == .forme", "group": "navigation" },
+        { "command": "forme.export", "when": "resourceExtname == .forme", "group": "navigation" }
+      ],
+      "commandPalette": [
+        { "command": "forme.openPreview", "when": "editorLangId == forme" },
+        { "command": "forme.openPreviewToSide", "when": "editorLangId == forme" },
+        { "command": "forme.export", "when": "editorLangId == forme" },
+        { "command": "forme.exportPdf", "when": "editorLangId == forme" },
+        { "command": "forme.exportPptx", "when": "editorLangId == forme" }
+      ]
+    },
+    "keybindings": [
+      { "command": "forme.openPreviewToSide", "key": "ctrl+k v", "mac": "cmd+k v", "when": "editorLangId == forme" }
+    ],
+    "configuration": {
+      "title": "Forme",
+      "properties": {
+        "forme.chromiumPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Pfad zu Chrome, Edge oder Chromium für den PDF-Export. Leer: Forme sucht selbst (Playwright-Chromium, Google Chrome, Microsoft Edge)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "package": "node scripts/build.mjs && vsce package --no-dependencies --skip-license --out forme.vsix",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.media.json"
+  },
+  "devDependencies": {
+    "@forme/core": "workspace:*",
+    "@forme/export": "workspace:*",
+    "@forme/render": "workspace:*",
+    "@types/vscode": "~1.90.0",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.25.12",
+    "playwright-core": "1.56.1"
+  }
+}

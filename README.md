@@ -55,6 +55,18 @@ Im Repository heißt der Aufruf `pnpm forme …`. Als eigenständiges Programm:
 `npm install -g ./packages/cli/dist`. Für PDF braucht die CLI einen Chromium-Browser; sie
 findet ein installiertes Chrome oder Edge selbst.
 
+## VS Code
+
+Die Erweiterung in `apps/vscode` bringt Forme in den Editor: Hervorhebung, Fehler beim Tippen
+(auch im Theme), Autovervollständigung, Gliederung, Gehe zu Definition (bis ins Theme),
+Umbenennen von IDs, Farbwähler und eine Live-Vorschau (`Strg+K V`). In der Vorschau lassen sich
+Objekte verschieben, skalieren, löschen und Texte bearbeiten; das ändert die Datei mit minimalen
+Text-Edits, Undo wie gewohnt mit `Strg+Z`. Export nach PDF, PPTX, HTML, SVG und ODP.
+
+Installieren: `pnpm --filter forme-vscode package` erzeugt `apps/vscode/forme.vsix`, dann in VS
+Code „Erweiterungen → … → Aus VSIX installieren“ (oder `code --install-extension forme.vsix`).
+Jeder CI-Lauf hängt die fertige `forme.vsix` und die gebündelte CLI als Artefakte an.
+
 ## Wo liegen meine Dateien?
 
 - **Browser-Projekte** (Standard, alle Browser): liegen in diesem Browser (IndexedDB) und werden
@@ -90,6 +102,7 @@ Vektorpfad nachgebaut (`use @logo hka x=… y=… w=… h=… color=$primary`).
 | `packages/export` | PDF-HTML und PPTX (pptxgenjs), browser-tauglich; `@forme/export/node`: Laden von Platte, Ausgabedateien, ODP (LibreOffice) |
 | `packages/cli` | Kommandozeile `forme`: compile, watch, check, init |
 | `apps/web` | Browser-App: React + Zustand, CodeMirror 6, SVG-Canvas, Projekte in IndexedDB oder Ordnern |
+| `apps/vscode` | VS Code-Erweiterung: Sprache, Diagnosen, Live-Vorschau mit direkter Manipulation, Export |
 
 ## Bedienung (Auswahl)
 

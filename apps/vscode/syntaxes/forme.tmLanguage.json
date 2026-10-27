@@ -1,0 +1,140 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Forme",
+  "scopeName": "source.forme",
+  "patterns": [
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#op"
+    }
+  ],
+  "repository": {
+    "comment": {
+      "match": "//.*$",
+      "name": "comment.line.double-slash.forme"
+    },
+    "op": {
+      "begin": "^(\\s*)(slide|layout|master|component|theme|deck)\\b|^(\\s*)([A-Za-z_][\\w]*)\\b",
+      "beginCaptures": {
+        "2": {
+          "name": "storage.type.forme"
+        },
+        "4": {
+          "name": "keyword.other.forme"
+        }
+      },
+      "end": "$",
+      "patterns": [
+        {
+          "include": "#comment"
+        },
+        {
+          "include": "#string"
+        },
+        {
+          "include": "#key"
+        },
+        {
+          "include": "#value"
+        }
+      ]
+    },
+    "key": {
+      "match": "(?<=\\s)([A-Za-z_][\\w]*(?:\\.[A-Za-z_][\\w]*)*)(=)",
+      "captures": {
+        "1": {
+          "name": "variable.parameter.forme"
+        },
+        "2": {
+          "name": "keyword.operator.assignment.forme"
+        }
+      }
+    },
+    "value": {
+      "patterns": [
+        {
+          "match": "@[A-Za-z_À-ɏ][\\wÀ-ɏ]*",
+          "name": "variable.other.object.forme"
+        },
+        {
+          "match": "\\$[A-Za-z_][\\w.]*",
+          "name": "support.constant.token.forme"
+        },
+        {
+          "match": "#(?:[0-9A-Fa-f]{8}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{3,4})\\b",
+          "name": "constant.other.color.forme"
+        },
+        {
+          "match": "\\b\\d+x\\d+\\b",
+          "name": "constant.numeric.forme"
+        },
+        {
+          "match": "-?\\b\\d+(?:\\.\\d+)?(?:px|%)?",
+          "name": "constant.numeric.forme"
+        },
+        {
+          "match": "\\b(?:true|false)\\b",
+          "name": "constant.language.forme"
+        },
+        {
+          "match": "\\b(?:slide|deck)\\.\\w+",
+          "name": "variable.language.forme"
+        },
+        {
+          "match": "[-+*/]",
+          "name": "keyword.operator.arithmetic.forme"
+        },
+        {
+          "match": "\\b[a-z_][\\w]*(?=\\()",
+          "name": "support.function.forme"
+        }
+      ]
+    },
+    "string": {
+      "begin": "\"",
+      "end": "\"",
+      "name": "string.quoted.double.forme",
+      "patterns": [
+        {
+          "match": "\\\\.",
+          "name": "constant.character.escape.forme"
+        },
+        {
+          "begin": "\\{",
+          "end": "\\}",
+          "name": "meta.interpolation.forme",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.section.interpolation.begin.forme"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.interpolation.end.forme"
+            }
+          },
+          "patterns": [
+            {
+              "match": "[\\w.]+",
+              "name": "variable.other.forme"
+            }
+          ]
+        },
+        {
+          "match": "\\*\\*[^*\"]+\\*\\*",
+          "name": "markup.bold.forme"
+        },
+        {
+          "match": "(?<!\\*)\\*[^*\"]+\\*(?!\\*)",
+          "name": "markup.italic.forme"
+        },
+        {
+          "match": "\\[[^\\]\"]*\\]\\([^)\"]*\\)",
+          "name": "markup.underline.link.forme"
+        }
+      ]
+    }
+  }
+}

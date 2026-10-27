@@ -1,0 +1,19 @@
+:root { color-scheme: light dark; }
+body { margin: 0; padding: 16px; background: var(--vscode-editor-background); color: var(--vscode-foreground); font-family: var(--vscode-font-family); font-size: 12px; }
+#slides { display: flex; flex-direction: column; gap: 20px; max-width: 1400px; margin: 0 auto; }
+figure.slide { margin: 0; }
+figcaption { opacity: 0.7; margin-bottom: 4px; font-variant-numeric: tabular-nums; white-space: pre; }
+.stage { position: relative; aspect-ratio: var(--ratio, 16 / 9); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35); outline: 1px solid transparent; user-select: none; touch-action: none; }
+figure.active .stage { outline-color: var(--vscode-focusBorder); }
+.stage > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage [data-id] { cursor: move; }
+svg.overlay { pointer-events: none; overflow: visible; }
+svg.overlay .sel { fill: none; stroke: var(--vscode-focusBorder, #2563eb); }
+svg.overlay .handle { fill: #fff; stroke: var(--vscode-focusBorder, #2563eb); pointer-events: all; }
+svg.overlay .handle.nw, svg.overlay .handle.se { cursor: nwse-resize; }
+svg.overlay .handle.ne, svg.overlay .handle.sw { cursor: nesw-resize; }
+figure.stale .stage { opacity: 0.55; filter: grayscale(0.6); }
+figure.stale figcaption { color: var(--vscode-errorForeground); opacity: 1; }
+figure.stale [data-id] { cursor: not-allowed; }
+figure.hidden-slide .stage { opacity: 0.5; }
+#error { position: sticky; top: 0; z-index: 2; margin: -16px -16px 12px; padding: 6px 16px; background: var(--vscode-inputValidation-errorBackground); border-bottom: 1px solid var(--vscode-inputValidation-errorBorder); }
