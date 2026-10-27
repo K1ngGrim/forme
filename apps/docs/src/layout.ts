@@ -1,5 +1,14 @@
-import type { PageSpec } from './site.js';
-import { GROUPS, PAGES, REPO_URL } from './site.js';
+import { GROUPS, REPO_URL } from './site.js';
+
+/** A page of the site: a Markdown section, a reference category or an operation. */
+export interface SitePage {
+  slug: string;
+  title: string;
+  group: string;
+  kind: 'section' | 'category' | 'op';
+  /** Category slug of an operation page. */
+  parent?: string;
+}
 
 export function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -24,25 +33,52 @@ const ICON =
 
 const LOGO = `<svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#2563eb"/><path d="M10 8h13v4h-9v4h8v4h-8v6h-4z" fill="#fff"/></svg>`;
 
-function sidebar(page: PageSpec): string {
+function link(from: SitePage, to: SitePage, label: string): string {
+  return `<a href="${hrefOf(from.slug, to.slug)}"${to.slug === from.slug ? ' aria-current="page"' : ''}>${label}</a>`;
+}
+
+function sidebar(page: SitePage, pages: SitePage[]): string {
   return GROUPS.map((g) => {
-    const items = PAGES.filter((p) => p.group === g)
-      .map((p) => `<li><a href="${hrefOf(page.slug, p.slug)}"${p.slug === page.slug ? ' aria-current="page"' : ''}>${esc(p.title)}</a></li>`)
+    const items = pages
+      .filter((p) => p.group === g && p.kind !== 'op')
+      .map((p) => {
+        const open = p.kind === 'category' && (p.slug === page.slug || p.slug === page.parent);
+        const ops = open
+          ? `<ul class="ops">${pages
+              .filter((o) => o.parent === p.slug)
+              .map((o) => `<li>${link(page, o, `<code>${esc(o.title)}</code>`)}</li>`)
+              .join('')}</ul>`
+          : '';
+        return `<li${p.kind === 'category' ? ' class="category"' : ''}>${link(page, p, esc(p.title))}${ops}</li>`;
+      })
       .join('');
     return `<section><h2>${esc(g)}</h2><ul>${items}</ul></section>`;
   }).join('');
 }
 
-function pager(page: PageSpec): string {
-  const i = PAGES.indexOf(page);
-  const prev = PAGES[i - 1];
-  const next = PAGES[i + 1];
-  const link = (p: PageSpec | undefined, cls: string, label: string): string =>
-    p ? `<a class="${cls}" href="${hrefOf(page.slug, p.slug)}"><span>${label}</span><strong>${esc(p.title)}</strong></a>` : '<span></span>';
-  return `<nav class="pager" aria-label="Weitere Seiten">${link(prev, 'prev', 'Zurück')}${link(next, 'next', 'Weiter')}</nav>`;
+function pager(page: SitePage, pages: SitePage[]): string {
+  const i = pages.indexOf(page);
+  const prev = pages[i - 1];
+  const next = pages[i + 1];
+  const title = (p: SitePage): string => (p.kind === 'op' ? `<code>${esc(p.title)}</code>` : esc(p.title));
+  const nav = (p: SitePage | undefined, cls: string, label: string): string =>
+    p ? `<a class="${cls}" href="${hrefOf(page.slug, p.slug)}"><span>${label}</span><strong>${title(p)}</strong></a>` : '<span></span>';
+  return `<nav class="pager" aria-label="Weitere Seiten">${nav(prev, 'prev', 'Zurück')}${nav(next, 'next', 'Weiter')}</nav>`;
 }
 
-export function pageHtml(page: PageSpec, body: string, toc: TocEntry[], sourceUrl: string): string {
+export interface PageParts {
+  /** HTML below the title. */
+  body: string;
+  toc: TocEntry[];
+  sourceUrl: string;
+  /** Breadcrumb above the title. */
+  crumb: string;
+  /** Title rendered as code (operation pages). */
+  codeTitle?: boolean;
+}
+
+export function pageHtml(page: SitePage, pages: SitePage[], parts: PageParts): string {
+  const { body, toc, sourceUrl } = parts;
   const root = rootOf(page.slug);
   const tocHtml = toc.length
     ? `<aside class="toc" aria-label="Auf dieser Seite"><h2>Auf dieser Seite</h2><ul>${toc.map((t) => `<li class="l${t.level}"><a href="#${t.id}">${t.html}</a></li>`).join('')}</ul></aside>`
@@ -66,13 +102,13 @@ export function pageHtml(page: PageSpec, body: string, toc: TocEntry[], sourceUr
   <nav class="toplinks"><a class="primary" href="${root}../">Editor öffnen</a><a href="${REPO_URL}">GitHub</a></nav>
 </header>
 <div class="layout">
-  <nav class="sidebar" aria-label="Dokumentation">${sidebar(page)}</nav>
+  <nav class="sidebar" aria-label="Dokumentation">${sidebar(page, pages)}</nav>
   <main class="content">
-    <p class="crumb">${esc(page.group)}</p>
-    <h1>${esc(page.title)}</h1>
+    <p class="crumb">${parts.crumb}</p>
+    <h1${parts.codeTitle ? ' class="code-title"' : ''}>${parts.codeTitle ? `<code>${esc(page.title)}</code>` : esc(page.title)}</h1>
     ${body}
     <p class="edit-source"><a href="${sourceUrl}">Diese Seite auf GitHub bearbeiten</a></p>
-    ${pager(page)}
+    ${pager(page, pages)}
   </main>
   ${tocHtml}
 </div>

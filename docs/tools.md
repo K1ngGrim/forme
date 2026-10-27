@@ -58,10 +58,13 @@ Fehler: Unbekanntes Objekt „@nope“
 
 ### Installation
 
-Im Repository: `pnpm forme <befehl>`. Als eigenständiges Programm:
-`pnpm --filter @forme/cli bundle` erzeugt `packages/cli/dist` (eine Datei plus Vorlagen), danach
-`npm install -g ./packages/cli/dist`. Jeder CI-Lauf hängt die gebündelte CLI als Artefakt
-`forme-cli` an.
+```text
+npm install -g https://github.com/K1ngGrim/forme/releases/latest/download/forme-cli.tgz
+```
+
+Voraussetzungen, Installation aus dem Quellcode und LibreOffice für ODP stehen unter
+[Installation](install.md#kommandozeile). Im Repository geht es auch ohne Installation mit
+`pnpm forme <befehl>`.
 
 ## VS Code
 
@@ -120,6 +123,6 @@ Web-App.
 
 ### Installation
 
-Jeder CI-Lauf hängt `forme.vsix` als Artefakt `forme-vscode` an. Alternativ
-`pnpm --filter forme-vscode package` im Repository. In VS Code: „Erweiterungen → … → Aus VSIX
-installieren“ oder `code --install-extension forme.vsix`.
+`forme.vsix` aus dem [neuesten Release](https://github.com/K1ngGrim/forme/releases/latest) laden,
+dann `code --install-extension forme.vsix` oder „Erweiterungen → … → Aus VSIX installieren“.
+Mehr unter [Installation](install.md#vs-code).

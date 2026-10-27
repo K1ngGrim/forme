@@ -209,3 +209,55 @@ pre.code code { font: inherit; }
 .example-errors li { margin: 0; }
 .toplinks a { white-space: nowrap; }
 @media (max-width: 820px) { .toplinks a.primary { padding: 6px 10px; font-size: 13px; } .brand em { display: none; } }
+
+/* ------------------------------------------------------------ reference pages (like Typst) */
+:root { --t-length: #dbeafe; --t-length-fg: #1e40af; --t-number: #e0e7ff; --t-number-fg: #3730a3; --t-color: #fce7f3; --t-color-fg: #9d174d; --t-string: #dcfce7; --t-string-fg: #166534; --t-id: #ccfbf1; --t-id-fg: #115e59; --t-name: #fef3c7; --t-name-fg: #92400e; --t-bool: #ffedd5; --t-bool-fg: #9a3412; --t-enum: #ede9fe; --t-enum-fg: #5b21b6; --t-other: #f3f4f6; --t-other-fg: #374151; }
+@media (prefers-color-scheme: dark) {
+  :root { --t-length: #1e3a8a; --t-length-fg: #dbeafe; --t-number: #312e81; --t-number-fg: #e0e7ff; --t-color: #831843; --t-color-fg: #fce7f3; --t-string: #14532d; --t-string-fg: #dcfce7; --t-id: #134e4a; --t-id-fg: #ccfbf1; --t-name: #78350f; --t-name-fg: #fef3c7; --t-bool: #7c2d12; --t-bool-fg: #ffedd5; --t-enum: #4c1d95; --t-enum-fg: #ede9fe; --t-other: #374151; --t-other-fg: #f3f4f6; }
+}
+h1.code-title code { font: 700 38px/1.15 var(--mono); padding: 0; border: 0; background: none; }
+.crumb a { color: inherit; }
+.lead { font-size: 18px; color: var(--muted); margin-bottom: 20px; }
+
+.sidebar li.category > a { font-weight: 600; }
+.sidebar ul.ops { margin: 2px 0 8px 12px; padding-left: 8px; border-left: 1px solid var(--line); }
+.sidebar ul.ops a { padding: 3px 10px; font-size: 13.5px; }
+.sidebar ul.ops code { font-family: var(--mono); font-size: 13px; }
+
+.defs table td:first-child { width: 160px; white-space: nowrap; }
+.defs table td:first-child code { font-size: 14px; background: none; border: 0; padding: 0; color: var(--accent); font-weight: 600; }
+.defs table td { vertical-align: middle; }
+
+.signature { margin: 4px 0 22px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-code); overflow-x: auto; }
+.signature code { font: 14px/1.9 var(--mono); white-space: normal; border: 0; background: none; padding: 0; }
+.signature .sig-verb { color: var(--hl-verb); font-weight: 700; margin-right: 4px; }
+.signature .sig-param { display: inline-block; margin-right: 10px; color: var(--hl-key); }
+.signature .sig-param:hover { text-decoration: none; }
+.signature .sig-param:hover .sig-key { text-decoration: underline; }
+.signature .sig-param.positional .sig-key { color: var(--hl-id); }
+.signature .sig-type { color: var(--muted); font-size: 12.5px; }
+
+.params { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+.param { border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px 4px; scroll-margin-top: 76px; }
+.param:target { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.param h3 { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 16px; }
+.param h3 .param-name code { font: 700 16px var(--mono); border: 0; background: none; padding: 0; color: var(--text); }
+.param h3 .sep { color: var(--muted); }
+.type { font: 600 12px var(--sans); padding: 2px 8px; border-radius: 999px; background: var(--t-other); color: var(--t-other-fg); }
+.t-length { background: var(--t-length); color: var(--t-length-fg); }
+.t-number { background: var(--t-number); color: var(--t-number-fg); }
+.t-color { background: var(--t-color); color: var(--t-color-fg); }
+.t-string { background: var(--t-string); color: var(--t-string-fg); }
+.t-id { background: var(--t-id); color: var(--t-id-fg); }
+.t-name { background: var(--t-name); color: var(--t-name-fg); }
+.t-bool { background: var(--t-bool); color: var(--t-bool-fg); }
+.t-enum { background: var(--t-enum); color: var(--t-enum-fg); }
+.badge { font: 600 11px var(--sans); text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 5px; border: 1px solid var(--line); color: var(--muted); }
+.badge.req { color: #b91c1c; border-color: color-mix(in srgb, #b91c1c 40%, transparent); }
+.badge.pos { color: var(--hl-id); border-color: color-mix(in srgb, var(--hl-id) 40%, transparent); }
+.param-values, .param-default { margin: 0 0 10px; font-size: 14px; color: var(--muted); }
+.param-values code, .param-default code { color: var(--text); }
+.param-body > :last-child { margin-bottom: 10px; }
+.param .example { margin-top: 4px; }
+.sidebar code, .toc code { border: 0; background: none; padding: 0; font-size: 0.95em; }
+.toc li.l3 code { font-family: var(--mono); }

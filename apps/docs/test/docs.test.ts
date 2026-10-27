@@ -2,7 +2,8 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } 
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { buildDocs } from '../scripts/build.js';
+import { ALL_VERBS, KEYS_BY_VERB } from '@forme/core';
+import { buildDocs, loadReference } from '../scripts/build.js';
 import type { BuildReport } from '../scripts/build.js';
 import { prepareExample, isFormeCode } from '../src/examples.js';
 import { extractSection, githubSlug } from '../src/markdown.js';
@@ -26,7 +27,7 @@ afterAll(() => rmSync(out, { recursive: true, force: true }));
 
 describe('docs site', () => {
   it('builds every page with assets', () => {
-    expect(report.pages).toBe(PAGES.length);
+    expect(report.pages).toBeGreaterThan(PAGES.length + 40);
     for (const p of PAGES) expect(existsSync(join(out, p.slug, 'index.html'))).toBe(true);
     for (const f of ['assets/style.css', 'assets/client.js', 'assets/search.json', 'assets/examples.json', 'assets/fonts/inter-latin-400-normal.woff', 'assets/img/umsatz.svg']) {
       expect(existsSync(join(out, f)), f).toBe(true);
@@ -34,10 +35,10 @@ describe('docs site', () => {
   });
 
   it('renders the examples with the real compiler', () => {
-    expect(report.rendered).toBeGreaterThanOrEqual(15);
+    expect(report.rendered).toBeGreaterThanOrEqual(140);
     // only fragments that reference objects from elsewhere stay code-only
     expect(report.failed.length).toBeLessThanOrEqual(3);
-    const container = readFileSync(join(out, 'referenz/container/index.html'), 'utf8');
+    const container = readFileSync(join(out, 'referenz/layout/row/index.html'), 'utf8');
     expect(container).toMatch(/<figure class="example[^"]*"[^>]*>.*<svg /s);
   });
 
@@ -62,10 +63,43 @@ describe('docs site', () => {
     expect(broken).toEqual([]);
   });
 
+  it('gives every heading a unique anchor', () => {
+    const dupes: string[] = [];
+    for (const file of htmlFiles(out)) {
+      const ids = [...readFileSync(file, 'utf8').matchAll(/ id="([^"]+)"/g)].map((m) => m[1] as string);
+      for (const id of new Set(ids)) if (ids.filter((x) => x === id).length > 1) dupes.push(`${relative(out, file)}#${id}`);
+    }
+    expect(dupes).toEqual([]);
+  });
+
   it('indexes every page for the search', () => {
     const index = JSON.parse(readFileSync(join(out, 'assets/search.json'), 'utf8')) as { page: string; keys: string[] }[];
-    expect(new Set(index.map((e) => e.page)).size).toBe(PAGES.length);
-    expect(index.some((e) => e.keys.includes('distribute'))).toBe(true);
+    const titles = new Set(index.map((e) => e.page));
+    for (const p of PAGES) expect(titles.has(p.title), p.title).toBe(true);
+    expect(index.some((e) => e.page === 'distribute' && e.keys.includes('distribute'))).toBe(true);
+  });
+});
+
+describe('operation reference', () => {
+  it('documents every operation of the language', () => {
+    const missing = ALL_VERBS.filter((v) => !report.documented.has(v));
+    expect(missing).toEqual([]);
+  });
+
+  it('documents every key an operation accepts', async () => {
+    const { ops } = await loadReference();
+    const missing: string[] = [];
+    for (const op of ops) {
+      if (op.verb === 'set') continue; // set takes any key of its targets
+      const documented = new Set(op.params.flatMap((p) => p.keys));
+      for (const verb of [op.verb, ...op.aliases]) for (const key of KEYS_BY_VERB[verb] ?? []) if (!documented.has(key)) missing.push(`${verb}: ${key}`);
+    }
+    expect(missing).toEqual([]);
+  });
+
+  it('every example of the reference renders without errors or warnings', () => {
+    expect(report.failed.filter((f) => f.page.startsWith('referenz/') && f.page.split('/').length > 2)).toEqual([]);
+    expect(report.warned).toEqual([]);
   });
 });
 

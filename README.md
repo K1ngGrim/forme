@@ -30,8 +30,9 @@ oder lokal mit `pnpm preview` ausliefern.
 
 ## Dokumentation
 
-**https://k1nggrim.github.io/forme/docs/** – aufgebaut wie die Typst-Dokumentation: Einstieg,
-Anleitung, Referenz und Werkzeuge, Suche mit `Strg+K`, und jedes Forme-Beispiel wird mit dem
+**https://k1nggrim.github.io/forme/docs/** – aufgebaut wie die Typst-Dokumentation: Einstieg mit
+Installation, Anleitung, eine Referenzseite pro Operation (Signatur, Parameter mit Typ und
+Standardwert, Beispiele) und Werkzeuge. Suche mit `Strg+K`; jedes Forme-Beispiel wird mit dem
 echten Compiler gerendert und lässt sich direkt auf der Seite bearbeiten. Quelle sind die
 Markdown-Dateien in `docs/`; lokal mit `pnpm docs` (http://localhost:4174).
 
@@ -57,7 +58,10 @@ forme compile vortrag/deck.forme vortrag.pptx
 forme check vortrag/deck.forme      # Fehler mit Quelltext-Ausschnitt, --json für Werkzeuge
 ```
 
-Im Repository heißt der Aufruf `pnpm forme …`. Als eigenständiges Programm:
+Installieren (Node.js 20+):
+`npm install -g https://github.com/K1ngGrim/forme/releases/latest/download/forme-cli.tgz`,
+sobald ein Release veröffentlicht ist (Tag `v*` pushen, siehe `.github/workflows/release.yml`).
+Im Repository heißt der Aufruf `pnpm forme …`. Als eigenständiges Programm aus dem Quellcode:
 `pnpm --filter @forme/cli bundle` erzeugt `packages/cli/dist` (eine Datei plus Vorlagen), danach
 `npm install -g ./packages/cli/dist`. Für PDF braucht die CLI einen Chromium-Browser; sie
 findet ein installiertes Chrome oder Edge selbst.

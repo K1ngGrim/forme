@@ -27,11 +27,14 @@ ausprobieren.
 
 ## Wo anfangen?
 
+- Installieren: [Installation](einstieg/installation/) der Kommandozeile und der VS Code-Erweiterung
+  (die Web-App braucht keine).
 - Neu hier: [Das Prinzip](einstieg/prinzip/), dann der [Schnellstart](einstieg/schnellstart/)
   und [Die Sprache in fünf Minuten](einstieg/sprache/).
 - Folien bauen: die [Rezepte](anleitung/rezepte/) zeigen Text, Listen, Tabellen, Bilder,
   Formen und Komponenten, [Positionieren und Anordnen](anleitung/anordnen/) erklärt Ausdrücke,
   `align`, `distribute` und die Layout-Container `row` und `column`.
 - Eigenes Design: [Ein eigenes Theme bauen](anleitung/theme/).
-- Nachschlagen: die [Referenz](referenz/grundlagen/) beschreibt jede Operation und jeden
-  Schlüssel.
+- Nachschlagen: die Referenz beschreibt jede Operation mit allen Parametern und Beispielen,
+  z. B. [Erzeugen](referenz/erzeugen/), [Layout](referenz/layout/) oder
+  [alle Operationen](referenz/operationen/).

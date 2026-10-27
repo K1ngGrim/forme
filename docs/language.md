@@ -127,138 +127,22 @@ tatsächliche Höhe sehen.
 
 ## Operationen
 
-### Erzeugen
+Jede Operation hat eine eigene Seite in [`reference/`](reference/) mit allen Parametern,
+Typen, Standardwerten und Beispielen. Diese Seiten sind Teil der verbindlichen Referenz: Ändert
+sich eine Operation, wird ihre Seite mitgezogen (ein Test prüft, dass jede Operation und jeder
+Schlüssel aus `packages/core/src/vocab.ts` dort beschrieben ist).
 
-Alle Erzeugungs-Ops nehmen eine ID als erstes Argument. Fehlt sie, wird intern eine vergeben
-(der Editor vergibt immer eine sichtbare ID wie `@rect3`).
-
-| Op | Positionsargumente | Wichtige Schlüssel |
-| --- | --- | --- |
-| `rect @id` | – | `x y w h fill stroke stroke.width stroke.dash radius radius.tl/.tr/.br/.bl opacity shadow.*` |
-| `ellipse @id` | – | wie `rect` ohne Radius |
-| `line @id` / `arrow @id` | – | `x y x2 y2 stroke stroke.width stroke.dash`, bei `arrow`: `head=end|start|both|none` |
-| `polygon @id` | – | `points="0,0 100,0 50,80"` (relativ), `x y`, optional `w h` zum Skalieren |
-| `path @id` | – | `d="M0 0 L100 0 …"`, `x y`, optional `w h` zum Skalieren |
-| `text @id "Inhalt"` | Text | `font size weight italic color line align valign anchor pad fill radius w h` |
-| `list @id` | – | wie `text` plus `bullet=disc|dash|number|none`; Kinder: `item "Text" [level=2]` |
-| `image @id "pfad.png"` | Pfad | `x y w h fit=contain|cover|fill radius stroke` (ohne `h`: Seitenverhältnis des Bildes) |
-| `table @id` | – | `x y w cols="1,2,1" size color pad header=true header.fill header.color border stripe`; Kinder: `row "A" "B" "C"` |
-| `group @id` | – | `x y opacity`; Kinder sind Erzeugungs-/Änderungs-Ops mit Koordinaten **relativ** zur Gruppe (auch Bezüge wie `@a.bottom` liefern innerhalb der Gruppe relative Werte) |
-| `use @id komponente` | Komponentenname | `x y w h` und Parameter der Komponente; `like=@andere` übernimmt Position, Größe und Parameter einer anderen Instanz derselben Komponente |
-| `slot @id` | – (nur Layout/Master) | wie `text`, plus `kind=text|image placeholder="…"` |
-| `fill @slot "Inhalt"` | Slot, Text bzw. Bildpfad | weitere Schlüssel überschreiben Eigenschaften des Slots |
-
-**Gemeinsame Meta-Schlüssel:**
-
-- `like=@andere` kopiert alle gesetzten Eigenschaften eines vorherigen Objekts.
-- `style=h1` wendet einen Stil des Themes an.
-- `in=@box` setzt die Box auf die von `@box`. Bei Text wird `pad` dann zum Innenabstand.
-- `hidden=true` blendet aus.
-
-**Text-Box-Verhalten:** Ohne `w` ist die Breite automatisch (kein Umbruch). Mit `w` wird
-umgebrochen. Ohne `h` ist die Höhe automatisch. `anchor=right|center` bezieht `x` auf die
-rechte Kante bzw. die Mitte. `valign` wirkt nur bei fester Höhe.
-
-### Verändern
-
-| Op | Form |
+| Gruppe | Operationen |
 | --- | --- |
-| `set` | `set @a [@b …] key=value …` |
-| `move` | `move @a dx dy` oder `move @a dx=10 dy=-5` |
-| `resize` | `resize @a w h` oder `resize @a w=400` |
-| `round` | `round @a 24` oder `round @a tl=24 tr=24` |
-| `style` | `style @a h1` |
-| `stroke` | `stroke @a #000 2 [dash=6]` oder `stroke @a color=#000 width=2` |
-| `shadow` | `shadow @a [x=0] [y=8] [blur=24] [color=rgba(0,0,0,0.25)]`, `shadow @a none` |
-| `opacity` | `opacity @a 0.5` |
-| `hide` / `show` | `hide @a @b …` |
-| `z` | `z @a front|back|forward|backward|<index>` |
+| [Erzeugen](reference/erzeugen.md) | `rect` `ellipse` `line` `arrow` `polygon` `path` `text` `list` `item` `image` `table` `group` `use` |
+| [Layout](reference/layout.md) | `row` `column` `align` `distribute` `stack` `grid` |
+| [Verändern](reference/veraendern.md) | `set` `move` `resize` `round` `style` `stroke` `shadow` `opacity` `hide` `show` `z` |
+| [Folien und Deck](reference/folien.md) | `deck` `theme` `slide` `section` `fill` `notes` `background` `number` `counter` |
+| [Theme](reference/theme.md) | `theme` `size` `token` `color` `font` `style` `master` `layout` `slot` `region` `component` |
 
-### Anordnen
-
-Diese Ops sind *semantisch*: Sie berechnen Positionen und werden bei jeder Auswertung neu
-angewendet.
-
-| Op | Form |
-| --- | --- |
-| `align` | `align left|center|right|top|middle|bottom @a @b … [to=slide|first|last|@id|<region>]`. Ohne `to` gilt die gemeinsame Box der Ziele, bei einem einzelnen Ziel die Folie. |
-| `distribute` | `distribute h|v @a @b @c [within=<region>|slide|@id] [gap=N]`. Reihenfolge = Reihenfolge der Argumente. |
-| `stack` | `stack v|h @a @b @c [gap=N] [align=start|center|end] [x= y=]` (Auto-Layout) |
-| `grid` | `grid @a @b @c @d [cols=2] [gap=24] [within=<region>] [x= y= w=] [rowh=]` |
-
-### Layout-Container (`row`, `column`)
-
-Container ordnen ihre eingerückten Kinder automatisch an, ähnlich wie Zeilen und Spalten in
-Bootstrap bzw. CSS-Flexbox. Container dürfen weitere Container enthalten.
-
-```
-row @haupt within=content gap=40
-  column @links span=2 gap=24          // 2/3 der Breite
-    text @lead "…" style=body
-    row @kpis gap=24
-      use @k1 kpi value="640" label="Aufträge"
-      use @k2 kpi value="98 %" label="Termintreue"
-  column @seite fill=$surface radius=24 pad=40   // 1/3, mit Hintergrund
-    text @t "Seitenleiste" style=h2
-```
-
-| Schlüssel (Container) | Bedeutung |
-| --- | --- |
-| `x y w h` / `within=<region>` / `in=@box` | Position und Größe; ohne Breite/Höhe passt sich der Container dem Inhalt an |
-| `gap` | Abstand zwischen den Kindern |
-| `pad` | Innenabstand |
-| `align=start\|center\|end\|stretch` | Querachse (Standard `stretch`: Kinder ohne eigene Höhe bzw. Breite füllen die Zeile/Spalte) |
-| `justify=start\|center\|end\|between\|around` | Verteilung freien Platzes auf der Hauptachse |
-| `cols=12` (nur `row`) | Raster: Kinder belegen `span` von `cols` Spalten, bei Überlauf beginnt eine neue Zeile |
-| `fill stroke radius shadow.* opacity` | Hintergrund des Containers („Content-Block“) |
-
-| Schlüssel (Kind) | Bedeutung |
-| --- | --- |
-| `w` (in `row`) / `h` (in `column`) | feste Größe; Kinder ohne feste Größe teilen sich den freien Platz |
-| `span=N` | Anteil am freien Platz (Standard 1) bzw. Spaltenzahl im `cols`-Raster. In `column` bekommen nur Kinder mit `span` freie Höhe ab |
-
-- `row`: Kinder nebeneinander. Ohne `cols` teilen sich Kinder ohne `w` die Breite nach `span`.
-- `column`: Kinder untereinander, in voller Breite (`align=stretch`), Höhe aus dem Inhalt.
-- Koordinaten und Bezüge der Kinder sind relativ zum Container (wie bei `group`).
-  Position und zugewiesene Größe vergibt der Container; spätere Ops (`set @a w=…`) lösen eine
-  neue Anordnung aus. Komponenten (`use`) werden mit der zugewiesenen Größe neu aufgebaut.
-- Innerhalb einer `table` bleibt `row` eine Tabellenzeile.
-- Editor: Ziehen eines Kindes ordnet die Zeilen im Container um, Pfeiltasten verschieben es
-  um eine Position, Größe ändern schreibt `w=`/`h=` in die Zeile des Kindes.
-
-### Nummerierung
-
-| Op | Form |
-| --- | --- |
-| `counter` | `counter name [start=0]` (Deck- oder Theme-Ebene) |
-| `number` | `number <zähler> [@ziel] [caption="Abb. {figure}: …"] [pos=below|above] [gap=16] [style=caption]` |
-| `section` | `section "Name"` auf Deck-Ebene, verfügbar als `{section}`, `{section.n}` und `{deck.sections}` |
-
-`number` erhöht den Zähler. Mit `caption` entsteht eine Beschriftung `@<ziel>_caption` unter
-(oder über) dem Ziel, standardmäßig mit dem Stil `caption` bzw. `footer`. Zähler laufen über
-alle Folien des Decks weiter.
-
-### Sonstiges
-
-| Op | Form |
-| --- | --- |
-| `notes` | `notes "Sprechernotiz"` (mehrere werden zusammengefügt, Export als PPTX-Notizen) |
-| `background` | `background fill=#fff [image="bg.jpg"] [fit=cover|contain|fill]` |
-| `region` | `region name x y w h` (Layout/Master), verwendbar in `within=` und als `name.x` |
-
-### Definitionen (nur Theme)
-
-| Op | Form |
-| --- | --- |
-| `theme` | `theme "Name"` (erste Zeile) |
-| `size` | `size 1920x1080` |
-| `token` | `token name wert` |
-| `color` | `color name #RRGGBB` (als `$name` verwendbar) |
-| `font` | `font name "Familie" [weight=400] [italic=true] [file="./font.ttf"]` |
-| `style` | `style name [base=anderer] key=value …` |
-| `master` | `master name` mit Block |
-| `layout` | `layout name [master=default]` mit Block (`slot`, `region`, `background`, `hide`, Objekte) |
-| `component` | `component name [w=…] [h=…] [param="default"]` mit Block; Parameter über `param.name` |
+Parameter, die viele Operationen teilen (Position, Füllung, Kontur, Schatten, Text, `like=`,
+`style=`, `in=`, `within=`), sind in [`reference/_parameter.md`](reference/_parameter.md)
+beschrieben.
 
 ## Synchronisation mit dem Editor (Rückschreibe-Regeln)
 

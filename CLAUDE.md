@@ -63,8 +63,10 @@ apps/
   vscode/    VS Code-Erweiterung: Sprache, Diagnosen, Vorschau mit direkter Manipulation, Export
   docs/      Dokumentations-Website (statisch, aus docs/*.md erzeugt, Beispiele live gerendert)
 docs/
-  language.md   Sprachreferenz (verbindlich, bei jeder Sprachänderung aktualisieren)
-  guide.md      Anleitung; index.md und tools.md: Startseite und Werkzeuge der Website
+  language.md   Sprachreferenz: Syntax, Werte, Dateiarten, Rückschreibe-Regeln (verbindlich)
+  reference/    eine Seite pro Operation mit Parametern und Beispielen (verbindlich),
+                _parameter.md: gemeinsame Parameter, <kategorie>.md: Kategorieseiten
+  guide.md      Anleitung; index.md, install.md, tools.md: Startseite, Installation, Werkzeuge
 examples/       Beispiel-Decks und -Themes (dienen auch als Golden-Tests)
 ```
 
@@ -107,7 +109,11 @@ Hinweise:
   nachgebauten `vscode`-API (`apps/vscode/test/mock-vscode.ts`), das Webview-Skript in Chromium.
 - Dokumentation: Die Seiten sind Abschnitte aus `docs/*.md`; welche Überschrift zu welcher Seite
   wird, steht in `apps/docs/src/site.ts` (beim Umbenennen von Überschriften mitziehen, der Test
-  schlägt sonst fehl). Forme-Codeblöcke werden mit dem echten Compiler gerendert und lassen sich
+  schlägt sonst fehl). Die Referenz der Operationen ist wie bei Typst aufgebaut: eine Datei pro
+  Op unter `docs/reference/<kategorie>/`, Format in `apps/docs/src/reference.ts` (Frontmatter
+  `summary`, `## Parameter` mit `### schlüssel` und `- Typ:`/`- Standard:`, gemeinsame
+  Parameter per `<!-- gemeinsam: … -->`). Beispiele mit einer Zeile `---` zeigen oben
+  Theme-Code (ergänzt das Standard-Theme) und unten die Folie. Forme-Codeblöcke werden mit dem echten Compiler gerendert und lassen sich
   im Browser bearbeiten; Theme-Ausschnitte und Fragmente bleiben reiner Code. Ein Beispiel, das
   absichtlich einen Fehler zeigt, bekommt einen Kommentar `// FEHLER`.
 - GitHub Pages: `.github/workflows/pages.yml` prüft jeden Push/PR (Typecheck, Tests, Build) und
@@ -288,7 +294,9 @@ Eine neue Op ist erst fertig, wenn alles davon erledigt ist:
 5. Renderer (SVG)
 6. PPTX-Mapping (oder dokumentiertes Einfrieren/Rastern)
 7. Autocomplete + Highlighting in CodeMirror
-8. `docs/language.md` aktualisiert
+8. Referenzseite `docs/reference/<kategorie>/<op>.md` (Parameter mit Typ und Standard,
+   Beispiele) und ggf. `docs/language.md` aktualisiert; der Docs-Test prüft, dass jede Op und
+   jeder Schlüssel aus `vocab.ts` dokumentiert ist und alle Beispiele fehlerfrei rendern
 9. Tests: Parse, Eval-Snapshot, Edit (Geste → erwarteter Text-Diff)
 
 ## Konventionen
