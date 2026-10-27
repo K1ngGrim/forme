@@ -487,9 +487,18 @@ export async function exportPptx(scene: DeckScene, opts: PptxOptions): Promise<P
     const statics = new Set<string>();
     const slots = new Set<string>();
     let slideNumber: PptxGenJS.SlideMasterProps['slideNumber'];
+    // PowerPoint draws master content below everything on the slide. Only the bottom-most
+    // run of objects that can live in the master may go there; once one object has to be
+    // placed on the slide (ellipse, component, slot content, per-slide text ...), all objects
+    // above it go on the slide too, so the z-order of the deck is kept.
+    let inMaster = true;
     for (const node of first.nodes) {
-      if (node.from !== 'master' && node.from !== 'layout') continue;
+      if (node.from !== 'master' && node.from !== 'layout') {
+        inMaster = false;
+        continue;
+      }
       if (node.slot) {
+        inMaster = false;
         if (!group.every((s) => { const n = s.byId.get(node.id); return n && slotIsStatic(n); })) continue;
         const b = node.box;
         const f = fontOf(scene, node);
@@ -514,13 +523,13 @@ export async function exportPptx(scene: DeckScene, opts: PptxOptions): Promise<P
         slots.add(node.id);
         continue;
       }
-      if (node.props.hidden === true) continue;
+      if (group.every((s) => s.byId.get(node.id)?.props.hidden === true)) continue;
       const same = group.every((s) => {
         const n = s.byId.get(node.id);
         return n && nodeSignature(n) === nodeSignature(node) && !Object.values(n.prov).some((p) => p.op.scope === 'slide');
       });
       // page numbers become the PPTX slide number field
-      if (node.kind === 'text' && node.origin.file === 'theme' && /^\d+$/.test(str(node.props.text, '')) && group.every((s) => str(s.byId.get(node.id)?.props.text, '') === String(s.n))) {
+      if (inMaster && node.kind === 'text' && node.origin.file === 'theme' && /^\d+$/.test(str(node.props.text, '')) && group.every((s) => str(s.byId.get(node.id)?.props.text, '') === String(s.n))) {
         const f = fontOf(scene, node);
         const c = toColor(str(node.props.color, '#6B7280'));
         slideNumber = { x: inch(node.box.x), y: inch(node.box.y), w: inch(Math.max(node.box.w, 60)), h: inch(node.box.h), fontFace: f.face, fontSize: f.size, align: 'right' };
@@ -528,7 +537,10 @@ export async function exportPptx(scene: DeckScene, opts: PptxOptions): Promise<P
         statics.add(node.id);
         continue;
       }
-      if (!same) continue;
+      if (!same || !inMaster) {
+        inMaster = false;
+        continue;
+      }
       const b = node.box;
       if (node.kind === 'rect' && Object.values(node.props).length) {
         const fill = fillProps(node);
@@ -549,6 +561,7 @@ export async function exportPptx(scene: DeckScene, opts: PptxOptions): Promise<P
           statics.add(node.id);
         }
       }
+      if (!statics.has(node.id)) inMaster = false;
     }
     const bg = toColor(first.background.fill);
     const masterProps: PptxGenJS.SlideMasterProps = { title: key, objects };

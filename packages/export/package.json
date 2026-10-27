@@ -19,5 +19,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./node": "./src/node.ts"
+  },
+  "devDependencies": {
+    "fflate": "^0.8.2"
   }
 }
