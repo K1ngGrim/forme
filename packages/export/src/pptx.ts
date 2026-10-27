@@ -21,6 +21,13 @@ export interface PptxResult {
   log: ExportLogEntry[];
 }
 
+/** Base64 without Node's Buffer, so the exporter runs in the browser too. */
+export function toBase64(bytes: Uint8Array): string {
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+
 const PX_PER_IN = 96;
 const inch = (px: number): number => Math.round((px / PX_PER_IN) * 10000) / 10000;
 const pt = (px: number): number => Math.round(px * 0.75 * 100) / 100;
@@ -241,8 +248,8 @@ class Exporter {
         const w = size ? Number(size[1]) : 800;
         const h = size ? Number(size[2]) : 600;
         const png = await this.opts.rasterize(svg, w * 2, h * 2);
-        data = `image/png;base64,${Buffer.from(png).toString('base64')}`;
-      } else data = `${mime};base64,${Buffer.from(bytes).toString('base64')}`;
+        data = `image/png;base64,${toBase64(png)}`;
+      } else data = `${mime};base64,${toBase64(bytes)}`;
     }
     this.assets.set(path, data);
     return data;
@@ -300,7 +307,7 @@ class Exporter {
     const full = renderSlideSvg(this.scene, mini).replace(/<rect width="\d+" height="\d+" fill="none"\/>/, '');
     const svg = full.replace(/viewBox="[^"]*" width="\d+" height="\d+"/, `viewBox="${b.x} ${b.y} ${Math.max(1, b.w)} ${Math.max(1, b.h)}" width="${Math.max(1, b.w)}" height="${Math.max(1, b.h)}"`);
     const png = await this.opts.rasterize(svg, Math.ceil(Math.max(1, b.w) * 2), Math.ceil(Math.max(1, b.h) * 2));
-    target.addImage({ data: `image/png;base64,${Buffer.from(png).toString('base64')}`, x: inch(b.x), y: inch(b.y), w: inch(Math.max(1, b.w)), h: inch(Math.max(1, b.h)) });
+    target.addImage({ data: `image/png;base64,${toBase64(png)}`, x: inch(b.x), y: inch(b.y), w: inch(Math.max(1, b.w)), h: inch(Math.max(1, b.h)) });
     this.log.push({ slide: slide.id, id: node.id, message: `${reason} – als Bild gerastert` });
   }
 

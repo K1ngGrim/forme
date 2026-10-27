@@ -5,14 +5,14 @@
   "type": "module",
   "packageManager": "pnpm@10.28.0",
   "scripts": {
-    "dev": "pnpm --filter @forme/desktop dev",
-    "build": "pnpm -r build",
+    "dev": "pnpm --filter @forme/web dev",
+    "build": "pnpm --filter @forme/web build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "pnpm --filter @forme/desktop test:e2e",
+    "test:e2e": "pnpm --filter @forme/web test:e2e",
     "typecheck": "pnpm -r typecheck",
     "forme": "tsx packages/export/src/cli.ts",
-    "dist": "pnpm --filter @forme/desktop dist"
+    "preview": "pnpm --filter @forme/web preview"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

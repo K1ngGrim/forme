@@ -1,6 +1,7 @@
 # CLAUDE.md – Forme
 
-Forme ist ein Desktop-Tool zum Erstellen von Präsentationen. Es verbindet einen Figma-artigen
+Forme ist ein Werkzeug zum Erstellen von Präsentationen, das vollständig im Browser läuft
+(keine Installation, keine Konten, kein Server). Es verbindet einen Figma-artigen
 Canvas-Editor mit einer textuellen Darstellung, in der jede Folie als Abfolge von Operationen
 beschrieben ist (ähnlich einem CAD-Befehlsprotokoll). Beide Ansichten sind **immer synchron**:
 Eine Änderung im Editor ändert die Datei, eine Änderung in der Datei ändert den Editor.
@@ -28,20 +29,24 @@ Eine Änderung im Editor ändert die Datei, eine Änderung in der Datei ändert 
 
 ## Nicht-Ziele
 
-Animationen, Übergänge, Echtzeit-Kollaboration, Cloud-Sync, Video-Einbettung, Plugins.
+Animationen, Übergänge, Echtzeit-Kollaboration, Cloud-Sync, Video-Einbettung, Plugins,
+Benutzerkonten/Anmeldung, Server-Backend. Alle Daten bleiben im Browser bzw. auf dem Rechner.
 Diese Features nicht vorschlagen oder vorbereiten, solange nicht ausdrücklich gewünscht.
 
 ---
 
 ## Tech-Stack
 
-- **Electron** (via electron-vite), **TypeScript strict**, **pnpm** Workspaces
+- **Browser-App** (statische Seite, gebaut mit **Vite**), **TypeScript strict**, **pnpm** Workspaces
 - **React** + **Zustand** für die UI
-- **SVG** als Renderer (Folien sind klein, kein WebGL nötig; gleiches Chromium auf allen Plattformen)
+- **SVG** als Renderer (Folien sind klein, kein WebGL nötig)
+- Dateien: **IndexedDB** für Browser-Projekte (alle Browser), **File System Access API** für
+  echte Ordner auf dem Rechner (Chrome/Edge/Opera). Kein Server, keine Konten.
 - **CodeMirror 6** für die Code-Ansicht (eigene Sprache, Highlighting, Fehler, Autocomplete)
 - Parser: **handgeschrieben, rekursiver Abstieg** (Fehlertoleranz, verlustfreier CST)
-- Export: Electron `printToPDF` (PDF), **pptxgenjs** (PPTX), LibreOffice headless (ODP)
-- Tests: **Vitest** (Unit/Golden), **Playwright** für Electron (E2E)
+- Export: Druckdialog des Browsers (PDF), **pptxgenjs** (PPTX); ODP nur über die CLI
+  (LibreOffice headless)
+- Tests: **Vitest** (Unit/Golden), **Playwright** mit Chromium gegen den Vite-Build (E2E)
 
 ## Projektstruktur
 
@@ -50,9 +55,9 @@ packages/
   core/      Lexer, Parser (CST), AST, Printer, Evaluator, Szenengraph, Edit-Engine
              → reines TypeScript, KEIN DOM, KEIN Node-API. Muss isoliert testbar sein.
   render/    Szenengraph → SVG
-  export/    PDF, PPTX, ODP
+  export/    PDF, PPTX (browser-tauglich); `@forme/export/node`: Laden von Platte, ODP, CLI
 apps/
-  desktop/   Electron main / preload / renderer, Editor-UI
+  web/       Browser-App: Editor-UI, Projekte (IndexedDB/Ordner), Export im Browser
 docs/
   language.md   Sprachreferenz (verbindlich, bei jeder Sprachänderung aktualisieren)
 examples/       Beispiel-Decks und -Themes (dienen auch als Golden-Tests)
@@ -61,13 +66,12 @@ examples/       Beispiel-Decks und -Themes (dienen auch als Golden-Tests)
 ## Befehle
 
 ```
-pnpm install      Abhängigkeiten installieren (lädt auch das Electron-Binary)
-pnpm dev          Electron-App im Dev-Modus
-pnpm test         alle Vitest-Tests (core, render, export)
-pnpm test:e2e     Playwright E2E gegen die gebaute App (Linux ohne Display: xvfb-run -a pnpm test:e2e)
-pnpm build        Produktions-Build der App (apps/desktop/out)
-pnpm dist         Installer für das aktuelle Betriebssystem (apps/desktop/dist):
-                  Windows: NSIS-Setup + portable .exe, macOS: .dmg, Linux: AppImage
+pnpm install      Abhängigkeiten installieren
+pnpm dev          App im Browser starten (Vite-Dev-Server, http://localhost:5173)
+pnpm build        Statische Seite bauen (apps/web/dist, auf jedem Webserver hostbar)
+pnpm preview      Gebaute Seite lokal ausliefern
+pnpm test         alle Vitest-Tests (core, render, export, web)
+pnpm test:e2e     Playwright E2E (Chromium) gegen den Build
 pnpm typecheck    tsc für alle Pakete
 pnpm forme render <deck.forme> --out out.pdf   CLI: rendern ohne UI (.pdf/.pptx/.odp/.html/.svg)
 pnpm forme check <deck.forme>                  CLI: nur Diagnosen ausgeben
@@ -75,16 +79,14 @@ pnpm forme check <deck.forme>                  CLI: nur Diagnosen ausgeben
 
 Hinweise:
 - Die CLI druckt PDFs mit headless Chromium (playwright-core). Falls keins installiert ist:
-  `npx playwright install chromium` oder Pfad per `FORME_CHROMIUM` setzen. Die App selbst
-  nutzt Electrons `printToPDF`.
-- `pnpm dev` und `start` laufen über `apps/desktop/scripts/electron-vite.ts`: Es löst das
-  Electron-Binary vom App-Ordner aus auf, lädt es bei Bedarf nach und übergibt es per
-  `ELECTRON_EXEC_PATH` an electron-vite (dessen eigene Suche im pnpm-Store kann ins Leere
-  laufen). Build-Skripte für Electron sind in `pnpm-workspace.yaml` freigegeben.
+  `npx playwright install chromium` oder Pfad per `FORME_CHROMIUM` setzen. ODP gibt es nur
+  über die CLI, weil LibreOffice nicht im Browser läuft.
 - Golden-Snapshots der Beispiele liegen in `examples/__golden__/`. Aktualisieren mit
   `pnpm test -u`, danach den Diff prüfen.
 - Pakete werden nicht vorgebaut: `core`, `render` und `export` werden als TypeScript-Quellen
-  importiert (electron-vite bündelt sie, die CLI läuft über tsx).
+  importiert (Vite bündelt sie, die CLI läuft über tsx). `core`, `render` und `@forme/export`
+  dürfen keine Node-APIs verwenden; Node-Code gehört nach `@forme/export/node`.
+- Die Vorlagen im Startdialog sind die Ordner unter `examples/` (zur Build-Zeit eingebunden).
 
 ---
 
@@ -185,6 +187,11 @@ Text unterstützt Rich-Text-Runs (fett, kursiv, Farbe, Links) und Listen mit Ebe
 
 Ein zentraler Store hält pro Datei: Quelltext, CST, Auswertungsergebnis, Fehlerliste.
 
+**Projekte** sind Ordner aus Forme-Dateien und Assets (Bilder, Schriften), Pfade relativ zum
+Projekt. Browser-Projekte (IndexedDB) werden automatisch gespeichert; Ordner-Projekte
+schreiben bei Strg+S auf die Platte, und Änderungen anderer Programme an Deck oder Theme
+werden erkannt und wie eine Textänderung übernommen (eigener Undo-Schritt).
+
 **Datei → Editor:** Textänderung → inkrementell neu parsen → betroffene Folie(n) neu
 auswerten (Theme-Änderung ⇒ alle) → SVG aktualisieren.
 
@@ -229,14 +236,15 @@ basieren alle Rückschreibe-Regeln.
 
 ## Export
 
-- **PDF:** Folien als SVG offscreen rendern, `printToPDF`. Fonts einbetten. Muss
-  pixelgleich zum Editor sein.
+- **PDF:** Folien als SVG in einem versteckten Frame rendern und den Druckdialog des
+  Browsers öffnen („Als PDF speichern“). Fonts über `@font-face` einbetten. Muss pixelgleich
+  zum Editor sein (gleiches SVG, gleiche Engine). Die CLI druckt dasselbe HTML headless.
 - **PPTX:** Szenengraph → pptxgenjs. Master/Layouts werden zu PPTX-Mastern, Slots zu
   Platzhaltern, Notizen zu Sprechernotizen. Was PPTX nicht kennt (Ausdrücke, Auto-Layout),
   wird auf berechnete Positionen „eingefroren“. Nicht abbildbare Effekte als Bild rastern
   und im Export-Log vermerken. Ziel: in PowerPoint **editierbar**, nicht nur ansehbar.
-- **ODP:** PPTX erzeugen und via `soffice --headless --convert-to odp` konvertieren.
-  Ist LibreOffice nicht installiert, Option ausgrauen und Hinweis zeigen.
+- **ODP:** PPTX erzeugen und via `soffice --headless --convert-to odp` konvertieren. Nur in
+  der CLI; in der App ausgegraut mit Hinweis auf die CLI.
 - Textumbrüche können in PowerPoint abweichen (eigene Layout-Engine). Das ist bekannt
   und akzeptiert; Textboxen deshalb mit fester Breite und `autofit=none` exportieren.
 
@@ -259,7 +267,7 @@ Eine neue Op ist erst fertig, wenn alles davon erledigt ist:
 ## Konventionen
 
 - TypeScript strict, kein `any`, keine Default-Exports
-- `core` enthält nur reine Funktionen; Seiteneffekte nur in `apps/desktop` und `export`
+- `core` enthält nur reine Funktionen; Seiteneffekte nur in `apps/web` und `export`
 - Fehler der Sprache sind Daten (`Diagnostic[]` mit Quellbereich), keine Exceptions
 - Kleine, fokussierte Commits; vor jedem Commit `pnpm test`
 - UI-Texte auf Deutsch, Code, Bezeichner und Kommentare auf Englisch

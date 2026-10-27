@@ -374,7 +374,7 @@ export function renderDeckHtml(scene: DeckScene, opts: RenderOptions = {}): stri
 <html><head><meta charset="utf-8"><title>${esc(scene.title)}</title>
 <style>
 @page { size: ${W}px ${H}px; margin: 0; }
-html, body { margin: 0; padding: 0; background: #fff; }
+html, body { margin: 0; padding: 0; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .page { width: ${W}px; height: ${H}px; overflow: hidden; page-break-after: always; break-after: page; }
 .page:last-child { page-break-after: auto; break-after: auto; }
 .page svg { display: block; }

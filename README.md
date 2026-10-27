@@ -1,8 +1,9 @@
 # Forme
 
-Forme ist ein Desktop-Tool für Präsentationen. Es verbindet einen Canvas-Editor im Stil von
-Figma mit einer Textdatei, in der jede Folie als Abfolge von Operationen beschrieben ist.
-Beide Ansichten sind immer synchron, und die Datei ist die Quelle der Wahrheit.
+Forme ist ein Präsentationswerkzeug, das komplett im Browser läuft: keine Installation, keine
+Konten, kein Server. Es verbindet einen Canvas-Editor im Stil von Figma mit einer Textdatei, in
+der jede Folie als Abfolge von Operationen beschrieben ist. Beide Ansichten sind immer
+synchron, und die Datei ist die Quelle der Wahrheit.
 
 ```
 slide @kpis layout=content
@@ -18,10 +19,25 @@ slide @kpis layout=content
 
 ```
 pnpm install
-pnpm dev                                              # App starten
+pnpm dev                                              # App starten: http://localhost:5173
+pnpm build                                            # statische Seite nach apps/web/dist
 pnpm forme render examples/deck.forme --out deck.pdf  # ohne UI rendern
 pnpm test                                             # Unit- und Golden-Tests
 ```
+
+`pnpm build` erzeugt reine HTML/JS/CSS-Dateien. Sie lassen sich auf jedem Webserver hosten
+(z. B. GitHub Pages) oder lokal mit `pnpm preview` ausliefern.
+
+## Wo liegen meine Dateien?
+
+- **Browser-Projekte** (Standard, alle Browser): liegen in diesem Browser (IndexedDB) und werden
+  automatisch gespeichert. Sichern oder weitergeben über „Datei → Als ZIP herunterladen“,
+  wieder öffnen über „ZIP importieren“.
+- **Ordner-Projekte** (Chrome, Edge, Opera): „Ordner auf dem Rechner öffnen“ bearbeitet die
+  `.forme`-Dateien direkt auf der Platte. Speichern mit Strg+S; Änderungen aus anderen
+  Editoren erscheinen sofort in Forme.
+
+Nichts davon verlässt den Rechner.
 
 Die Sprachreferenz steht in [`docs/language.md`](docs/language.md), die Architektur und die
 Regeln in [`CLAUDE.md`](CLAUDE.md).
@@ -34,8 +50,8 @@ Regeln in [`CLAUDE.md`](CLAUDE.md).
 | `examples/hka-projektarbeit` | Projektarbeit (Roboto, Karten, vertikale HKA-Marke, „Teil X von Y“) | `title`, `content`, `columns`, `split`, `section`, `closing`, `blank` | `card`, `ncard`, `callout`, `kpi`, `step`, `hka`, `hka_v` |
 
 Jeder Ordner enthält `theme.forme`, ein Beispiel-Deck `deck.forme` und die Schriften (SIL Open
-Font License). Für eine neue Präsentation den Ordner kopieren und `deck.forme` bearbeiten
-oder in einem eigenen Deck `theme "./pfad/zu/theme.forme"` angeben. Die HKA-Marke ist als
+Font License). In der App stehen sie im Startdialog unter „Neu aus Vorlage“; außerhalb der App
+den Ordner kopieren und `deck.forme` bearbeiten. Die HKA-Marke ist als
 Vektorpfad nachgebaut (`use @logo hka x=… y=… w=… h=… color=$primary`).
 
 ## Aufbau
@@ -44,8 +60,8 @@ Vektorpfad nachgebaut (`use @logo hka x=… y=… w=… h=… color=$primary`).
 | --- | --- |
 | `packages/core` | Lexer, verlustfreier Parser (CST), Printer, Evaluator mit Provenienz, Szenengraph, Edit-Engine. Reines TypeScript ohne DOM- oder Node-API. |
 | `packages/render` | Szenengraph → SVG, Schriftvermessung mit echten Fontdateien |
-| `packages/export` | PDF, PPTX (pptxgenjs), ODP (LibreOffice), Lader und CLI |
-| `apps/desktop` | Electron-App: React + Zustand, CodeMirror 6, SVG-Canvas |
+| `packages/export` | PDF-HTML und PPTX (pptxgenjs), browser-tauglich; `@forme/export/node`: Laden von Platte, ODP (LibreOffice) und CLI |
+| `apps/web` | Browser-App: React + Zustand, CodeMirror 6, SVG-Canvas, Projekte in IndexedDB oder Ordnern |
 
 ## Bedienung (Auswahl)
 
@@ -60,4 +76,6 @@ Vektorpfad nachgebaut (`use @logo hka x=… y=… w=… h=… color=$primary`).
 - **Kommandozeile** (Strg+K): Ops tippen, sie werden an die aktuelle Folie angehängt.
 - **Undo/Redo** (Strg+Z / Strg+Umschalt+Z) teilen sich einen Stack für Code und Canvas.
 - **Theme-Modus** (Strg+Umschalt+T): Code zeigt die Theme-Datei, Gesten ändern das Theme.
-- **Präsentieren** mit F5, Export über das Menü oder die Toolbar (PDF, PPTX, ODP).
+- **Projekte** (Strg+O): Vorlagen, zuletzt verwendete Projekte, Ordner öffnen, ZIP importieren.
+- **Präsentieren** mit F5. **Export** über die Toolbar: PDF über den Druckdialog des Browsers
+  (Strg+P, Ziel „Als PDF speichern“), PPTX als Download. ODP nur über die CLI.

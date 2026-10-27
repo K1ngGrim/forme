@@ -2,7 +2,8 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { renderSlideSvg } from '@forme/render';
-import { exportPptx, loadDeck } from '../src/index.js';
+import { exportPptx } from '../src/index.js';
+import { loadDeck } from '../src/node.js';
 
 const examples = resolve(__dirname, '../../../examples');
 

@@ -1,0 +1,41 @@
+{
+  "name": "@forme/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
+    "test:e2e": "vite build && playwright test"
+  },
+  "devDependencies": {
+    "@codemirror/autocomplete": "^6.18.6",
+    "@codemirror/commands": "^6.8.1",
+    "@codemirror/language": "^6.11.0",
+    "@codemirror/lint": "^6.8.5",
+    "@codemirror/search": "^6.5.10",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.36.8",
+    "@forme/core": "workspace:*",
+    "@forme/export": "workspace:*",
+    "@forme/render": "workspace:*",
+    "@lezer/highlight": "^1.2.1",
+    "@playwright/test": "1.56.1",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.5",
+    "@vitejs/plugin-react": "^5.0.0",
+    "fflate": "^0.8.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "vite": "^7.1.0",
+    "zustand": "^5.0.5"
+  },
+  "description": "Forme im Browser: Präsentationen als Code und Canvas",
+  "author": "K1ngGrim",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/K1ngGrim/forme"
+  }
+}

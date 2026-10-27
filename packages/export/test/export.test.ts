@@ -1,6 +1,7 @@
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { exportPptx, loadDeck, pathToPoints, toColor } from '../src/index.js';
+import { exportPptx, pathToPoints, toColor } from '../src/index.js';
+import { loadDeck } from '../src/node.js';
 import { readFile } from 'node:fs/promises';
 
 describe('pptx export', () => {
