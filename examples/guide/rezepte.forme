@@ -1,0 +1,43 @@
+deck "Rezepte"
+
+slide @text layout=content
+  fill @title "Text"
+  text @t1 "Ein **fetter**, ein *kursiver* und ein [farbiger](#DC2626) Teil.\nZweite Zeile mit [Link](https://example.org)." x=120 y=260 w=900 size=32
+  text @t2 "Rechtsbündig an der Kante" x=(slide.w-120) y=260 anchor=right size=28
+  text @t3 "Mittig in der Box" x=1100 y=400 w=600 h=200 align=center valign=middle fill=#F3F4F6 radius=16 pad=24
+
+slide @formen layout=blank
+  rect @r x=120 y=120 w=400 h=240 radius=24 fill=$primary
+  round @r tl=0
+  stroke @r #111827 4 dash=12
+  shadow @r y=12 blur=32
+  ellipse @e x=@r.right+60 y=@r.y w=240 h=240 fill=$accent opacity=0.8
+  line @l x=120 y=500 x2=800 y2=500 stroke=$muted stroke.width=4
+  arrow @a x=120 y=580 x2=800 y2=700 head=both stroke=$primary stroke.width=6
+  polygon @dreieck points="0,100 60,0 120,100" x=1000 y=120 w=240 h=200 fill=#10B981
+  path @welle d="M0 50 C 50 0 100 0 150 50 S 250 100 300 50" x=1000 y=420 w=600 h=120 fill=none stroke=$primary stroke.width=6
+
+slide @raster layout=content
+  fill @title "Raster und Gruppen"
+  rect @g1 fill=$surface radius=16
+  rect @g2 like=@g1
+  rect @g3 like=@g1
+  rect @g4 like=@g1
+  grid @g1 @g2 @g3 @g4 cols=2 gap=32 within=content rowh=280
+  group @logo x=1500 y=80
+    ellipse @kreis w=80 h=80 fill=$primary
+    text @kuerzel "AB" x=@kreis.right+16 y=16 size=40 weight=700
+
+slide @bild layout=content
+  fill @title "Bild mit Nummer"
+  image @chart "./img/umsatz.svg" x=$margin y=240 w=900 fit=contain radius=12
+  move @chart 40 0
+  number figure @chart caption="Abb. {figure}: Umsatz"
+  z @chart back
+
+slide @versteckt layout=blank hidden=true
+  text @info "Wird nicht gezeigt und nicht exportiert" x=120 y=120
+
+slide @hinter layout=blank
+  background fill=#0F172A
+  text @weiss "Dunkler Hintergrund" x=120 y=120 size=64 color=#FFFFFF

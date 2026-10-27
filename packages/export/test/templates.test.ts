@@ -7,7 +7,7 @@ import { loadDeck } from '../src/node.js';
 
 const examples = resolve(__dirname, '../../../examples');
 
-describe.each(['hka-seminar', 'hka-projektarbeit'])('template %s', (name) => {
+describe.each(['hka-seminar', 'hka-projektarbeit', 'guide'])('template %s', (name) => {
   it('evaluates without errors, with real font metrics', async () => {
     const loaded = await loadDeck(resolve(examples, name, 'deck.forme'));
     expect(loaded.scene.diagnostics.filter((d) => d.severity === 'error')).toEqual([]);

@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1920 1080" width="1920" height="1080">
+<rect width="1920" height="1080" fill="#FFFFFF"/>
+<g>
+<rect x="0" y="0" width="1920" height="12" fill="#0F766E"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#64748B">
+<tspan x="120" y="1033.9">
+<tspan>Projektbericht · Überblick</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#64748B">
+<tspan x="1761.08" y="1033.9">
+<tspan>3 / 6</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="60" font-weight="700" fill="#0F172A">
+<tspan x="120" y="146.7">
+<tspan>Drei Erkenntnisse</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<g>
+<rect x="120" y="260" width="533.33" height="400" rx="24" fill="#F1F5F9"/>
+</g>
+<g>
+<rect x="120" y="292" width="8" height="336" fill="#0F766E"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#0F766E">
+<tspan x="160" y="330.8">
+<tspan>Schneller</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="32" font-weight="400" fill="#334155">
+<tspan x="160" y="391.84">
+<tspan>Durchlaufzeit </tspan>
+<tspan font-weight="700">−30 %</tspan>
+<tspan> seit Q1.</tspan>
+</tspan>
+</text>
+</g>
+</g>
+<g>
+<g>
+<rect x="693.33" y="260" width="533.33" height="400" rx="24" fill="#F1F5F9"/>
+</g>
+<g>
+<rect x="693.33" y="292" width="8" height="336" fill="#0F766E"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#0F766E">
+<tspan x="733.33" y="330.8">
+<tspan>Günstiger</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="32" font-weight="400" fill="#334155">
+<tspan x="733.33" y="391.84">
+<tspan>Kosten je Vorgang deutlich</tspan>
+</tspan>
+<tspan x="733.33" y="438.24">
+<tspan>gesenkt.</tspan>
+</tspan>
+</text>
+</g>
+</g>
+<g>
+<g>
+<rect x="1266.67" y="260" width="533.33" height="400" rx="24" fill="#F1F5F9"/>
+</g>
+<g>
+<rect x="1266.67" y="292" width="8" height="336" fill="#0F766E"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#0F766E">
+<tspan x="1306.67" y="330.8">
+<tspan>Zufriedener</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="32" font-weight="400" fill="#334155">
+<tspan x="1306.67" y="391.84">
+<tspan>NPS von 31 auf </tspan>
+<tspan font-style="italic">48</tspan>
+<tspan> gestiegen.</tspan>
+</tspan>
+</text>
+</g>
+</g>
+</svg>

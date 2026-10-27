@@ -1,0 +1,77 @@
+theme "Mein Theme"
+size 1920x1080
+
+// Farben
+color primary #0F766E
+color accent #F59E0B
+color ink #0F172A
+color text #334155
+color muted #64748B
+color surface #F1F5F9
+color line #CBD5E1
+
+// Maße
+token margin 120
+token gap 40
+token content.y 260
+token content.w (slide.w-2*$margin)
+
+// Schriften (ohne file= nimmt der Browser eine installierte Schrift)
+font heading "Inter" weight=700
+font body "Inter" weight=400
+
+// Textstile
+style title font=heading size=88 color=$ink line=1.1
+style h1 font=heading size=60 color=$ink line=1.15
+style h2 font=heading size=40 color=$primary line=1.2
+style body font=body size=32 color=$text line=1.45
+style small font=body size=24 color=$muted line=1.4
+style caption font=body size=22 color=$muted
+style footer font=body size=20 color=$muted
+style table font=body size=26 color=$text pad=16 border=$line header.fill=$primary header.color=#FFFFFF stripe=$surface
+
+counter figure start=0
+
+// Wiederverwendbare Bausteine
+component card w=520 h=360 title="Überschrift" body="Text"
+  rect @bg w=param.w h=param.h radius=24 fill=$surface
+  rect @bar w=8 h=(param.h-64) x=0 y=32 fill=$primary
+  text @heading param.title style=h2 x=40 y=36 w=(param.w-72)
+  text @text param.body style=body x=40 y=@heading.bottom+16 w=(param.w-72)
+
+component kpi w=400 h=220 value="0" label="Kennzahl"
+  rect @bg w=param.w h=param.h radius=24 fill=$surface
+  text @value param.value font=heading size=96 color=$primary x=32 y=24
+  text @label param.label style=small x=32 y=@value.bottom+4 w=(param.w-64)
+
+// Master: was auf (fast) jeder Folie liegt
+master default
+  background fill=#FFFFFF
+  rect @accentbar x=0 y=0 w=slide.w h=12 fill=$primary
+  text @footer "{deck.title} · {section}" style=footer x=$margin y=(slide.h-64)
+  text @pagenum "{slide.n} / {deck.total}" style=footer x=(slide.w-$margin) y=(slide.h-64) anchor=right
+
+// Layouts: Platzhalter (slot) und Flächen (region)
+layout title master=default
+  background fill=$primary
+  hide @accentbar @footer @pagenum
+  slot @title style=title color=#FFFFFF x=$margin y=360 w=$content.w placeholder="Titel"
+  slot @subtitle style=body color=#CCFBF1 x=$margin y=@title.bottom+32 w=$content.w placeholder="Untertitel"
+
+layout content master=default
+  slot @title style=h1 x=$margin y=96 w=$content.w placeholder="Folientitel"
+  region content x=$margin y=$content.y w=$content.w h=(slide.h-$content.y-140)
+
+layout columns master=default
+  slot @title style=h1 x=$margin y=96 w=$content.w placeholder="Folientitel"
+  region content x=$margin y=$content.y w=$content.w h=(slide.h-$content.y-140)
+  region col1 x=$margin y=$content.y w=(($content.w-2*$gap)/3) h=content.h
+  region col2 x=(col1.right+$gap) y=$content.y w=col1.w h=content.h
+  region col3 x=(col2.right+$gap) y=$content.y w=col1.w h=content.h
+
+layout section master=default
+  hide @footer
+  slot @title style=title align=center x=$margin y=420 w=$content.w placeholder="Kapitel"
+  slot @subtitle style=body color=$muted align=center x=$margin y=@title.bottom+24 w=$content.w placeholder="Worum es geht"
+
+layout blank master=default

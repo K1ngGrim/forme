@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1920 1080" width="1920" height="1080">
+<rect width="1920" height="1080" fill="#FFFFFF"/>
+<g>
+<rect x="0" y="0" width="1920" height="12" fill="#0F766E"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#64748B">
+<tspan x="120" y="1033.9">
+<tspan>Eigener Fußtext</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#64748B">
+<tspan x="1761.08" y="1033.9">
+<tspan>6 / 6</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<rect x="192" y="324" width="672" height="432" rx="32" fill="#F1F5F9"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#0F766E">
+<tspan x="399.57" y="550.8">
+<tspan>Freies Layout</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<line x1="904" y1="540" x2="1238.4" y2="540" stroke="#F59E0B" stroke-width="8" stroke-linecap="round"/>
+<polygon points="1264,540 1235.19,553.92 1235.19,526.08" fill="#F59E0B"/>
+</g>
+<g>
+<ellipse cx="1404" cy="540" rx="120" ry="120" fill="#F59E0B"/>
+</g>
+</svg>

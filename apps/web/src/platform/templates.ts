@@ -26,6 +26,7 @@ export const TEMPLATES: Template[] = [
   { id: 'leer', name: 'Leere Präsentation', description: 'Eingebautes Standard-Theme, eine Titelfolie', dir: null, deck: 'deck.forme' },
   { id: 'hka-seminar', name: 'HKA Seminar', description: 'Inter, Funkturm-Motiv, dreiteilige Fußzeile', dir: 'hka-seminar', deck: 'deck.forme' },
   { id: 'hka-projektarbeit', name: 'HKA Projektarbeit', description: 'Roboto, Karten, Kapiteltrenner „Teil X von Y“', dir: 'hka-projektarbeit', deck: 'deck.forme' },
+  { id: 'guide', name: 'Beispiel aus dem Guide', description: 'Eigenes Theme mit Komponenten, dazu Rezept-Folien (docs/guide.md)', dir: 'guide', deck: 'deck.forme' },
   {
     id: 'quartalsbericht',
     name: 'Beispiel: Quartalsbericht',
