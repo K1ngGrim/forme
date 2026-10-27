@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { evaluate, parse } from '@forme/core';
-import { completeLine } from '../../src/complete.js';
+import { completeLine } from '@forme/core';
 import { normalizePath, relativeTo, resolveFrom } from '../../src/platform/paths.js';
 
 const scene = evaluate(parse('slide @a layout=content\n  rect @box\n  text @t "x"\n'));

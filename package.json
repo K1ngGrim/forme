@@ -11,7 +11,7 @@
     "test:watch": "vitest",
     "test:e2e": "pnpm --filter @forme/web test:e2e",
     "typecheck": "pnpm -r typecheck",
-    "forme": "tsx packages/export/src/cli.ts",
+    "forme": "tsx packages/cli/src/main.ts",
     "preview": "pnpm --filter @forme/web preview"
   },
   "devDependencies": {

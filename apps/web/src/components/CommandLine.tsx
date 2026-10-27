@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { JSX } from 'react';
-import { completeLine } from '../complete.js';
-import type { CompletionItem } from '../complete.js';
+import { completeLine } from '@forme/core';
+import type { CompletionItem } from '@forme/core';
 import { actions, displaySlide, useEditor } from '../store.js';
 
 /** CAD-like command line: typed ops are appended to the current slide. */

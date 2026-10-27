@@ -10,7 +10,7 @@ import { Decoration, drawSelection, EditorView, highlightActiveLine, highlightAc
 import type { DecorationSet, ViewUpdate } from '@codemirror/view';
 import { lex } from '@forme/core';
 import type { Token } from '@forme/core';
-import { completeLine } from '../complete.js';
+import { completeLine } from '@forme/core';
 import { actions, displaySlide, useEditor } from '../store.js';
 
 class SwatchWidget extends WidgetType {

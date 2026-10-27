@@ -55,7 +55,9 @@ packages/
   core/      Lexer, Parser (CST), AST, Printer, Evaluator, Szenengraph, Edit-Engine
              → reines TypeScript, KEIN DOM, KEIN Node-API. Muss isoliert testbar sein.
   render/    Szenengraph → SVG
-  export/    PDF, PPTX (browser-tauglich); `@forme/export/node`: Laden von Platte, ODP, CLI
+  export/    PDF, PPTX (browser-tauglich); `@forme/export/node`: Laden von Platte, Ausgabe-
+             dateien, headless Chromium, ODP
+  cli/       Kommandozeile `forme` (compile, watch, check, init), bündelbar zu einer Datei
 apps/
   web/       Browser-App: Editor-UI, Projekte (IndexedDB/Ordner), Export im Browser
 docs/
@@ -73,13 +75,16 @@ pnpm preview      Gebaute Seite lokal ausliefern
 pnpm test         alle Vitest-Tests (core, render, export, web)
 pnpm test:e2e     Playwright E2E (Chromium) gegen den Build
 pnpm typecheck    tsc für alle Pakete
-pnpm forme render <deck.forme> --out out.pdf   CLI: rendern ohne UI (.pdf/.pptx/.odp/.html/.svg)
-pnpm forme check <deck.forme>                  CLI: nur Diagnosen ausgeben
+pnpm forme compile <deck.forme> [out]  CLI: rendern ohne UI (.pdf/.pptx/.odp/.html/.svg)
+pnpm forme watch <deck.forme> [out]    CLI: bei jeder Änderung neu rendern
+pnpm forme check <deck.forme> [--json] CLI: nur Diagnosen ausgeben
+pnpm forme init [ordner] -t <vorlage>  CLI: Projekt aus einer Vorlage anlegen
+pnpm --filter @forme/cli bundle        CLI als eine Datei nach packages/cli/dist (npm install -g)
 ```
 
 Hinweise:
-- Die CLI druckt PDFs mit headless Chromium (playwright-core). Falls keins installiert ist:
-  `npx playwright install chromium` oder Pfad per `FORME_CHROMIUM` setzen. ODP gibt es nur
+- Die CLI druckt PDFs mit headless Chromium (playwright-core): `--chromium`/`FORME_CHROMIUM`,
+  sonst Playwrights Chromium, sonst installiertes Chrome oder Edge. ODP gibt es nur
   über die CLI, weil LibreOffice nicht im Browser läuft.
 - Golden-Snapshots der Beispiele liegen in `examples/__golden__/`. Aktualisieren mit
   `pnpm test -u`, danach den Diff prüfen.

@@ -21,7 +21,7 @@ slide @kpis layout=content
 pnpm install
 pnpm dev                                              # App starten: http://localhost:5173
 pnpm build                                            # statische Seite nach apps/web/dist
-pnpm forme render examples/deck.forme --out deck.pdf  # ohne UI rendern
+pnpm forme compile examples/deck.forme                # ohne UI rendern (deck.pdf)
 pnpm test                                             # Unit- und Golden-Tests
 ```
 
@@ -38,6 +38,22 @@ Tests und Build; veröffentlicht wird nur der Standard-Branch. Manuell geht es �
 Einmalig einrichten: unter „Settings → Pages → Build and deployment“ als Quelle
 **GitHub Actions** wählen. Weil die Seite mit relativen Pfaden gebaut wird (`base: './'`),
 läuft sie unter jedem Unterpfad, auch in Forks.
+
+## Kommandozeile
+
+Wie bei Typst lässt sich eine Präsentation komplett ohne Oberfläche bauen:
+
+```
+forme init vortrag -t hka-seminar   # Projekt aus Vorlage (forme templates listet alle)
+forme watch vortrag/deck.forme      # PDF bei jeder Änderung neu erzeugen
+forme compile vortrag/deck.forme vortrag.pptx
+forme check vortrag/deck.forme      # Fehler mit Quelltext-Ausschnitt, --json für Werkzeuge
+```
+
+Im Repository heißt der Aufruf `pnpm forme …`. Als eigenständiges Programm:
+`pnpm --filter @forme/cli bundle` erzeugt `packages/cli/dist` (eine Datei plus Vorlagen), danach
+`npm install -g ./packages/cli/dist`. Für PDF braucht die CLI einen Chromium-Browser; sie
+findet ein installiertes Chrome oder Edge selbst.
 
 ## Wo liegen meine Dateien?
 
@@ -71,7 +87,8 @@ Vektorpfad nachgebaut (`use @logo hka x=… y=… w=… h=… color=$primary`).
 | --- | --- |
 | `packages/core` | Lexer, verlustfreier Parser (CST), Printer, Evaluator mit Provenienz, Szenengraph, Edit-Engine. Reines TypeScript ohne DOM- oder Node-API. |
 | `packages/render` | Szenengraph → SVG, Schriftvermessung mit echten Fontdateien |
-| `packages/export` | PDF-HTML und PPTX (pptxgenjs), browser-tauglich; `@forme/export/node`: Laden von Platte, ODP (LibreOffice) und CLI |
+| `packages/export` | PDF-HTML und PPTX (pptxgenjs), browser-tauglich; `@forme/export/node`: Laden von Platte, Ausgabedateien, ODP (LibreOffice) |
+| `packages/cli` | Kommandozeile `forme`: compile, watch, check, init |
 | `apps/web` | Browser-App: React + Zustand, CodeMirror 6, SVG-Canvas, Projekte in IndexedDB oder Ordnern |
 
 ## Bedienung (Auswahl)

@@ -1,5 +1,5 @@
-import { ALIGN_MODES, ALL_VERBS, DIRECTIONS, ENUM_VALUES, KEYS_BY_VERB, Z_MODES } from '@forme/core';
-import type { DeckScene, PropValue, SlideScene } from '@forme/core';
+import { ALIGN_MODES, ALL_VERBS, DIRECTIONS, ENUM_VALUES, KEYS_BY_VERB, Z_MODES } from './index.js';
+import type { DeckScene, PropValue, SlideScene } from './index.js';
 
 export interface CompletionItem {
   label: string;

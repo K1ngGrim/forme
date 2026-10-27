@@ -1,0 +1,21 @@
+{
+  "name": "@forme/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "forme": "src/main.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "bundle": "node scripts/bundle.mjs"
+  },
+  "dependencies": {
+    "@forme/core": "workspace:*",
+    "@forme/export": "workspace:*",
+    "@forme/render": "workspace:*",
+    "playwright-core": "1.56.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.12"
+  }
+}

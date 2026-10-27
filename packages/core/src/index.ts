@@ -12,3 +12,5 @@ export * from './evaluator.js';
 export * from './builtin.js';
 export * from './edit.js';
 export * from './imagesize.js';
+export * from './complete.js';
+export * from './templates.js';

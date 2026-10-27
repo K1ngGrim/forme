@@ -2,26 +2,37 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import type { Browser } from 'playwright-core';
+import type { Browser, LaunchOptions } from 'playwright-core';
 import { chromium } from 'playwright-core';
 import type { HtmlPrinter } from './pdf.js';
 
-/** Headless Chromium for the CLI (PDF printing and rasterizing). The desktop app uses Electron instead. */
+/**
+ * Headless Chromium for Node (CLI, VS Code): PDF printing and rasterizing.
+ * Tries, in order: an explicit path (option or FORME_CHROMIUM), Playwright's own Chromium,
+ * an installed Google Chrome, an installed Microsoft Edge.
+ */
 export class ChromiumSession {
   private browser: Browser | null = null;
 
+  constructor(private readonly options: { executablePath?: string } = {}) {}
+
   private async open(): Promise<Browser> {
     if (this.browser) return this.browser;
-    const executablePath = process.env.FORME_CHROMIUM;
-    try {
-      this.browser = await chromium.launch(executablePath ? { executablePath } : {});
-    } catch (e) {
-      throw new Error(
-        `Chromium nicht gefunden (${(e as Error).message.split('\n')[0]}). ` +
-          'Installieren mit „npx playwright install chromium“ oder Pfad per FORME_CHROMIUM setzen.',
-      );
+    const executablePath = this.options.executablePath || process.env.FORME_CHROMIUM;
+    const attempts: LaunchOptions[] = executablePath ? [{ executablePath }] : [{}, { channel: 'chrome' }, { channel: 'msedge' }];
+    let first: Error | null = null;
+    for (const opts of attempts) {
+      try {
+        this.browser = await chromium.launch(opts);
+        return this.browser;
+      } catch (e) {
+        first ??= e as Error;
+      }
     }
-    return this.browser;
+    throw new Error(
+      `Kein Chromium gefunden (${(first?.message ?? '').split('\n')[0]}). ` +
+        'Google Chrome oder Microsoft Edge installieren, „npx playwright install chromium“ ausführen oder den Pfad per FORME_CHROMIUM setzen.',
+    );
   }
 
   readonly print: HtmlPrinter = async (html, size) => {

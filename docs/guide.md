@@ -62,8 +62,10 @@ slide @inhalt layout=content
 **Ohne UI prüfen und rendern:**
 
 ```
-pnpm forme check deck.forme                 # nur Fehler/Warnungen
-pnpm forme render deck.forme --out deck.pdf # oder .pptx, .odp, .html, .svg
+forme check deck.forme             # nur Fehler/Warnungen (--json für Werkzeuge)
+forme compile deck.forme           # deck.pdf; oder: forme compile deck.forme deck.pptx
+forme watch deck.forme             # bei jeder Änderung an Deck, Theme, Schriften, Bildern neu
+forme init mein-vortrag -t guide   # neues Projekt aus einer Vorlage (forme templates)
 ```
 
 **Projektordner:** Ein Projekt ist ein Ordner. Pfade in den Dateien sind relativ zur Datei,
@@ -543,7 +545,7 @@ Strg+P PDF.
 ## 9. Export
 
 - **PDF:** Strg+P bzw. „Exportieren → PDF“ öffnet den Druckdialog, Ziel „Als PDF speichern“.
-  Sieht exakt aus wie im Editor, Schriften eingebettet. CLI: `pnpm forme render deck.forme --out deck.pdf`.
+  Sieht exakt aus wie im Editor, Schriften eingebettet. CLI: `forme compile deck.forme`.
 - **PPTX:** Download, in PowerPoint editierbar. Layouts werden Folienmaster, Platzhalter
   werden PowerPoint-Platzhalter, Notizen Sprechernotizen. Berechnete Positionen werden als
   feste Werte übernommen. Nicht übernommen bzw. gerastert: Eckenradius an Bildern, ungleiche
@@ -577,7 +579,7 @@ Diesen Abschnitt kann man einer KI als Anweisung mitgeben.
    umbricht; nicht mehr als ca. 6 Punkte pro Folie.
 10. **Bestehende Dateien minimal ändern:** Bei Änderungswünschen nur die betroffenen Zeilen
     ändern, Reihenfolge und Kommentare erhalten (die Datei ist die Quelle der Wahrheit).
-11. **Prüfen:** Wenn möglich `pnpm forme check deck.forme` ausführen und alle Fehler beheben,
+11. **Prüfen:** Wenn möglich `forme check deck.forme` ausführen und alle Fehler beheben,
     bevor das Ergebnis zurückgegeben wird.
 
 ### Vorgehen bei „Erstelle eine Präsentation über X“
