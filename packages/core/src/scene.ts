@@ -45,6 +45,11 @@ export interface Prov {
   inherited: boolean;
   /** The literal is a relative amount (move dx/dy): rewrite adds the delta. */
   relative?: boolean;
+  /**
+   * Written by a layout container (row/column): 'parent' = size/position assigned by the
+   * enclosing container, 'self' = a container's own size computed from its content.
+   */
+  layout?: 'parent' | 'self';
   /** Argument key that produced the value. */
   key?: string;
 }
@@ -125,6 +130,8 @@ export interface SceneNode {
   rows?: string[][];
   /** Component name for `use` instances. */
   component?: string;
+  /** Layout container (`row` / `column`): children are arranged automatically. */
+  layout?: 'row' | 'column';
 }
 
 export interface ListItem {

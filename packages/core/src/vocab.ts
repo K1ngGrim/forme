@@ -1,6 +1,8 @@
 /** Language vocabulary shared by evaluator, autocomplete and docs. */
 
 export const CREATE_VERBS = [
+  'row',
+  'column',
   'rect',
   'ellipse',
   'line',
@@ -39,7 +41,8 @@ export const ALL_VERBS: string[] = Array.from(
 const BOX = ['x', 'y', 'w', 'h'];
 const PAINT = ['fill', 'stroke', 'stroke.width', 'stroke.dash', 'opacity', 'shadow.x', 'shadow.y', 'shadow.blur', 'shadow.color', 'hidden'];
 const RADIUS = ['radius', 'radius.tl', 'radius.tr', 'radius.br', 'radius.bl'];
-const META = ['like', 'style', 'in'];
+const META = ['like', 'style', 'in', 'within', 'span'];
+const CONTAINER = ['x', 'y', 'w', 'h', 'gap', 'pad', 'align', 'justify', 'fill', 'stroke', 'stroke.width', 'stroke.dash', 'opacity', 'hidden', 'shadow.x', 'shadow.y', 'shadow.blur', 'shadow.color', 'radius', 'radius.tl', 'radius.tr', 'radius.br', 'radius.bl'];
 const TEXT = ['font', 'size', 'weight', 'italic', 'color', 'line', 'align', 'valign', 'anchor', 'pad', 'text'];
 
 export const KEYS_BY_VERB: Record<string, string[]> = {
@@ -53,10 +56,12 @@ export const KEYS_BY_VERB: Record<string, string[]> = {
   list: [...BOX, ...PAINT, ...TEXT, 'bullet', ...META],
   image: [...BOX, 'opacity', 'hidden', 'src', 'fit', ...RADIUS, 'stroke', 'stroke.width', 'shadow.x', 'shadow.y', 'shadow.blur', 'shadow.color', ...META],
   table: ['x', 'y', 'w', 'font', 'size', 'color', 'pad', 'line', 'header', 'header.fill', 'header.color', 'border', 'stripe', 'cols', 'fill', 'opacity', 'hidden', ...META],
-  group: ['x', 'y', 'opacity', 'hidden'],
-  use: ['x', 'y', 'w', 'h', 'opacity', 'hidden'],
+  group: ['x', 'y', 'opacity', 'hidden', 'span'],
+  use: ['x', 'y', 'w', 'h', 'opacity', 'hidden', 'span'],
+  row: [...CONTAINER, 'cols', ...META],
+  column: [...CONTAINER, ...META],
   slot: [...BOX, ...PAINT, ...RADIUS, ...TEXT, 'kind', 'placeholder', 'src', 'fit', 'bullet', ...META],
-  set: [...BOX, ...PAINT, ...RADIUS, ...TEXT, 'x2', 'y2', 'head', 'src', 'fit', 'points', 'd', 'bullet', 'kind', 'placeholder', 'header', 'header.fill', 'header.color', 'border', 'stripe', 'cols'],
+  set: [...BOX, ...PAINT, ...RADIUS, ...TEXT, 'x2', 'y2', 'head', 'src', 'fit', 'points', 'd', 'bullet', 'kind', 'placeholder', 'header', 'header.fill', 'header.color', 'border', 'stripe', 'cols', 'gap', 'justify', 'span'],
   move: ['dx', 'dy'],
   resize: ['w', 'h'],
   round: ['tl', 'tr', 'br', 'bl'],
@@ -100,6 +105,8 @@ export const NUMERIC_KEYS = new Set([
   'shadow.y',
   'shadow.blur',
   'level',
+  'gap',
+  'span',
 ]);
 
 export const COLOR_KEYS = new Set(['fill', 'color', 'stroke', 'shadow.color', 'border', 'header.fill', 'header.color', 'stripe']);
@@ -114,6 +121,7 @@ export const ENUM_VALUES: Record<string, string[]> = {
   bullet: ['disc', 'dash', 'number', 'none'],
   kind: ['text', 'image'],
   pos: ['below', 'above'],
+  justify: ['start', 'center', 'end', 'between', 'around'],
 };
 
 export const ALIGN_MODES = ['left', 'center', 'right', 'top', 'middle', 'bottom'];

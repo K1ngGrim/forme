@@ -40,10 +40,17 @@ export function hitNode(n: SceneNode, x: number, y: number, tol: number): boolea
   return x >= b.x - tol && x <= b.x + b.w + tol && y >= b.y - tol && y <= b.y + b.h + tol;
 }
 
-/** Topmost top-level object at a point (groups and components are selected as a unit). */
-export function hitTest(slide: SlideScene, x: number, y: number, tol: number): SceneNode | null {
-  for (let i = slide.nodes.length - 1; i >= 0; i--) {
-    const n = slide.nodes[i] as SceneNode;
+function hitIn(nodes: SceneNode[], x: number, y: number, tol: number): SceneNode | null {
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    const n = nodes[i] as SceneNode;
+    if (n.props.hidden === true) continue;
+    if (n.layout) {
+      // row/column: pick the child under the pointer, else the container itself
+      const inner = hitIn(n.children, x, y, tol);
+      if (inner) return inner;
+      if (hitNode(n, x, y, tol)) return n;
+      continue;
+    }
     if (n.kind === 'group' && !n.component) {
       if (n.children.some((c) => hitNode(c, x, y, tol))) return n;
       continue;
@@ -51,6 +58,29 @@ export function hitTest(slide: SlideScene, x: number, y: number, tol: number): S
     if (hitNode(n, x, y, tol)) return n;
   }
   return null;
+}
+
+/** Topmost object at a point. Groups and components are selected as a unit, rows/columns per child. */
+export function hitTest(slide: SlideScene, x: number, y: number, tol: number): SceneNode | null {
+  return hitIn(slide.nodes, x, y, tol);
+}
+
+/** The row/column container an object is laid out in, if any. */
+export function flowParent(slide: SlideScene, n: SceneNode): SceneNode | null {
+  const p = n.parentId ? slide.byId.get(n.parentId) : undefined;
+  return p && p.layout ? p : null;
+}
+
+/** Index a child would get when dropped at (x, y) inside its container (siblings without itself). */
+export function dropIndex(container: SceneNode, child: SceneNode, x: number, y: number): number {
+  const siblings = container.children.filter((c) => c !== child && c.props.hidden !== true);
+  const horizontal = container.layout === 'row' && !(Number(container.props.cols) > 0);
+  let i = 0;
+  for (const s of siblings) {
+    const before = horizontal ? x > s.box.x + s.box.w / 2 : y > s.box.y + s.box.h / 2 || (y > s.box.y && x > s.box.x + s.box.w / 2);
+    if (before) i++;
+  }
+  return i;
 }
 
 export function union(boxes: Box[]): Box | null {

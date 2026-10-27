@@ -301,6 +301,38 @@ grid @g1 @g2 @g3 @g4 cols=2 gap=32 within=content rowh=280
 
 **Verschieben relativ:** `move @a 40 0` (dx, dy).
 
+### Layout-Container: Zeilen und Spalten (wie Bootstrap)
+
+Für Folien mit mehreren Inhaltsblöcken sind `row` und `column` meist die beste Wahl: Inhalt
+wird automatisch angeordnet, und Container lassen sich verschachteln.
+
+```
+row @haupt within=content gap=$gap
+  column @links span=2 gap=32
+    text @lead "Container ordnen ihren Inhalt automatisch an." style=body
+    row @kpis gap=24
+      use @k4 kpi value="640" label="Aufträge"
+      use @k5 kpi value="98 %" label="Termintreue"
+      use @k6 kpi value="4,2" label="Ø Bewertung"
+  column @seite fill=$surface radius=24 pad=40 gap=16
+    text @seite_titel "Seitenleiste" style=h2
+    text @seite_text "Ein Drittel der Breite, eigener Hintergrund." style=body
+```
+
+- **`row`** legt Kinder nebeneinander. Kinder ohne `w` teilen sich die Breite; `span=2`
+  bekommt doppelt so viel. Mit `cols=12` wird daraus ein echtes 12-Spalten-Raster:
+  `span=4` = ein Drittel, Überlauf bricht in die nächste Zeile um.
+- **`column`** legt Kinder untereinander und gibt ihnen die volle Breite. Text bricht
+  automatisch um.
+- **Content-Block** = Container mit `fill`, `radius`, `pad` (Innenabstand), optional
+  `shadow.*`.
+- `gap` = Abstand, `align` = Querachse (`stretch` Standard, `start`, `center`, `end`),
+  `justify` = Hauptachse (`start`, `center`, `end`, `between`, `around`).
+- Ohne `w`/`h` wächst ein Container mit seinem Inhalt; mit `within=content` füllt er die
+  Region.
+- Im Editor: Kind ziehen = Reihenfolge ändern, Pfeiltasten = eine Position weiter,
+  Größe ziehen = feste Größe (`w=`), die Geschwister passen sich an.
+
 Faustregel: Für Layouts, die sich anpassen sollen, Regionen, Bezüge und `distribute`/`stack`
 nutzen. Für einzelne, frei platzierte Objekte reichen Zahlen.
 
@@ -533,7 +565,9 @@ Diesen Abschnitt kann man einer KI als Anweisung mitgeben.
    eindeutig. Sprechende Namen verwenden (`@umsatz_chart`, nicht `@x1`).
 4. **Bezüge nur rückwärts:** `@a.right` erst nach der Zeile, die `@a` erzeugt.
 5. **Layouts und Platzhalter nutzen:** Titel per `fill @title`, Inhalt in die Regionen des
-   Layouts (`content.x`, `col1.w`, `within=content`) statt Zahlen zu raten.
+   Layouts (`content.x`, `col1.w`, `within=content`) statt Zahlen zu raten. Für Folien mit
+   mehreren Blöcken bevorzugt `row`/`column` (`row @x within=content …`) statt absoluter
+   Positionen.
 6. **Theme-Werte statt Literale:** Farben als `$primary` usw., Abstände als `$margin`/`$gap`,
    Textformate per `style=`. Literale Farben nur, wenn das Theme nichts Passendes hat.
 7. **Wiederholungen als Komponente** (im Theme) oder mit `like=`; Gleichverteilung mit
@@ -629,6 +663,11 @@ set @a [@b …] key=value …        move @a dx dy           resize @a w h
 round @a r | tl= tr= br= bl=     style @a name           stroke @a farbe breite [dash=]
 shadow @a [x y blur color] | none                        opacity @a 0.5
 hide @a …   show @a …            z @a front|back|forward|backward|n
+
+// Layout-Container (verschachtelbar)
+row @id [x y w h | within=region | in=@box] [gap=] [pad=] [align=stretch|start|center|end] [justify=start|center|end|between|around] [cols=12] [fill radius …]
+column @id …wie row (ohne cols)
+  // Kinder: [w=] bzw. [h=] fest, sonst [span=N] Anteil am freien Platz
 
 // Anordnen
 align left|center|right|top|middle|bottom @a @b … [to=slide|first|last|@id|region]

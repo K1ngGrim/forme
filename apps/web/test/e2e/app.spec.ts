@@ -218,4 +218,33 @@ test.describe('Forme im Browser', () => {
     await expect(page.locator('.slide-svg g[data-id="title"]')).toContainText('Extern geändert', { timeout: 10_000 });
     await expect.poll(() => code(page)).toContain('fill @title "Extern geändert"');
   });
+
+  test('rows and columns: drag reorders, resize fixes the width', async ({ page }) => {
+    await openTemplate(page, 'guide', 'Layout');
+    await page.click('[data-testid="slide-layout"]');
+    // drag the first KPI card behind the third one
+    const a = await objectCenter(page, 'k4');
+    const c = await objectCenter(page, 'k6');
+    await page.mouse.move(a.x, a.y);
+    await page.mouse.down();
+    await page.mouse.move(c.x + 40, c.y, { steps: 8 });
+    await page.mouse.up();
+    await expect.poll(() => code(page)).toMatch(/use @k5 kpi[^\n]*\n\s+use @k6 kpi[^\n]*\n\s+use @k4 kpi/);
+    // arrow key moves it back one position
+    await page.keyboard.press('ArrowLeft');
+    await expect.poll(() => code(page)).toMatch(/use @k5 kpi[^\n]*\n\s+use @k4 kpi[^\n]*\n\s+use @k6 kpi/);
+    // resizing the sidebar writes its own width; the left column takes the rest
+    const side = page.locator('.slide-svg g[data-id="seite"]');
+    const box = await side.boundingBox();
+    if (!box) throw new Error('no sidebar');
+    await page.mouse.click(box.x + box.width - 10, box.y + box.height - 10);
+    const handle = page.locator('[data-handle="w"]');
+    const hb = await handle.boundingBox();
+    if (!hb) throw new Error('no handle');
+    await page.mouse.move(hb.x + hb.width / 2, hb.y + hb.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(hb.x - 80, hb.y + hb.height / 2, { steps: 6 });
+    await page.mouse.up();
+    await expect.poll(() => code(page)).toMatch(/column @seite fill=\$surface radius=24 pad=40 gap=16 w=\d+/);
+  });
 });

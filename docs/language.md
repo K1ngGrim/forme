@@ -186,6 +186,46 @@ angewendet.
 | `stack` | `stack v|h @a @b @c [gap=N] [align=start|center|end] [x= y=]` (Auto-Layout) |
 | `grid` | `grid @a @b @c @d [cols=2] [gap=24] [within=<region>] [x= y= w=] [rowh=]` |
 
+### Layout-Container (`row`, `column`)
+
+Container ordnen ihre eingerückten Kinder automatisch an, ähnlich wie Zeilen und Spalten in
+Bootstrap bzw. CSS-Flexbox. Container dürfen weitere Container enthalten.
+
+```
+row @haupt within=content gap=40
+  column @links span=2 gap=24          // 2/3 der Breite
+    text @lead "…" style=body
+    row @kpis gap=24
+      use @k1 kpi value="640" label="Aufträge"
+      use @k2 kpi value="98 %" label="Termintreue"
+  column @seite fill=$surface radius=24 pad=40   // 1/3, mit Hintergrund
+    text @t "Seitenleiste" style=h2
+```
+
+| Schlüssel (Container) | Bedeutung |
+| --- | --- |
+| `x y w h` / `within=<region>` / `in=@box` | Position und Größe; ohne Breite/Höhe passt sich der Container dem Inhalt an |
+| `gap` | Abstand zwischen den Kindern |
+| `pad` | Innenabstand |
+| `align=start\|center\|end\|stretch` | Querachse (Standard `stretch`: Kinder ohne eigene Höhe bzw. Breite füllen die Zeile/Spalte) |
+| `justify=start\|center\|end\|between\|around` | Verteilung freien Platzes auf der Hauptachse |
+| `cols=12` (nur `row`) | Raster: Kinder belegen `span` von `cols` Spalten, bei Überlauf beginnt eine neue Zeile |
+| `fill stroke radius shadow.* opacity` | Hintergrund des Containers („Content-Block“) |
+
+| Schlüssel (Kind) | Bedeutung |
+| --- | --- |
+| `w` (in `row`) / `h` (in `column`) | feste Größe; Kinder ohne feste Größe teilen sich den freien Platz |
+| `span=N` | Anteil am freien Platz (Standard 1) bzw. Spaltenzahl im `cols`-Raster. In `column` bekommen nur Kinder mit `span` freie Höhe ab |
+
+- `row`: Kinder nebeneinander. Ohne `cols` teilen sich Kinder ohne `w` die Breite nach `span`.
+- `column`: Kinder untereinander, in voller Breite (`align=stretch`), Höhe aus dem Inhalt.
+- Koordinaten und Bezüge der Kinder sind relativ zum Container (wie bei `group`).
+  Position und zugewiesene Größe vergibt der Container; spätere Ops (`set @a w=…`) lösen eine
+  neue Anordnung aus. Komponenten (`use`) werden mit der zugewiesenen Größe neu aufgebaut.
+- Innerhalb einer `table` bleibt `row` eine Tabellenzeile.
+- Editor: Ziehen eines Kindes ordnet die Zeilen im Container um, Pfeiltasten verschieben es
+  um eine Position, Größe ändern schreibt `w=`/`h=` in die Zeile des Kindes.
+
 ### Nummerierung
 
 | Op | Form |
@@ -256,4 +296,4 @@ Der Evaluator merkt sich für jede Eigenschaft, welche Operation sie zuletzt ges
 | `table` | native Tabelle |
 | `image` | Bild (SVG wird als PNG gerastert eingebettet) |
 | `notes` | Sprechernotizen |
-| Ausdrücke, `align`/`distribute`/`stack`/`grid`, Komponenten, Gruppen | auf berechnete Positionen eingefroren |
+| Ausdrücke, `align`/`distribute`/`stack`/`grid`, `row`/`column`, Komponenten, Gruppen | auf berechnete Positionen eingefroren; Container-Hintergründe als Rechteck |

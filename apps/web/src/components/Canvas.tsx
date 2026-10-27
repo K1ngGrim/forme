@@ -4,7 +4,7 @@ import { renderSlideSvg } from '@forme/render';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { JSX, PointerEvent as ReactPointerEvent } from 'react';
 import type { Guides, Handle } from '../canvas/geometry.js';
-import { cornerRadius, HANDLES, hitTest, intersects, isLine, lineEnds, normBox, num, resizeBox, snapMove, snapValue, supportsRadius, union } from '../canvas/geometry.js';
+import { cornerRadius, dropIndex, flowParent, HANDLES, hitTest, intersects, isLine, lineEnds, normBox, num, resizeBox, snapMove, snapValue, supportsRadius, union } from '../canvas/geometry.js';
 import { actions, displaySlide, resolveAsset, useEditor } from '../store.js';
 
 type Drag =
@@ -338,9 +338,20 @@ export function Canvas(): JSX.Element {
     setPreview({});
     if (!d || !slide) return;
     switch (d.kind) {
-      case 'move':
-        if (pv.dx || pv.dy) await actions.intent({ type: 'move', slide: slide.id, ids: d.ids, dx: pv.dx ?? 0, dy: pv.dy ?? 0 });
+      case 'move': {
+        if (!pv.dx && !pv.dy) return;
+        // inside a row/column the flow owns positions: dragging reorders the children
+        const single = d.ids.length === 1 ? node(d.ids[0] as string) : undefined;
+        const flow = single ? flowParent(slide, single) : null;
+        if (single && flow) {
+          const b = single.box;
+          const index = dropIndex(flow, single, b.x + b.w / 2 + (pv.dx ?? 0), b.y + b.h / 2 + (pv.dy ?? 0));
+          await actions.intent({ type: 'reorder', slide: slide.id, id: single.id, index });
+          return;
+        }
+        await actions.intent({ type: 'move', slide: slide.id, ids: d.ids, dx: pv.dx ?? 0, dy: pv.dy ?? 0 });
         return;
+      }
       case 'resize':
         if (pv.box) await actions.intent({ type: 'resize', slide: slide.id, id: d.id, box: pv.box, height: d.handle.includes('n') || d.handle.includes('s') });
         return;
@@ -441,7 +452,7 @@ export function Canvas(): JSX.Element {
         continue;
       }
       overlay.push(<rect key={`sel-${n.id}`} className={stale ? 'ov-sel stale' : 'ov-sel'} x={b.x + dx} y={b.y + dy} width={b.w} height={b.h} strokeWidth={sw} />);
-      if (selectedNodes.length === 1 && !stale && n.kind !== 'group' && !drag.current?.kind.startsWith('move')) {
+      if (selectedNodes.length === 1 && !stale && (n.kind !== 'group' || n.layout) && !drag.current?.kind.startsWith('move')) {
         const handles = n.kind === 'table' ? (['e', 'w'] as Handle[]) : HANDLES;
         for (const h of handles) {
           const hx = b.x + (h.includes('w') ? 0 : h.includes('e') ? b.w : b.w / 2);
@@ -458,6 +469,9 @@ export function Canvas(): JSX.Element {
         }
       }
     }
+    // a selected child of a row/column: show its container
+    const flow = selectedNodes.length === 1 ? flowParent(slide, selectedNodes[0] as SceneNode) : null;
+    if (flow) overlay.push(<rect key="flow" className="ov-union" x={flow.box.x} y={flow.box.y} width={flow.box.w} height={flow.box.h} strokeWidth={sw} />);
     if (selectedNodes.length > 1) {
       const u = union(selectedNodes.map((n) => n.box));
       if (u) overlay.push(<rect key="union" className="ov-union" x={u.x + (preview.dx ?? 0)} y={u.y + (preview.dy ?? 0)} width={u.w} height={u.h} strokeWidth={sw} />);

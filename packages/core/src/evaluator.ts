@@ -714,7 +714,7 @@ function refresh(ctx: Ctx, node: SceneNode): void {
       for (const c of node.children) refresh(ctx, c);
       const ox = o.x + num(p.x, 0);
       const oy = o.y + num(p.y, 0);
-      if (node.component) {
+      if (node.component || node.layout) {
         node.box = { x: ox, y: oy, w: num(p.w, 0), h: num(p.h, 0) };
       } else if (node.children.length) {
         node.box = unionBoxes(node.children.map((c) => c.box));
@@ -726,7 +726,7 @@ function refresh(ctx: Ctx, node: SceneNode): void {
   }
   // keep enclosing groups in sync
   const parent = ctx.parents.get(node);
-  if (parent && parent.kind === 'group' && !parent.component && parent.children.length) {
+  if (parent && parent.kind === 'group' && !parent.component && !parent.layout && parent.children.length) {
     parent.box = unionBoxes(parent.children.map((c) => c.box));
   }
 }
@@ -856,7 +856,19 @@ function applyKeyed(ctx: Ctx, node: SceneNode, op: OpNode, src: Src, verbForKeys
       inArg = a;
       continue;
     }
-    if (!allowed.has(key) && !(node.kind === 'group' && node.component)) {
+    if (key === 'within') {
+      const box = resolveWithin(ctx, a);
+      if (box) {
+        const o = originOf(ctx, node);
+        const prov = argProv(op, src, a, { semantic: true, literal: false });
+        setProp(node, 'x', box.x - o.x, prov);
+        setProp(node, 'y', box.y - o.y, prov);
+        setProp(node, 'w', box.w, prov);
+        setProp(node, 'h', box.h, prov);
+      }
+      continue;
+    }
+    if (!allowed.has(key) && !(node.kind === 'group' && node.component) && !(verbForKeys === 'set' && node.layout)) {
       report(ctx.env, `Unbekannte Eigenschaft „${key}“ für ${verbForKeys}`, a.keySpan ?? a.span, 'warning');
     }
     const v = coerce(ctx.env, key, evalExpr(ctx.env, a.value, axisOf(key)), a.value);
@@ -878,7 +890,7 @@ function applyKeyed(ctx: Ctx, node: SceneNode, op: OpNode, src: Src, verbForKeys
       else {
         const o = originOf(ctx, node);
         const prov = argProv(op, src, inArg, { semantic: true, literal: false });
-        const inset = isTextual(node) ? 0 : num(node.props.pad, 0);
+        const inset = isTextual(node) || node.layout ? 0 : num(node.props.pad, 0);
         setProp(node, 'x', box.box.x - o.x + inset, prov);
         setProp(node, 'y', box.box.y - o.y + inset, prov);
         setProp(node, 'w', box.box.w - 2 * inset, prov);
@@ -916,12 +928,14 @@ function createOp(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null): voi
     return;
   }
   const isSlot = verb === 'slot';
-  let kind: NodeKind = isSlot ? 'text' : (verb as NodeKind);
+  const container = verb === 'row' || verb === 'column' ? verb : null;
+  let kind: NodeKind = isSlot ? 'text' : container ? 'group' : (verb as NodeKind);
   if (isSlot) {
     const k = argByKey(op, 'kind');
     if (k && k.value.k === 'name' && k.value.name === 'image') kind = 'image';
   }
   const node = newNode(ctx, kind, id, op, src);
+  if (container) node.layout = container;
   node.slot = isSlot;
   if (isSlot) {
     node.placeholder = true;
@@ -980,6 +994,8 @@ function createOp(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null): voi
     for (const c of op.children) evalOp(ctx, c, src, node, 'group');
     ctx.env.origin = savedOrigin;
     refresh(ctx, node);
+    // nested containers are laid out by their parent
+    if (node.layout && !ctx.parents.get(node)?.layout) layoutContainer(ctx, node);
   }
 }
 
@@ -996,7 +1012,6 @@ function createUse(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null, id:
   Object.assign(node.props, comp.defaults);
   if (!addNode(ctx, node, parent, op.verbSpan)) return;
   touch(ctx, node, op, src);
-  const params: Props = { ...comp.defaults };
   // like=@other copies position, size and all parameters of another instance
   const like = op.args.find((a) => a.key === 'like');
   if (like) {
@@ -1010,7 +1025,6 @@ function createUse(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null, id:
         node.props[k] = v;
         const p = other.prov[k];
         if (p) node.prov[k] = { ...p, inherited: true, literal: false };
-        if (k in comp.defaults) params[k] = v;
       }
     }
   }
@@ -1019,8 +1033,19 @@ function createUse(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null, id:
     const v = evalExpr(ctx.env, a.value, axisOf(a.key));
     if (v === undefined) continue;
     setProp(node, a.key, v, argProv(op, src, a));
-    params[a.key] = v;
   }
+  buildComponent(ctx, node);
+}
+
+/**
+ * (Re)build the body of a component instance from its current props, e.g. after a layout
+ * container assigned a new size or `set` changed a parameter.
+ */
+function buildComponent(ctx: Ctx, node: SceneNode): void {
+  const comp = node.component ? ctx.theme.components.get(node.component) : undefined;
+  if (!comp) return;
+  const params: Props = { ...comp.defaults, ...node.props };
+  node.children = [];
   // evaluate component body in the theme file with local ids
   const saved = { comp: ctx.componentObjects, params: ctx.env.params, objects: ctx.env.objects, src: ctx.env.src, file: ctx.env.file, origin: ctx.env.origin };
   const o = originOf(ctx, node);
@@ -1341,7 +1366,9 @@ function modifyOp(ctx: Ctx, op: OpNode, src: Src): void {
         break;
       }
     }
+    if (node.component && op.verb !== 'move' && op.verb !== 'z' && op.verb !== 'hide' && op.verb !== 'show') buildComponent(ctx, node);
     refresh(ctx, node);
+    relayout(ctx, node);
   }
 }
 
@@ -1444,8 +1471,7 @@ function evalOp(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null, place:
       return;
     }
     case 'item':
-    case 'row':
-      report(ctx.env, `„${verb}“ ist nur in ${verb === 'item' ? 'Listen' : 'Tabellen'} erlaubt`, op.verbSpan);
+      report(ctx.env, '„item“ ist nur in Listen erlaubt', op.verbSpan);
       return;
     default:
       report(ctx.env, `Unbekannte Operation „${verb}“`, op.verbSpan);
@@ -1496,6 +1522,167 @@ function numberOp(ctx: Ctx, op: OpNode, src: Src): void {
   const above = posArg && posArg.value.k === 'name' && posArg.value.name === 'above';
   setProp(cap, 'y', above ? node.box.y - gap - cap.box.h : node.box.y + node.box.h + gap, prov);
   refresh(ctx, cap);
+}
+
+// ---------------------------------------------------------------------------
+// Layout containers (row / column), similar to CSS flexbox and the Bootstrap grid
+
+/** Size given from outside (own argument, set, within=, or the parent container). */
+function hasGivenSize(n: SceneNode, key: 'w' | 'h'): boolean {
+  const p = n.prov[key];
+  return !!p && p.layout !== 'self';
+}
+
+/** Size fixed by the object itself (not assigned by any container). */
+function hasOwnSize(n: SceneNode, key: 'w' | 'h'): boolean {
+  const p = n.prov[key];
+  return !!p && !p.layout;
+}
+
+function isLineish(n: SceneNode): boolean {
+  return n.kind === 'line' || n.kind === 'arrow';
+}
+
+/** Re-layout the outermost container around a node after it changed. */
+function relayout(ctx: Ctx, node: SceneNode): void {
+  let top: SceneNode | null = node.layout ? node : null;
+  for (let p = ctx.parents.get(node); p && p.layout; p = ctx.parents.get(p)) top = p;
+  if (top) layoutContainer(ctx, top);
+}
+
+function layoutContainer(ctx: Ctx, c: SceneNode): void {
+  const p = c.props;
+  const pad = num(p.pad, 0);
+  const gap = num(p.gap, 0);
+  const align = str(p.align, 'stretch');
+  const justify = str(p.justify, 'start');
+  const flow: Prov = { op: c.origin, literal: false, semantic: true, inherited: false, layout: 'parent' };
+  const self: Prov = { ...flow, layout: 'self' };
+  const kids = c.children.filter((k) => k.props.hidden !== true);
+  const innerW = hasGivenSize(c, 'w') ? Math.max(0, num(p.w, 0) - 2 * pad) : null;
+  const innerH = hasGivenSize(c, 'h') ? Math.max(0, num(p.h, 0) - 2 * pad) : null;
+  const size = (k: SceneNode, key: 'w' | 'h', v: number): void => {
+    if (isLineish(k)) return;
+    setProp(k, key, Math.max(0, v), flow);
+  };
+  /** Apply a new size to a child: re-measure text, rebuild components, lay out nested containers. */
+  const settle = (k: SceneNode): void => {
+    if (k.component) buildComponent(ctx, k);
+    refresh(ctx, k);
+    if (k.layout) layoutContainer(ctx, k);
+  };
+  const spanOf = (k: SceneNode): number => Math.max(0.0001, num(k.props.span, 1));
+  const place = (k: SceneNode, x: number, y: number): void => {
+    setProp(k, 'x', x, flow);
+    setProp(k, 'y', y, flow);
+    refresh(ctx, k);
+  };
+  const justified = (free: number, n: number): { start: number; between: number } => {
+    if (free <= 0 || n === 0) return { start: 0, between: 0 };
+    switch (justify) {
+      case 'center':
+        return { start: free / 2, between: 0 };
+      case 'end':
+        return { start: free, between: 0 };
+      case 'between':
+        return n > 1 ? { start: 0, between: free / (n - 1) } : { start: 0, between: 0 };
+      case 'around':
+        return { start: free / n / 2, between: free / n };
+      default:
+        return { start: 0, between: 0 };
+    }
+  };
+
+  let usedW = 0;
+  let usedH = 0;
+  if (c.layout === 'row') {
+    // 1. widths: fixed children keep theirs, the rest share the free space by span
+    const cols = Math.round(num(p.cols, 0));
+    const lines: SceneNode[][] = [];
+    if (cols > 0 && innerW !== null) {
+      const unit = (innerW - gap * (cols - 1)) / cols;
+      let line: SceneNode[] = [];
+      let used = 0;
+      for (const k of kids) {
+        const span = Math.min(cols, Math.max(1, Math.round(spanOf(k))));
+        if (used + span > cols && line.length) {
+          lines.push(line);
+          line = [];
+          used = 0;
+        }
+        size(k, 'w', unit * span + gap * (span - 1));
+        used += span;
+        line.push(k);
+      }
+      if (line.length) lines.push(line);
+    } else {
+      lines.push(kids);
+      const flex = kids.filter((k) => !hasOwnSize(k, 'w') && !isLineish(k));
+      if (innerW !== null && flex.length) {
+        const fixed = kids.filter((k) => !flex.includes(k)).reduce((a, k) => a + k.box.w, 0);
+        const free = innerW - fixed - gap * Math.max(0, kids.length - 1);
+        const total = flex.reduce((a, k) => a + spanOf(k), 0);
+        for (const k of flex) size(k, 'w', (free * spanOf(k)) / total);
+      }
+    }
+    for (const k of kids) settle(k);
+    // 2. each line: cross-axis alignment, then main-axis distribution
+    let y = pad;
+    lines.forEach((line, li) => {
+      let lineH = Math.max(0, ...line.map((k) => k.box.h));
+      if (innerH !== null && lines.length === 1) lineH = innerH;
+      if (align === 'stretch') {
+        for (const k of line) {
+          if (hasOwnSize(k, 'h') || isLineish(k)) continue;
+          size(k, 'h', lineH);
+          settle(k);
+        }
+      }
+      const widths = line.reduce((a, k) => a + k.box.w, 0) + gap * Math.max(0, line.length - 1);
+      const j = justified((innerW ?? widths) - widths, line.length);
+      let x = pad + j.start;
+      for (const k of line) {
+        const off = align === 'center' ? (lineH - k.box.h) / 2 : align === 'end' ? lineH - k.box.h : 0;
+        place(k, x, y + off);
+        x += k.box.w + gap + j.between;
+      }
+      usedW = Math.max(usedW, widths);
+      y += lineH + (li < lines.length - 1 ? gap : 0);
+    });
+    usedH = y - pad;
+  } else {
+    // column: children span the width (stretch), heights from content or shared by span
+    for (const k of kids) {
+      if (align === 'stretch' && innerW !== null && !hasOwnSize(k, 'w')) size(k, 'w', innerW);
+    }
+    for (const k of kids) settle(k);
+    const flex = kids.filter((k) => 'span' in k.props && !hasOwnSize(k, 'h') && !isLineish(k));
+    if (innerH !== null && flex.length) {
+      const fixed = kids.filter((k) => !flex.includes(k)).reduce((a, k) => a + k.box.h, 0);
+      const free = innerH - fixed - gap * Math.max(0, kids.length - 1);
+      const total = flex.reduce((a, k) => a + spanOf(k), 0);
+      for (const k of flex) {
+        size(k, 'h', (free * spanOf(k)) / total);
+        settle(k);
+      }
+    }
+    const heights = kids.reduce((a, k) => a + k.box.h, 0) + gap * Math.max(0, kids.length - 1);
+    const maxW = Math.max(0, ...kids.map((k) => k.box.w));
+    const crossW = innerW ?? maxW;
+    const j = justified((innerH ?? heights) - heights, kids.length);
+    let y = pad + j.start;
+    for (const k of kids) {
+      const off = align === 'center' ? (crossW - k.box.w) / 2 : align === 'end' ? crossW - k.box.w : 0;
+      place(k, pad + off, y);
+      y += k.box.h + gap + j.between;
+    }
+    usedW = maxW;
+    usedH = heights;
+  }
+  // containers without a given size hug their content
+  if (!hasGivenSize(c, 'w')) setProp(c, 'w', usedW + 2 * pad, self);
+  if (!hasGivenSize(c, 'h')) setProp(c, 'h', usedH + 2 * pad, self);
+  refresh(ctx, c);
 }
 
 // ---------------------------------------------------------------------------

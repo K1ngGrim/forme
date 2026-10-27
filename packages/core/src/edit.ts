@@ -39,6 +39,8 @@ export type Intent =
   | { type: 'arrange'; slide: string; verb: ArrangeVerb; mode?: string; ids: string[]; bake: boolean; extra?: string }
   | { type: 'number'; slide: string; id: string; counter: string; caption: string }
   | { type: 'z'; slide: string; id: string; mode: 'front' | 'back' | 'forward' | 'backward' }
+  /** Move an object to another position inside its row/column container. */
+  | { type: 'reorder'; slide: string; id: string; index: number }
   | { type: 'rename'; from: string; to: string }
   | { type: 'command'; slide: string; text: string }
   | { type: 'addSlide'; after?: string; layout?: string }
@@ -155,6 +157,20 @@ class Builder {
   writeProp(node: SceneNode, key: string, value: WriteValue): void {
     const prov = node.prov[key];
     const text = wrapIfSpaced(formatValue(value));
+    if (prov?.layout) {
+      // placed by a layout container: positions follow the flow (reorder instead),
+      // a new size becomes the object's own size so the container reflows around it
+      if (key === 'x' || key === 'y') return;
+      const file: FileRole = node.origin.file;
+      const own = file === 'deck' ? this.inSlide(node.origin) : this.ctx.mode === 'theme';
+      const op = own && isCreation(node.origin.verb) ? this.opOf(file, node.origin.line) : null;
+      if (op) {
+        const a = argByKey(op, key);
+        if (a) this.replace(file, a.value.span, text);
+        else this.appendArg(file, op, key, text);
+        return;
+      }
+    }
     if (this.ctx.mode === 'theme') {
       if (prov && prov.op.file === 'theme' && prov.literal && !prov.semantic && !prov.inherited && prov.value) {
         this.replace('theme', prov.value, this.literalText(prov, key, value, node));
@@ -263,7 +279,7 @@ class Builder {
   }
 }
 
-const CREATION = new Set(['rect', 'ellipse', 'line', 'arrow', 'polygon', 'path', 'text', 'list', 'image', 'table', 'group', 'use', 'slot']);
+const CREATION = new Set(['rect', 'ellipse', 'line', 'arrow', 'polygon', 'path', 'text', 'list', 'image', 'table', 'group', 'use', 'slot', 'row', 'column']);
 
 function isCreation(verb: string): boolean {
   return CREATION.has(verb);
@@ -504,6 +520,8 @@ export function computeEdit(ctx: EditContext, intent: Intent): EditResult {
     }
     case 'z':
       return { file: 'deck', edits: [appendToSlide(ctx, slide, `z @${intent.id} ${intent.mode}`)], warnings: [], select: [intent.id] };
+    case 'reorder':
+      return reorderIntent(ctx, slide, intent.id, intent.index);
     case 'command': {
       const text = intent.text.trim();
       if (!text) return fail('Leere Eingabe');
@@ -634,6 +652,30 @@ function arrangeIntent(ctx: EditContext, b: Builder, slide: SlideScene, intent: 
     else writeMove(b, before, round(now.box.x - before.box.x), round(now.box.y - before.box.y));
   }
   return b.result({ select: intent.ids });
+}
+
+/** Move the creation op of a container child before the sibling at `index` (after removal). */
+function reorderIntent(ctx: EditContext, slide: SlideScene, id: string, index: number): EditResult {
+  const node = slide.byId.get(id);
+  if (!node || node.origin.file !== 'deck') return fail('Nur Objekte aus dem Deck lassen sich umordnen');
+  const op = ctx.deck.lines[node.origin.line]?.op;
+  const parent = op?.parent;
+  if (!op || !parent || (parent.verb !== 'row' && parent.verb !== 'column')) return fail('Das Objekt liegt in keiner Zeile oder Spalte');
+  const siblings = parent.children.filter((c) => isCreation(c.verb));
+  const from = siblings.indexOf(op);
+  const rest = siblings.filter((c) => c !== op);
+  const to = Math.max(0, Math.min(rest.length, Math.round(index)));
+  if (to === from) return fail('Keine Änderung');
+  const src = ctx.deck.source;
+  const block = src.slice(op.line.start, op.blockEnd);
+  const edits: TextEdit[] = [removeLines(ctx.deck, op)];
+  const before = rest[to];
+  if (before) edits.push({ from: before.line.start, to: before.line.start, insert: `${block}\n` });
+  else {
+    const last = rest[rest.length - 1] as OpNode;
+    edits.push({ from: last.blockEnd, to: last.blockEnd, insert: `\n${block}` });
+  }
+  return { file: 'deck', edits, warnings: [], select: [id] };
 }
 
 function renameIntent(ctx: EditContext, from: string, to: string): EditResult {

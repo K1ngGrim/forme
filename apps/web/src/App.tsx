@@ -9,11 +9,18 @@ import { SlideList } from './components/SlideList.js';
 import { StatusBar } from './components/StatusBar.js';
 import { Toasts } from './components/Toasts.js';
 import { Toolbar } from './components/Toolbar.js';
+import type { SceneNode, SlideScene } from '@forme/core';
+import { flowParent } from './canvas/geometry.js';
 import { ProjectDialog } from './components/ProjectDialog.js';
 import { actions, displaySlide, isDirty, useEditor } from './store.js';
 import type { Tool } from './store.js';
 
 const TOOL_KEYS: Record<string, Tool> = { v: 'select', r: 'rect', o: 'ellipse', l: 'line', a: 'arrow', t: 'text', i: 'image' };
+
+function flowParentOf(slide: SlideScene, id: string): SceneNode | null {
+  const n = slide.byId.get(id);
+  return n ? flowParent(slide, n) : null;
+}
 
 function isTyping(e: KeyboardEvent): boolean {
   const t = e.target as HTMLElement | null;
@@ -153,6 +160,15 @@ export function App(): JSX.Element {
       } else if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
         deleteSelection();
+      } else if (e.key.startsWith('Arrow') && sel.length === 1 && d && flowParentOf(d.slide, sel[0] as string)) {
+        // inside a row/column: arrow keys move the child one position
+        e.preventDefault();
+        const id = sel[0] as string;
+        const flow = flowParentOf(d.slide, id) as SceneNode;
+        const order = flow.children.filter((c) => c.props.hidden !== true).map((c) => c.id);
+        const i = order.indexOf(id);
+        const delta = e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 1;
+        if (i + delta >= 0 && i + delta < order.length) void actions.intent({ type: 'reorder', slide: d.slide.id, id, index: i + delta });
       } else if (e.key.startsWith('Arrow') && sel.length && d) {
         e.preventDefault();
         const step = e.shiftKey ? 10 : 1;

@@ -38,3 +38,12 @@ describe('project paths', () => {
     expect(relativeTo('talks/deck.forme', 'talks/img/a.png')).toBe('./img/a.png');
   });
 });
+
+describe('container completion', () => {
+  const s2 = evaluate(parse('slide @a\n  row @r\n'));
+  it('offers flex alignment values for rows and columns', () => {
+    const r = completeLine('  row @r align=', 15, s2, s2.slides[0]!);
+    expect(r?.items.map((i) => i.label)).toEqual(['start', 'center', 'end', 'stretch']);
+    expect(completeLine('  ', 2, s2, s2.slides[0]!)?.items.map((i) => i.label)).toEqual(expect.arrayContaining(['row', 'column']));
+  });
+});

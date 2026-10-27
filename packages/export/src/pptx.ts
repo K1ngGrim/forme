@@ -451,6 +451,14 @@ class Exporter {
         return;
       }
       case 'group':
+        if (node.layout) {
+          // row/column: background box as a normal (editable) shape, then the children
+          const fill = str(p.fill, '');
+          const stroke = str(p.stroke, '');
+          if ((fill && fill !== 'none') || (stroke && stroke !== 'none')) await this.addNode(target, slide, { ...node, kind: 'rect', children: [] });
+          for (const c of node.children) await this.addNode(target, slide, c);
+          return;
+        }
         if (shadow || num(p.opacity, 1) < 1) this.log.push({ slide: slide.id, id: node.id, message: 'Gruppeneffekte (Schatten/Deckkraft) werden nicht übernommen' });
         for (const c of node.children) await this.addNode(target, slide, c);
         return;

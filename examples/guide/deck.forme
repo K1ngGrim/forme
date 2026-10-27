@@ -37,6 +37,19 @@ slide @zahlen layout=content
     row "Service" "0,6 Mio €" "0,7 Mio €"
   number figure @t caption="Abb. {figure}: Umsatz nach Bereich"
 
+slide @layout layout=content
+  fill @title "Layout mit Zeilen und Spalten"
+  row @haupt within=content gap=$gap
+    column @links span=2 gap=32
+      text @lead "Container ordnen ihren Inhalt automatisch an, wie Zeilen und Spalten in Bootstrap. Sie lassen sich beliebig verschachteln." style=body
+      row @kpis gap=24
+        use @k4 kpi value="640" label="Aufträge"
+        use @k5 kpi value="98 %" label="Termintreue"
+        use @k6 kpi value="4,2" label="Ø Bewertung"
+    column @seite fill=$surface radius=24 pad=40 gap=16
+      text @seite_titel "Seitenleiste" style=h2
+      text @seite_text "Ein Drittel der Breite, eigener Hintergrund, Innenabstand 40." style=body
+
 slide @kapitel layout=section
   fill @title "Nächste Schritte"
   fill @subtitle "Was bis Jahresende passiert"

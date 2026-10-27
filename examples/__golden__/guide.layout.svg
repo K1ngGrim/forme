@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1920 1080" width="1920" height="1080">
+<rect width="1920" height="1080" fill="#FFFFFF"/>
+<g>
+<rect x="0" y="0" width="1920" height="12" fill="#0F766E"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#64748B">
+<tspan x="120" y="1033.9">
+<tspan>Projektbericht · Zahlen</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#64748B">
+<tspan x="1761.08" y="1033.9">
+<tspan>5 / 7</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="60" font-weight="700" fill="#0F172A">
+<tspan x="120" y="146.7">
+<tspan>Layout mit Zeilen und Spalten</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="32" font-weight="400" fill="#334155">
+<tspan x="120" y="291.84">
+<tspan>Container ordnen ihren Inhalt automatisch an, wie Zeilen und Spalten in</tspan>
+</tspan>
+<tspan x="120" y="338.24">
+<tspan>Bootstrap. Sie lassen sich beliebig verschachteln.</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<g>
+<g>
+<rect x="120" y="384.8" width="348.44" height="220" rx="24" fill="#F1F5F9"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="96" font-weight="700" fill="#0F766E">
+<tspan x="152" y="494.72">
+<tspan>640</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="24" font-weight="400" fill="#64748B">
+<tspan x="152" y="556.08">
+<tspan>Aufträge</tspan>
+</tspan>
+</text>
+</g>
+</g>
+<g>
+<g>
+<rect x="492.44" y="384.8" width="348.44" height="220" rx="24" fill="#F1F5F9"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="96" font-weight="700" fill="#0F766E">
+<tspan x="524.44" y="494.72">
+<tspan>98 %</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="24" font-weight="400" fill="#64748B">
+<tspan x="524.44" y="556.08">
+<tspan>Termintreue</tspan>
+</tspan>
+</text>
+</g>
+</g>
+<g>
+<g>
+<rect x="864.89" y="384.8" width="348.44" height="220" rx="24" fill="#F1F5F9"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="96" font-weight="700" fill="#0F766E">
+<tspan x="896.89" y="494.72">
+<tspan>4,2</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="24" font-weight="400" fill="#64748B">
+<tspan x="896.89" y="556.08">
+<tspan>Ø Bewertung</tspan>
+</tspan>
+</text>
+</g>
+</g>
+</g>
+</g>
+<g>
+<g>
+<rect x="1253.33" y="260" width="546.67" height="680" rx="24" fill="#F1F5F9"/>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#0F766E">
+<tspan x="1293.33" y="334.8">
+<tspan>Seitenleiste</tspan>
+</tspan>
+</text>
+</g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="32" font-weight="400" fill="#334155">
+<tspan x="1293.33" y="395.84">
+<tspan>Ein Drittel der Breite, eigener</tspan>
+</tspan>
+<tspan x="1293.33" y="442.24">
+<tspan>Hintergrund, Innenabstand 40.</tspan>
+</tspan>
+</text>
+</g>
+</g>
+</g>
+</svg>

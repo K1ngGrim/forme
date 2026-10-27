@@ -48,6 +48,8 @@ const VERB_INFO: Record<string, string> = {
   notes: 'Sprechernotizen',
   background: 'Hintergrund',
   slide: 'neue Folie',
+  row: 'Zeile (Kinder nebeneinander, wie Bootstrap-Row)',
+  column: 'Spalte (Kinder untereinander)',
   section: 'Abschnitt',
   counter: 'Zähler',
 };
@@ -87,6 +89,7 @@ export function completeLine(line: string, col: number, scene: DeckScene, slide:
     else if (key === 'font') values = scene.theme.fonts.map((f) => f.name);
     else if (key === 'within' || key === 'to') values = ['slide', ...Object.keys(slide?.regions ?? {}), ...(key === 'to' ? ['first', 'last'] : [])];
     else if (key === 'like' || key === 'in') return { from, items: ids() };
+    else if (key === 'align' && /^\s*(row|column)\b/.test(line)) values = ['start', 'center', 'end', 'stretch'];
     else if (key in ENUM_VALUES) values = ENUM_VALUES[key] as string[];
     else if (key === 'italic' || key === 'hidden' || key === 'header') values = ['true', 'false'];
     if (!values.length) return null;
