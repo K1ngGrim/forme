@@ -2,6 +2,9 @@ packages:
   - packages/*
   - apps/*
 
+# Only install versions that have been public for at least a day (minutes).
+minimumReleaseAge: 1440
+
 # Dependencies allowed to run install scripts.
 # `allowBuilds` is read by pnpm >= 11, `onlyBuiltDependencies` by pnpm 10.
 allowBuilds:
