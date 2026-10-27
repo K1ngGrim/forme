@@ -1,4 +1,4 @@
-# Builds the browser app and publishes it on GitHub Pages.
+# Builds the browser app and the documentation (under docs/) and publishes both on GitHub Pages.
 # Tests and the build run on every push and pull request; only the default branch is deployed.
 # The VS Code extension (forme.vsix) and the bundled CLI are attached to every run as artifacts.
 name: Pages
@@ -32,6 +32,8 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+      # documentation as a sub page of the app: /<repo>/docs/
+      - run: pnpm build:docs && cp -r apps/docs/dist apps/web/dist/docs
       - run: pnpm --filter forme-vscode package
       - run: pnpm --filter @forme/cli bundle
 

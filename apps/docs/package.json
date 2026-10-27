@@ -1,0 +1,17 @@
+{
+  "name": "@forme/docs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsx scripts/build.ts",
+    "dev": "tsx scripts/serve.ts",
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "@forme/core": "workspace:*",
+    "@forme/render": "workspace:*",
+    "esbuild": "^0.25.12",
+    "marked": "^18.1.2"
+  }
+}

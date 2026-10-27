@@ -21,6 +21,21 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.20.5)
 
+  apps/docs:
+    devDependencies:
+      '@forme/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@forme/render':
+        specifier: workspace:*
+        version: link:../../packages/render
+      esbuild:
+        specifier: ^0.25.12
+        version: 0.25.12
+      marked:
+        specifier: ^18.1.2
+        version: 18.1.2
+
   apps/vscode:
     devDependencies:
       '@forme/core':
@@ -1778,6 +1793,11 @@ packages:
 
   markdown-it@14.3.3:
     resolution: {integrity: sha512-L//tDAkjTjJCU6pBUSBTgs3Kg4InVaZuUZog/b6V12UKhcDQ7S78877ibbCanRExwPuYP1CZD7Gd2dxSy1GXRg==}
+    hasBin: true
+
+  marked@18.1.2:
+    resolution: {integrity: sha512-DfOnvLAQ6WYeWxWO1u4RyFOeqyHup6dks5PPqnoFiooU7ipRvidO/2j8plhAHIiZg574E9ZlzSjUiPMLAzFkgg==}
+    engines: {node: '>= 20'}
     hasBin: true
 
   math-intrinsics@1.1.0:
@@ -4013,6 +4033,8 @@ snapshots:
       mdurl: 2.1.0
       punycode.js: 2.3.1
       uc.micro: 2.1.0
+
+  marked@18.1.2: {}
 
   math-intrinsics@1.1.0: {}
 

@@ -28,10 +28,17 @@ pnpm test                                             # Unit- und Golden-Tests
 `pnpm build` erzeugt reine HTML/JS/CSS-Dateien. Sie lassen sich auf jedem Webserver hosten
 oder lokal mit `pnpm preview` ausliefern.
 
+## Dokumentation
+
+**https://k1nggrim.github.io/forme/docs/** – aufgebaut wie die Typst-Dokumentation: Einstieg,
+Anleitung, Referenz und Werkzeuge, Suche mit `Strg+K`, und jedes Forme-Beispiel wird mit dem
+echten Compiler gerendert und lässt sich direkt auf der Seite bearbeiten. Quelle sind die
+Markdown-Dateien in `docs/`; lokal mit `pnpm docs` (http://localhost:4174).
+
 ## GitHub Pages
 
-Die App wird automatisch nach **https://k1nggrim.github.io/forme/** veröffentlicht
-(`.github/workflows/pages.yml`). Jeder Push und jeder Pull Request läuft durch Typecheck,
+Die App wird automatisch nach **https://k1nggrim.github.io/forme/** veröffentlicht, die
+Dokumentation nach `/forme/docs/` (`.github/workflows/pages.yml`). Jeder Push und jeder Pull Request läuft durch Typecheck,
 Tests und Build; veröffentlicht wird nur der Standard-Branch. Manuell geht es über
 „Actions → Pages → Run workflow“.
 
@@ -103,6 +110,7 @@ Vektorpfad nachgebaut (`use @logo hka x=… y=… w=… h=… color=$primary`).
 | `packages/cli` | Kommandozeile `forme`: compile, watch, check, init |
 | `apps/web` | Browser-App: React + Zustand, CodeMirror 6, SVG-Canvas, Projekte in IndexedDB oder Ordnern |
 | `apps/vscode` | VS Code-Erweiterung: Sprache, Diagnosen, Live-Vorschau mit direkter Manipulation, Export |
+| `apps/docs` | Dokumentations-Website aus `docs/*.md`, mit live gerenderten Beispielen und Suche |
 
 ## Bedienung (Auswahl)
 

@@ -1,0 +1,107 @@
+# Werkzeuge
+
+## Kommandozeile
+
+Die Kommandozeile `forme` baut Präsentationen ohne Oberfläche, ähnlich wie `typst`. Sie nutzt
+denselben Compiler wie der Editor; das PDF sieht deshalb genauso aus wie die Folien im Editor.
+
+```
+forme init vortrag -t hka-seminar      # neues Projekt aus einer Vorlage
+forme watch vortrag/deck.forme         # PDF bei jeder Änderung neu erzeugen
+forme compile vortrag/deck.forme       # einmal bauen: vortrag/deck.pdf
+forme compile vortrag/deck.forme vortrag.pptx
+forme check vortrag/deck.forme         # nur Fehler und Warnungen
+```
+
+### Befehle
+
+| Befehl | Wirkung |
+| --- | --- |
+| `forme compile <deck> [ausgabe]` | Erzeugt die Ausgabe. Ohne Ausgabe: `<deck>.pdf`. Bei Fehlern wird nichts geschrieben (Exit-Code 1). |
+| `forme watch <deck> [ausgabe]` | Wie `compile`, danach bei jeder Änderung an Deck, Theme, Schriften und Bildern erneut. Strg+C beendet. |
+| `forme check <deck> [--json]` | Gibt Fehler und Warnungen mit Quelltext-Ausschnitt aus. `--json` liefert sie maschinenlesbar. |
+| `forme init [ordner] [-t vorlage]` | Legt ein Projekt an. Vorhandene Dateien werden nie überschrieben. |
+| `forme templates` | Listet die Vorlagen. |
+
+### Ausgabeformate
+
+Das Format ergibt sich aus der Dateiendung oder aus `--format`:
+
+| Endung | Ergebnis |
+| --- | --- |
+| `.pdf` | wie der Druck aus der App. Braucht Chrome, Edge oder Chromium. |
+| `.pptx` | in PowerPoint editierbar, mit Mastern, Platzhaltern und Notizen |
+| `.odp` | über LibreOffice (`soffice` muss installiert sein) |
+| `.html` | eine Seite pro Folie |
+| `.svg` | eine Folie (`--slide <id>`); mit `{n}` im Dateinamen alle Folien, z. B. `folie-{n}.svg` |
+
+### Optionen
+
+| Option | Bedeutung |
+| --- | --- |
+| `-o, --out <datei>` | Ausgabedatei statt des zweiten Arguments |
+| `-f, --format <fmt>` | `pdf`, `pptx`, `odp`, `html` oder `svg` |
+| `--slide <id>` | nur diese Folie (SVG) |
+| `--chromium <pfad>` | Browser für PDF. Sonst `FORME_CHROMIUM`, Playwrights Chromium, Google Chrome oder Microsoft Edge |
+| `--no-color` | Ausgabe ohne Farben |
+
+### Fehlermeldungen
+
+`forme check` zeigt jede Meldung mit Datei, Zeile und Spalte und markiert die Stelle:
+
+```text
+Fehler: Unbekanntes Objekt „@nope“
+   ┌─ vortrag/deck.forme:58:16
+58 │   rect @a like=@nope x=10
+   │                ^^^^^
+```
+
+### Installation
+
+Im Repository: `pnpm forme <befehl>`. Als eigenständiges Programm:
+`pnpm --filter @forme/cli bundle` erzeugt `packages/cli/dist` (eine Datei plus Vorlagen), danach
+`npm install -g ./packages/cli/dist`. Jeder CI-Lauf hängt die gebündelte CLI als Artefakt
+`forme-cli` an.
+
+## VS Code
+
+Die Erweiterung bringt Forme in VS Code: die Sprache mit allen Editor-Funktionen und eine
+Live-Vorschau, in der man Folien direkt bearbeitet.
+
+### Sprache
+
+- Hervorhebung, Fehler und Warnungen beim Tippen, für Deck und Theme, auch ungespeichert
+- Autovervollständigung für Befehle, Schlüssel, `@IDs`, `$Tokens`, Styles und Layouts
+- Gliederung (Folien und Objekte), Gehe zu Definition (auch ins Theme), alle Verweise
+- Umbenennen von IDs (F2), Farbvorschau mit Farbwähler, Hover mit berechneter Position
+
+### Vorschau
+
+`Strg+K V` oder das Symbol oben rechts öffnet die Vorschau neben dem Code. Sie zeigt alle Folien
+und folgt jedem Tastendruck.
+
+| Du tust | Im Code passiert |
+| --- | --- |
+| Objekt anklicken | Der Cursor springt zu seiner Zeile, alle Zeilen, die es betreffen, werden markiert |
+| Cursor in eine Zeile setzen | Das Objekt wird in der Vorschau markiert |
+| Ziehen (Umschalt: nur eine Achse) | Position wird geschrieben, wie im Web-Editor |
+| Eck-Griffe ziehen | Größe wird geschrieben |
+| Pfeiltasten (Umschalt: 10 px) | Verschieben in kleinen Schritten |
+| Entf | Objekt löschen (mit Warnung bei Bezügen) |
+| Doppelklick auf Text | Text in einem Eingabefeld bearbeiten |
+
+Jede Geste ist ein normaler Undo-Schritt in VS Code (Strg+Z). Folien mit Fehlern bleiben im
+letzten gültigen Stand sichtbar und sind gesperrt, bis der Fehler behoben ist.
+
+### Export und Vorlagen
+
+„Forme: Exportieren …“ schreibt PDF, PPTX, HTML, SVG oder ODP. PDF braucht Chrome, Edge oder
+Chromium; Forme sucht selbst, sonst die Einstellung `forme.chromiumPath`.
+„Forme: Neue Präsentation aus Vorlage …“ legt ein Projekt aus denselben Vorlagen an wie die
+Web-App.
+
+### Installation
+
+Jeder CI-Lauf hängt `forme.vsix` als Artefakt `forme-vscode` an. Alternativ
+`pnpm --filter forme-vscode package` im Repository. In VS Code: „Erweiterungen → … → Aus VSIX
+installieren“ oder `code --install-extension forme.vsix`.

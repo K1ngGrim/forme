@@ -38,6 +38,9 @@ const ICONS = {
   theme: I('M12 3a9 9 0 100 18c1 0 1.5-.8 1.5-1.5 0-1.5-1.5-1.5-1.5-3s1-2 2.5-2H17a4 4 0 004-4c0-4-4-7.5-9-7.5zM7.5 11h.01M10 7h.01M15 7.5h.01'),
 };
 
+/** The docs are deployed next to the app (GitHub Pages: /forme/docs/); the dev server has no copy. */
+const DOCS_URL = import.meta.env.DEV ? 'https://k1nggrim.github.io/forme/docs/' : './docs/';
+
 function Btn(props: { title: string; onClick: (e: MouseEvent) => void; active?: boolean; disabled?: boolean; children: ReactNode; testid?: string }): JSX.Element {
   return (
     <button
@@ -190,6 +193,9 @@ export function Toolbar(): JSX.Element {
           {ICONS.present}
           <span className="tb-label">Präsentieren</span>
         </Btn>
+        <a className="tb-btn tb-help" href={DOCS_URL} target="_blank" rel="noopener" title="Dokumentation (neuer Tab)" data-testid="docs">
+          ?
+        </a>
       </div>
     </div>
   );

@@ -39,7 +39,7 @@ Die vollständigen Beispiele liegen in [`examples/guide/`](../examples/guide/).
 
 ## 2. Schnellstart
 
-**In der App:** `pnpm dev` starten, im Startdialog eine Vorlage wählen (z. B. „Leere
+**In der App:** den Editor öffnen (auf GitHub Pages oder lokal mit `pnpm dev`), im Startdialog eine Vorlage wählen (z. B. „Leere
 Präsentation“), links im Code tippen oder rechts auf der Folie arbeiten.
 
 **Kleinstes vollständiges Deck** (nutzt das eingebaute Standard-Theme):

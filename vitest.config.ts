@@ -7,6 +7,6 @@ export default defineConfig({
     alias: { vscode: fileURLToPath(new URL('./apps/vscode/test/mock-vscode.ts', import.meta.url)) },
   },
   test: {
-    include: ['packages/*/test/**/*.test.ts', 'apps/vscode/test/**/*.test.ts', 'apps/web/test/unit/**/*.test.ts'],
+    include: ['packages/*/test/**/*.test.ts', 'apps/vscode/test/**/*.test.ts', 'apps/docs/test/**/*.test.ts', 'apps/web/test/unit/**/*.test.ts'],
   },
 });

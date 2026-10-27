@@ -199,3 +199,4 @@ circle.ov-handle { cursor: move; }
 .link-btn { border: 0; background: transparent; color: var(--accent); cursor: pointer; padding: 0; }
 .dialog-foot { margin: 22px 0 0; padding-top: 14px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
 .st-save { color: var(--muted); }
+.tb-help { justify-content: center; font-weight: 700; text-decoration: none; }

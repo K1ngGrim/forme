@@ -61,8 +61,10 @@ packages/
 apps/
   web/       Browser-App: Editor-UI, Projekte (IndexedDB/Ordner), Export im Browser
   vscode/    VS Code-Erweiterung: Sprache, Diagnosen, Vorschau mit direkter Manipulation, Export
+  docs/      Dokumentations-Website (statisch, aus docs/*.md erzeugt, Beispiele live gerendert)
 docs/
   language.md   Sprachreferenz (verbindlich, bei jeder Sprachänderung aktualisieren)
+  guide.md      Anleitung; index.md und tools.md: Startseite und Werkzeuge der Website
 examples/       Beispiel-Decks und -Themes (dienen auch als Golden-Tests)
 ```
 
@@ -82,6 +84,8 @@ pnpm forme check <deck.forme> [--json] CLI: nur Diagnosen ausgeben
 pnpm forme init [ordner] -t <vorlage>  CLI: Projekt aus einer Vorlage anlegen
 pnpm --filter @forme/cli bundle        CLI als eine Datei nach packages/cli/dist (npm install -g)
 pnpm --filter forme-vscode package     VS Code-Erweiterung als apps/vscode/forme.vsix
+pnpm docs                              Dokumentation lokal (http://localhost:4174, baut bei Änderungen neu)
+pnpm build:docs                        Dokumentation nach apps/docs/dist
 ```
 
 Hinweise:
@@ -98,8 +102,13 @@ Hinweise:
   Sprachserver). Vorschau-Gesten laufen über dieselben Intents und `computeEdit` wie die Web-App
   und werden als `WorkspaceEdit` angewendet (VS Codes Undo-Stack). Tests laufen mit einer
   nachgebauten `vscode`-API (`apps/vscode/test/mock-vscode.ts`), das Webview-Skript in Chromium.
+- Dokumentation: Die Seiten sind Abschnitte aus `docs/*.md`; welche Überschrift zu welcher Seite
+  wird, steht in `apps/docs/src/site.ts` (beim Umbenennen von Überschriften mitziehen, der Test
+  schlägt sonst fehl). Forme-Codeblöcke werden mit dem echten Compiler gerendert und lassen sich
+  im Browser bearbeiten; Theme-Ausschnitte und Fragmente bleiben reiner Code. Ein Beispiel, das
+  absichtlich einen Fehler zeigt, bekommt einen Kommentar `// FEHLER`.
 - GitHub Pages: `.github/workflows/pages.yml` prüft jeden Push/PR (Typecheck, Tests, Build) und
-  veröffentlicht `apps/web/dist` vom Standard-Branch. `base: './'` in `vite.config.ts` beibehalten,
+  veröffentlicht `apps/web/dist` vom Standard-Branch, die Dokumentation darin unter `docs/`. `base: './'` in `vite.config.ts` beibehalten,
   damit die Seite unter `/<repo>/` funktioniert.
 
 ---

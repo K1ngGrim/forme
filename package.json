@@ -12,7 +12,9 @@
     "test:e2e": "pnpm --filter @forme/web test:e2e",
     "typecheck": "pnpm -r typecheck",
     "forme": "tsx packages/cli/src/main.ts",
-    "preview": "pnpm --filter @forme/web preview"
+    "preview": "pnpm --filter @forme/web preview",
+    "build:docs": "pnpm --filter @forme/docs build",
+    "docs": "pnpm --filter @forme/docs dev"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
