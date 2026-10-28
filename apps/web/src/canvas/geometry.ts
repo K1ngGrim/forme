@@ -44,8 +44,8 @@ function hitIn(nodes: SceneNode[], x: number, y: number, tol: number): SceneNode
   for (let i = nodes.length - 1; i >= 0; i--) {
     const n = nodes[i] as SceneNode;
     if (n.props.hidden === true) continue;
-    if (n.layout) {
-      // row/column: pick the child under the pointer, else the container itself
+    if (n.layout || n.kind === 'box') {
+      // box, row, column: pick the child under the pointer, else the container itself
       const inner = hitIn(n.children, x, y, tol);
       if (inner) return inner;
       if (hitNode(n, x, y, tol)) return n;

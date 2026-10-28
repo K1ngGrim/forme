@@ -30,7 +30,8 @@ function fieldsFor(n: SceneNode): Field[] {
   }
   if (n.kind !== 'image' && n.kind !== 'table') f.push({ key: 'fill', label: 'Füllung', type: 'color' });
   f.push({ key: 'stroke', label: 'Kontur', type: 'color' }, { key: 'stroke.width', label: 'Stärke', type: 'number' });
-  if (n.kind === 'rect' || n.kind === 'image' || n.kind === 'text') f.push({ key: 'radius.tl', label: 'Radius', type: 'number' });
+  if (n.kind === 'rect' || n.kind === 'image' || n.kind === 'text' || n.kind === 'box') f.push({ key: 'radius.tl', label: 'Radius', type: 'number' });
+  if (n.kind === 'box') f.push({ key: 'pad', label: 'Innenabstand', type: 'number' });
   f.push({ key: 'opacity', label: 'Deckkraft', type: 'number' });
   return f;
 }

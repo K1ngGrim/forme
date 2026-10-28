@@ -11,7 +11,8 @@ export type NodeKind =
   | 'list'
   | 'image'
   | 'table'
-  | 'group';
+  | 'group'
+  | 'box';
 
 export type PropValue = number | string | boolean;
 export type Props = Record<string, PropValue>;

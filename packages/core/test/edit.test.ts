@@ -160,6 +160,13 @@ describe('edit engine', () => {
     expect(run('slide @a {}\n', { type: 'command', slide: 'a', text: 'rect @r' })).toBe('slide @a {\n  rect @r\n}\n');
   });
 
+  it('moves and resizes boxes and their children with literals', () => {
+    const src = 'slide @a {\n  box @k x=100 y=100 w=400 pad=20 {\n    rect @r x=10 y=10 w=50 h=50\n  }\n}\n';
+    expect(run(src, { type: 'move', slide: 'a', ids: ['r'], dx: 5, dy: 5 })).toBe(src.replace('rect @r x=10 y=10', 'rect @r x=15 y=15'));
+    expect(run(src, { type: 'move', slide: 'a', ids: ['k'], dx: 5, dy: 0 })).toBe(src.replace('box @k x=100', 'box @k x=105'));
+    expect(run(src, { type: 'resize', slide: 'a', id: 'k', box: { x: 100, y: 100, w: 600, h: 300 } })).toBe(src.replace('w=400 pad=20', 'w=600 pad=20 h=300'));
+  });
+
   it('adds, moves and deletes slides', () => {
     const src = 'deck "x"\n\nslide @a {\n  rect @r\n}\n\nslide @b\n';
     expect(run(src, { type: 'addSlide', after: 'a', layout: 'blank' })).toBe('deck "x"\n\nslide @a {\n  rect @r\n}\n\nslide @s1 layout=blank\n\nslide @b\n');

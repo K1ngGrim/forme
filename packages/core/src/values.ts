@@ -27,6 +27,8 @@ export interface EvalEnv {
   /** Origin of the enclosing group/component: references inside containers are relative. */
   origin: { x: number; y: number };
   params: Record<string, PropValue> | null;
+  /** Inner size of the enclosing box (null on an axis without fixed size); null outside boxes. */
+  box?: { w: number | null; h: number | null } | null;
 }
 
 const X_KEYS = new Set(['x', 'w', 'x2', 'dx', 'left', 'right', 'cx', 'gap.x']);
@@ -153,6 +155,17 @@ function lookupName(env: EvalEnv, path: string[], e: Expr, axis: Axis): PropValu
       if (!env.params) return err(env, '„param“ ist nur in Komponenten verfügbar', e);
       if (prop in env.params) return env.params[prop];
       return err(env, `Unbekannter Parameter „${prop}“`, e);
+    case 'box': {
+      if (!env.box) return err(env, '„box“ ist nur innerhalb einer Box verfügbar', e);
+      const w = env.box.w;
+      const h = env.box.h;
+      const need = (v: number | null, what: string): PropValue | undefined => (v === null ? err(env, `Die Box hat keine feste ${what}`, e) : v);
+      if (prop === 'w' || prop === 'width') return need(w, 'Breite');
+      if (prop === 'h' || prop === 'height') return need(h, 'Höhe');
+      if (prop === 'cx' || (prop === 'center' && axis !== 'y')) return w === null ? need(w, 'Breite') : w / 2;
+      if (prop === 'cy' || prop === 'middle' || prop === 'center') return h === null ? need(h, 'Höhe') : h / 2;
+      return err(env, `Unbekannte Eigenschaft „box.${prop}“ (verfügbar: w, h, cx, cy)`, e);
+    }
     case 'counter':
       if (prop in env.counters) return env.counters[prop];
       return err(env, `Unbekannter Zähler „${prop}“`, e);
@@ -183,7 +196,11 @@ function namePath(e: Expr): string[] | null {
 export function evalExpr(env: EvalEnv, e: Expr, axis: Axis = null): PropValue | undefined {
   switch (e.k) {
     case 'num':
-      if (e.unit === '%') return (e.value / 100) * (axis === 'x' ? env.slideW : env.slideH);
+      if (e.unit === '%') {
+        // inside a box with a fixed size, percentages refer to its inner area
+        const inner = env.box ? (axis === 'x' ? env.box.w : env.box.h) : null;
+        return (e.value / 100) * (inner ?? (axis === 'x' ? env.slideW : env.slideH));
+      }
       return e.value;
     case 'str':
       return interpolate(env, e);

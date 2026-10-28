@@ -3,6 +3,7 @@
 export const CREATE_VERBS = [
   'row',
   'column',
+  'box',
   'rect',
   'ellipse',
   'line',
@@ -59,6 +60,7 @@ export const KEYS_BY_VERB: Record<string, string[]> = {
   group: ['x', 'y', 'opacity', 'hidden', 'span'],
   use: ['x', 'y', 'w', 'h', 'opacity', 'hidden', 'span'],
   row: [...CONTAINER, 'cols', ...META],
+  box: [...BOX, ...PAINT, ...RADIUS, 'pad', ...META],
   column: [...CONTAINER, ...META],
   slot: [...BOX, ...PAINT, ...RADIUS, ...TEXT, 'kind', 'placeholder', 'src', 'fit', 'bullet', ...META],
   set: [...BOX, ...PAINT, ...RADIUS, ...TEXT, 'x2', 'y2', 'head', 'src', 'fit', 'points', 'd', 'bullet', 'kind', 'placeholder', 'header', 'header.fill', 'header.color', 'border', 'stripe', 'cols', 'gap', 'justify', 'span'],

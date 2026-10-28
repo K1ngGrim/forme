@@ -215,7 +215,8 @@ Master/Layout per `set @id ...` überschreiben oder per `hide @id` ausblenden.
 - **Verändern:** `set`, `move`, `resize`, `round` (Ecken, einzeln oder gesamt), `style`,
   `stroke`, `shadow`, `opacity`, `hide`, `z` (Ebenenreihenfolge)
 - **Anordnen:** `align`, `distribute`, `stack` (Auto-Layout), `grid`; Layout-Container
-  `row`/`column` (verschachtelbar, wie Bootstrap-Zeilen/-Spalten)
+  `row`/`column` (verschachtelbar, wie Bootstrap-Zeilen/-Spalten), `box` (Container mit
+  Hintergrund und `pad`, Kinder frei positioniert, wie ein div)
 - **Nummerierung:** `counter`, `number`, Interpolation `{slide.n}`, `{deck.total}`,
   `{section}`, `{figure}`, eigene Zähler; `section "Name"` auf Folienebene
 - **Definitionen (nur Theme):** `token`, `color`, `font`, `style`, `master`, `layout`,

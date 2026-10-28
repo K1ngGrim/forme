@@ -130,3 +130,34 @@ describe('evaluator', () => {
     expect(node(s, 2, 't').props.text).toBe('2/2');
   });
 });
+
+describe('box', () => {
+  const b = (src: string): DeckScene => evalSrc(`slide @a {\n${src}\n}\n`);
+
+  it('places children relative to its padded inner area and fits its content', () => {
+    const s = b('box @k x=100 y=200 w=800 pad=40 fill=#eee {\n  rect @r x=10 y=20 w=100 h=60\n  rect @p x=50% y=100 w=25% h=10\n}');
+    expect(node(s, 0, 'r').box).toEqual({ x: 150, y: 260, w: 100, h: 60 });
+    expect(node(s, 0, 'p').box).toEqual({ x: 500, y: 340, w: 180, h: 10 });
+    // no h: content (110) plus padding
+    expect(node(s, 0, 'k').box).toEqual({ x: 100, y: 200, w: 800, h: 190 });
+    expect(s.diagnostics).toEqual([]);
+  });
+
+  it('moves its children along and follows set', () => {
+    const s = b('box @k x=0 y=0 w=400 h=300 pad=20 {\n  rect @r w=box.w h=box.cy\n}\nmove @k dx=100 dy=50\nset @k pad=0 w=600');
+    expect(node(s, 0, 'r').box).toEqual({ x: 100, y: 50, w: 600, h: 150 });
+  });
+
+  it('gets its size from a row and evaluates its body again', () => {
+    const s = b('row @z x=0 y=0 w=1000 h=400 gap=0 {\n  box @k pad=50 {\n    rect @r w=box.w h=50%\n  }\n  rect @q\n}');
+    expect(node(s, 0, 'k').box).toEqual({ x: 0, y: 0, w: 500, h: 400 });
+    expect(node(s, 0, 'r').box).toEqual({ x: 50, y: 50, w: 400, h: 150 });
+    // the first pass did not know the width yet: its errors are gone
+    expect(s.diagnostics).toEqual([]);
+  });
+
+  it('reports box.w without a fixed width and box outside of boxes', () => {
+    const s = b('box @k {\n  rect @r w=box.w\n}\nrect @q w=box.w');
+    expect(s.diagnostics.map((d) => d.message)).toEqual(['Die Box hat keine feste Breite', '„box“ ist nur innerhalb einer Box verfügbar']);
+  });
+});

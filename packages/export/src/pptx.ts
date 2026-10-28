@@ -450,9 +450,10 @@ class Exporter {
         target.addTable(data, { x: pos.x, y: pos.y, w: pos.w, colW: t.colWidths.map(inch), rowH: t.rowHeights.map(inch) });
         return;
       }
+      case 'box':
       case 'group':
-        if (node.layout) {
-          // row/column: background box as a normal (editable) shape, then the children
+        if (node.layout || node.kind === 'box') {
+          // box, row, column: background as a normal (editable) shape, then the children
           const fill = str(p.fill, '');
           const stroke = str(p.stroke, '');
           if ((fill && fill !== 'none') || (stroke && stroke !== 'none')) await this.addNode(target, slide, { ...node, kind: 'rect', children: [] });

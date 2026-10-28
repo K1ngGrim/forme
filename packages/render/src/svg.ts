@@ -318,9 +318,10 @@ function renderNode(scene: DeckScene, node: SceneNode, defs: Defs, opts: RenderO
     case 'table':
       body = tableNode(scene, node);
       break;
+    case 'box':
     case 'group':
-      if (node.layout) {
-        // row/column: optional background box, children stay individually selectable
+      if (node.layout || node.kind === 'box') {
+        // box, row, column: optional background, children stay individually selectable
         const fill = str(p.fill, '');
         const stroke = str(p.stroke, '');
         const bg = (fill && fill !== 'none') || (stroke && stroke !== 'none') ? `<g${shadowFilter(node, defs)}>${rectShape(node, b, paintAttrs(node))}</g>` : '';
@@ -332,7 +333,7 @@ function renderNode(scene: DeckScene, node: SceneNode, defs: Defs, opts: RenderO
   }
   if (!body) return '';
   const opacity = num(p.opacity, 1);
-  const filter = node.layout ? '' : shadowFilter(node, defs);
+  const filter = node.layout || node.kind === 'box' ? '' : shadowFilter(node, defs);
   const idAttr = opts.editor ? ` data-id="${esc(node.id)}"` : '';
   return `<g${idAttr}${opacity < 1 ? ` opacity="${n(opacity)}"` : ''}${filter}>${body}</g>`;
 }

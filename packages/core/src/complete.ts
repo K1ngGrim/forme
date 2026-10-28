@@ -50,6 +50,7 @@ const VERB_INFO: Record<string, string> = {
   slide: 'neue Folie',
   row: 'Zeile (Kinder nebeneinander, wie Bootstrap-Row)',
   column: 'Spalte (Kinder untereinander)',
+  box: 'Box (Container mit Hintergrund, Kinder frei darin)',
   section: 'Abschnitt',
   counter: 'Zähler',
 };

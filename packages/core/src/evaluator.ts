@@ -152,6 +152,17 @@ interface Ctx {
   autoId: number;
   /** Local object table for component instances (not visible on the slide). */
   componentObjects: Map<string, SceneNode> | null;
+  /** Body of each box, to evaluate it again when the box gets a new size. */
+  boxBodies: Map<SceneNode, BoxBody>;
+}
+
+interface BoxBody {
+  op: OpNode;
+  src: Src;
+  /** Inner size the body was evaluated with. */
+  size: string;
+  /** Diagnostics of the last evaluation (replaced when the body is evaluated again). */
+  diags: Diagnostic[];
 }
 
 const DEFAULT_FILL = '#D1D5DB';
@@ -485,7 +496,30 @@ function originOf(ctx: Ctx, node: SceneNode): { x: number; y: number } {
   const parent = ctx.parents.get(node);
   if (!parent) return { x: 0, y: 0 };
   const o = originOf(ctx, parent);
-  return { x: o.x + num(parent.props.x, 0), y: o.y + num(parent.props.y, 0) };
+  const inset = parent.kind === 'box' ? num(parent.props.pad, 0) : 0;
+  return { x: o.x + num(parent.props.x, 0) + inset, y: o.y + num(parent.props.y, 0) + inset };
+}
+
+/** Inner size of a box (its size minus padding), null on an axis without a fixed size. */
+function boxInner(node: SceneNode): { w: number | null; h: number | null } {
+  const pad = num(node.props.pad, 0);
+  return {
+    w: 'w' in node.prov ? Math.max(0, num(node.props.w, 0) - 2 * pad) : null,
+    h: 'h' in node.prov ? Math.max(0, num(node.props.h, 0) - 2 * pad) : null,
+  };
+}
+
+/** Size of a box: given, or fitted around its children plus padding. */
+function sizeBox(ctx: Ctx, node: SceneNode): void {
+  const o = originOf(ctx, node);
+  const pad = num(node.props.pad, 0);
+  const x = o.x + num(node.props.x, 0);
+  const y = o.y + num(node.props.y, 0);
+  const kids = node.children.filter((c) => c.props.hidden !== true);
+  const right = Math.max(0, ...kids.map((c) => c.box.x + c.box.w - x - pad));
+  const bottom = Math.max(0, ...kids.map((c) => c.box.y + c.box.h - y - pad));
+  const inner = boxInner(node);
+  node.box = { x, y, w: inner.w !== null ? num(node.props.w, 0) : right + 2 * pad, h: inner.h !== null ? num(node.props.h, 0) : bottom + 2 * pad };
 }
 
 function fontSpec(ctx: Ctx, props: Props): FontSpec & { css: string } {
@@ -710,6 +744,11 @@ function refresh(ctx: Ctx, node: SceneNode): void {
       node.box = { x: o.x + num(p.x, 0), y: o.y + num(p.y, 0), w, h };
       break;
     }
+    case 'box': {
+      for (const c of node.children) refresh(ctx, c);
+      sizeBox(ctx, node);
+      break;
+    }
     case 'group': {
       for (const c of node.children) refresh(ctx, c);
       const ox = o.x + num(p.x, 0);
@@ -729,6 +768,7 @@ function refresh(ctx: Ctx, node: SceneNode): void {
   if (parent && parent.kind === 'group' && !parent.component && !parent.layout && parent.children.length) {
     parent.box = unionBoxes(parent.children.map((c) => c.box));
   }
+  if (parent && parent.kind === 'box') sizeBox(ctx, parent);
 }
 
 function boundsOf(pts: [number, number][]): Box {
@@ -788,6 +828,8 @@ function defaultsFor(kind: NodeKind): Props {
     case 'table':
       return { x: 0, y: 0, w: 800, size: 24, color: DEFAULT_TEXT, pad: 16, border: '#D1D5DB', 'header.fill': '#F3F4F6' };
     case 'group':
+      return { x: 0, y: 0 };
+    case 'box':
       return { x: 0, y: 0 };
   }
 }
@@ -890,7 +932,7 @@ function applyKeyed(ctx: Ctx, node: SceneNode, op: OpNode, src: Src, verbForKeys
       else {
         const o = originOf(ctx, node);
         const prov = argProv(op, src, inArg, { semantic: true, literal: false });
-        const inset = isTextual(node) || node.layout ? 0 : num(node.props.pad, 0);
+        const inset = isTextual(node) || node.layout || node.kind === 'box' ? 0 : num(node.props.pad, 0);
         setProp(node, 'x', box.box.x - o.x + inset, prov);
         setProp(node, 'y', box.box.y - o.y + inset, prov);
         setProp(node, 'w', box.box.w - 2 * inset, prov);
@@ -987,6 +1029,11 @@ function createOp(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null): voi
   }
   refresh(ctx, node);
 
+  if (kind === 'box') {
+    ctx.boxBodies.set(node, { op, src, size: '', diags: [] });
+    buildBox(ctx, node);
+  }
+
   if (kind === 'group') {
     const savedOrigin = ctx.env.origin;
     const o = originOf(ctx, node);
@@ -1063,6 +1110,44 @@ function buildComponent(ctx: Ctx, node: SceneNode): void {
   ctx.env.src = saved.src;
   ctx.env.file = saved.file;
   ctx.env.origin = saved.origin;
+  refresh(ctx, node);
+}
+
+/**
+ * Evaluate the body of a box with its current inner size. Runs again when a container or `set`
+ * gives the box a new size, so `box.w` and percentages follow.
+ */
+function buildBox(ctx: Ctx, node: SceneNode): void {
+  const body = ctx.boxBodies.get(node);
+  if (!body) return;
+  const inner = boxInner(node);
+  const size = `${inner.w}x${inner.h}`;
+  if (size === body.size) return;
+  // drop the previous body: its objects and its diagnostics
+  const table = ctx.componentObjects ?? ctx.slide.byId;
+  const drop = (n: SceneNode): void => {
+    for (const c of n.children) {
+      if (table.get(c.id) === c) table.delete(c.id);
+      drop(c);
+    }
+  };
+  drop(node);
+  node.children = [];
+  for (const d of body.diags) {
+    const i = ctx.env.diags.indexOf(d);
+    if (i >= 0) ctx.env.diags.splice(i, 1);
+  }
+  const saved = { origin: ctx.env.origin, box: ctx.env.box, src: ctx.env.src, file: ctx.env.file };
+  const o = originOf(ctx, node);
+  const pad = num(node.props.pad, 0);
+  ctx.env.origin = { x: o.x + num(node.props.x, 0) + pad, y: o.y + num(node.props.y, 0) + pad };
+  ctx.env.box = inner;
+  useSrc(ctx.env, body.src);
+  const start = ctx.env.diags.length;
+  for (const c of body.op.children) evalOp(ctx, c, body.src, node, 'group');
+  body.diags = ctx.env.diags.slice(start);
+  body.size = size;
+  Object.assign(ctx.env, saved);
   refresh(ctx, node);
 }
 
@@ -1367,6 +1452,7 @@ function modifyOp(ctx: Ctx, op: OpNode, src: Src): void {
       }
     }
     if (node.component && op.verb !== 'move' && op.verb !== 'z' && op.verb !== 'hide' && op.verb !== 'show') buildComponent(ctx, node);
+    if (node.kind === 'box') buildBox(ctx, node);
     refresh(ctx, node);
     relayout(ctx, node);
   }
@@ -1546,7 +1632,8 @@ function isLineish(n: SceneNode): boolean {
 /** Re-layout the outermost container around a node after it changed. */
 function relayout(ctx: Ctx, node: SceneNode): void {
   let top: SceneNode | null = node.layout ? node : null;
-  for (let p = ctx.parents.get(node); p && p.layout; p = ctx.parents.get(p)) top = p;
+  // boxes inside containers take part in the flow, their own children do not
+  for (let p = ctx.parents.get(node); p && (p.layout || p.kind === 'box'); p = ctx.parents.get(p)) if (p.layout) top = p;
   if (top) layoutContainer(ctx, top);
 }
 
@@ -1568,6 +1655,7 @@ function layoutContainer(ctx: Ctx, c: SceneNode): void {
   /** Apply a new size to a child: re-measure text, rebuild components, lay out nested containers. */
   const settle = (k: SceneNode): void => {
     if (k.component) buildComponent(ctx, k);
+    if (k.kind === 'box') buildBox(ctx, k);
     refresh(ctx, k);
     if (k.layout) layoutContainer(ctx, k);
   };
@@ -1848,6 +1936,7 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
       parents: new Map(),
       autoId: 0,
       componentObjects: null,
+      boxBodies: new Map(),
     };
     for (const c of op.children) {
       if (c.verb === 'fill') {

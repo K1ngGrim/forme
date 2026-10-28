@@ -693,6 +693,7 @@ hide @a …   show @a …            z @a front|back|forward|backward|n
 row @id [x y w h | within=region | in=@box] [gap=] [pad=] [align=stretch|start|center|end] [justify=start|center|end|between|around] [cols=12] [fill radius …]
 column @id …wie row (ohne cols)
   // Kinder: [w=] bzw. [h=] fest, sonst [span=N] Anteil am freien Platz
+box @id [x y w h] [pad=] [fill stroke radius shadow …] { Kinder frei, relativ zur Innenfläche; box.w, box.h, % }
 
 // Anordnen
 align left|center|right|top|middle|bottom @a @b … [to=slide|first|last|@id|region]

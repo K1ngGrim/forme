@@ -279,7 +279,7 @@ class Builder {
   }
 }
 
-const CREATION = new Set(['rect', 'ellipse', 'line', 'arrow', 'polygon', 'path', 'text', 'list', 'image', 'table', 'group', 'use', 'slot', 'row', 'column']);
+const CREATION = new Set(['rect', 'ellipse', 'line', 'arrow', 'polygon', 'path', 'text', 'list', 'image', 'table', 'group', 'use', 'slot', 'row', 'column', 'box']);
 
 function isCreation(verb: string): boolean {
   return CREATION.has(verb);

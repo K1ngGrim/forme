@@ -1,6 +1,6 @@
 ---
 summary: Objekte anordnen – Zeilen und Spalten wie in Bootstrap, Ausrichten, Verteilen, Stapeln, Raster.
-ops: row column align distribute stack grid
+ops: row column box align distribute stack grid
 ---
 # Layout
 
@@ -9,6 +9,8 @@ Forme kennt zwei Arten, Objekte anzuordnen:
 - **Container** ([`row`](layout/row.md), [`column`](layout/column.md)) enthalten ihre Kinder
   in ihrem Block `{ … }` und verteilen den Platz wie Zeilen und Spalten in Bootstrap oder CSS-Flexbox.
   Container lassen sich beliebig verschachteln.
+- **Boxen** ([`box`](layout/box.md)) sind Container mit eigenem Hintergrund und Innenabstand,
+  in denen die Kinder frei stehen – wie ein `div`.
 - **Anordnungs-Operationen** ([`align`](layout/align.md), [`distribute`](layout/distribute.md),
   [`stack`](layout/stack.md), [`grid`](layout/grid.md)) wirken auf Objekte, die schon existieren.
 

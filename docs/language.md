@@ -39,7 +39,7 @@ Tabellen), öffnen am Zeilenende einen **Block in geschweiften Klammern**.
 | Form | Beispiel | Bedeutung |
 | --- | --- | --- |
 | Zahl | `120`, `1.5`, `12px` | Pixel im Folienkoordinatensystem (Standard 1920×1080) |
-| Prozent | `10%` | relativ zur Folie: bei x/w/x2/dx zur Breite, sonst zur Höhe |
+| Prozent | `10%` | relativ zur Folie (in einer [`box`](reference/layout/box.md) mit fester Größe zu deren Innenfläche): bei x/w/x2/dx zur Breite, sonst zur Höhe |
 | Größe | `1920x1080` | nur bei `size` |
 | Zeichenkette | `"Text"` | Escapes: `\"`, `\\`, `\n`, `\t` |
 | Rohtext | `"""…"""` | darf mehrere Zeilen umfassen, ohne Escapes und Interpolation (siehe unten) |
@@ -58,7 +58,8 @@ alle Eigenschaften lesen (`@t.size`).
 **Eingebaute Namen:** `slide.w`, `slide.h`, `slide.n` (Foliennummer, ausgeblendete Folien
 zählen nicht mit), `slide.cx`, `slide.cy`, `deck.total`, `deck.title`, `deck.sections`
 (Anzahl der Abschnitte), `section`, `section.n`, `counter.<name>` oder kurz `<name>` für Zähler, `<region>.x/.y/.w/.h/...`
-für Regionen des Layouts, `param.<name>` in Komponenten.
+für Regionen des Layouts, `param.<name>` in Komponenten, `box.w`, `box.h`, `box.cx`, `box.cy`
+(Innenfläche der umgebenden Box).
 
 ### Interpolation
 
@@ -172,7 +173,7 @@ Schlüssel aus `packages/core/src/vocab.ts` dort beschrieben ist).
 | Gruppe | Operationen |
 | --- | --- |
 | [Erzeugen](reference/erzeugen.md) | `rect` `ellipse` `line` `arrow` `polygon` `path` `text` `list` `item` `image` `table` `group` `use` |
-| [Layout](reference/layout.md) | `row` `column` `align` `distribute` `stack` `grid` |
+| [Layout](reference/layout.md) | `row` `column` `box` `align` `distribute` `stack` `grid` |
 | [Verändern](reference/veraendern.md) | `set` `move` `resize` `round` `style` `stroke` `shadow` `opacity` `hide` `show` `z` |
 | [Folien und Deck](reference/folien.md) | `deck` `theme` `slide` `section` `fill` `notes` `background` `number` `counter` |
 | [Theme](reference/theme.md) | `theme` `size` `token` `color` `font` `style` `master` `layout` `slot` `region` `component` |
@@ -217,4 +218,4 @@ Der Evaluator merkt sich für jede Eigenschaft, welche Operation sie zuletzt ges
 | `table` | native Tabelle |
 | `image` | Bild (SVG wird als PNG gerastert eingebettet) |
 | `notes` | Sprechernotizen |
-| Ausdrücke, `align`/`distribute`/`stack`/`grid`, `row`/`column`, Komponenten, Gruppen | auf berechnete Positionen eingefroren; Container-Hintergründe als Rechteck |
+| Ausdrücke, `align`/`distribute`/`stack`/`grid`, `row`/`column`/`box`, Komponenten, Gruppen | auf berechnete Positionen eingefroren; Container-Hintergründe als Rechteck |
