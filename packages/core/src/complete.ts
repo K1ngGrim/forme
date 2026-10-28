@@ -54,6 +54,7 @@ const VERB_INFO: Record<string, string> = {
   column: 'Spalte (Kinder untereinander)',
   box: 'Box (Container mit Hintergrund, Kinder frei darin)',
   section: 'Abschnitt',
+  include: 'Folien aus einer anderen Datei einbinden',
   counter: 'Zähler',
 };
 

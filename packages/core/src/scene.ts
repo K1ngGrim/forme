@@ -23,6 +23,8 @@ export type Scope = 'slide' | 'layout' | 'master' | 'theme' | 'component' | 'def
 /** Where an op lives. */
 export interface OpRef {
   file: FileRole;
+  /** For 'include': the path as written in the `include` op. */
+  path?: string;
   /** Span of the op line (verb .. last argument). */
   span: Span;
   /** Span of the whole block including children. */

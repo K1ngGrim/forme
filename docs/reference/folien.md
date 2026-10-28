@@ -1,6 +1,6 @@
 ---
 summary: Aufbau eines Decks – Kopf, Folien, Abschnitte, Platzhalter befüllen, Notizen, Hintergrund und Nummerierung.
-ops: deck theme slide section fill notes background number counter
+ops: deck theme include slide section fill notes background number counter
 ---
 # Folien und Deck
 

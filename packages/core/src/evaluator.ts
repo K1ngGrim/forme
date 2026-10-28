@@ -31,7 +31,7 @@ import type {
   ThemeInfo,
 } from './scene.js';
 import type { Axis, EvalEnv } from './values.js';
-import { axisOf, evalExpr } from './values.js';
+import { assetPath, axisOf, evalExpr } from './values.js';
 import {
   ALIGN_MODES,
   ARRANGE_VERBS,
@@ -56,6 +56,8 @@ export interface EvaluateOptions {
   imageSizes?: Record<string, ImageSize>;
   /** Typesetting of `math` formulas (TeX). Without it formulas get an estimated size and no image. */
   math?: MathRenderer;
+  /** Parsed files for `include`, keyed by the path as written (see `includePathsOf`). */
+  includes?: Record<string, Document>;
   /**
    * Reuse slides whose source and context did not change since the last call
    * (incremental re-evaluation). Pass the same object on every call.
@@ -130,6 +132,8 @@ interface Src {
   doc: Document;
   file: FileRole;
   scope: Scope;
+  /** For included files: the path as written in the `include` op. */
+  path?: string;
 }
 
 interface StyleDef {
@@ -189,6 +193,7 @@ export function defaultTheme(): Document {
 function opRef(op: OpNode, src: Src): OpRef {
   return {
     file: src.file,
+    ...(src.path !== undefined ? { path: src.path } : {}),
     span: op.span,
     blockSpan: { start: op.line.start, end: op.blockEnd },
     line: op.line.index,
@@ -990,8 +995,9 @@ function applyKeyed(ctx: Ctx, node: SceneNode, op: OpNode, src: Src, verbForKeys
     if (!allowed.has(key) && !(node.kind === 'group' && node.component) && !(verbForKeys === 'set' && node.layout)) {
       report(ctx.env, `Unbekannte Eigenschaft „${key}“ für ${verbForKeys}`, a.keySpan ?? a.span, 'warning');
     }
-    const v = coerce(ctx.env, key, evalExpr(ctx.env, a.value, axisOf(key)), a.value);
+    let v = coerce(ctx.env, key, evalExpr(ctx.env, a.value, axisOf(key)), a.value);
     if (v === undefined) continue;
+    if (key === 'src' && typeof v === 'string') v = assetPath(ctx.env, v);
     if (key === 'shadow' && v === 'none') {
       for (const k of ['shadow.x', 'shadow.y', 'shadow.blur', 'shadow.color']) {
         delete node.props[k];
@@ -1071,7 +1077,7 @@ function createOp(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null): voi
     if (kind === 'math' && a.value.k === 'str' && !isRawString(a.value.raw) && /[\\{]/.test(a.value.raw)) {
       report(ctx.env, 'Formeln als Rohtext schreiben: """…""" (sonst gelten \\ und {…} als Escape bzw. Ausdruck)', a.value.span, 'warning');
     }
-    if (typeof v === 'string') setProp(node, kind === 'image' ? 'src' : 'text', v, argProv(op, src, a));
+    if (typeof v === 'string') setProp(node, kind === 'image' ? 'src' : 'text', kind === 'image' ? assetPath(ctx.env, v) : v, argProv(op, src, a));
     else if (v !== undefined) report(ctx.env, 'Zeichenkette erwartet', a.value.span);
     rest = rest.slice(1);
   }
@@ -1409,7 +1415,7 @@ function applyFill(ctx: Ctx, node: SceneNode, op: OpNode, src: Src, restoreSrc: 
   useSrc(ctx.env, src);
   const v = evalExpr(ctx.env, value.value);
   if (typeof v === 'string') {
-    setProp(node, node.kind === 'image' ? 'src' : 'text', v, argProv(op, src, value));
+    setProp(node, node.kind === 'image' ? 'src' : 'text', node.kind === 'image' && typeof v === 'string' ? assetPath(ctx.env, v) : v, argProv(op, src, value));
     node.placeholder = false;
   }
   // keyed overrides on the fill line (e.g. color=)
@@ -1599,7 +1605,7 @@ function evalOp(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null, place:
       const img = argByKey(op, 'image');
       if (img) {
         const v = evalExpr(ctx.env, img.value);
-        if (typeof v === 'string') bg.image = v;
+        if (typeof v === 'string') bg.image = assetPath(ctx.env, v);
       }
       const fit = argByKey(op, 'fit');
       if (fit) {
@@ -1882,13 +1888,77 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
   const deckEnv = baseEnv(deck, 'deck', diags);
   let title = '';
   let themePath: string | null = null;
-  const slideOps: { op: OpNode; section: string; sectionN: number }[] = [];
+  const slideOps: { op: OpNode; section: string; sectionN: number; src: Src }[] = [];
   let section = '';
   let sectionN = 0;
   const deckCounters: Record<string, number> = {};
+  const deckSrc: Src = { doc: deck, file: 'deck', scope: 'slide' };
+
+  /** Deck-level ops shared by the deck and included files. */
+  const deckLevel = (op: OpNode, env: EvalEnv, src: Src): boolean => {
+    switch (op.verb) {
+      case 'section': {
+        const p = positional(op)[0];
+        if (p && p.value.k === 'str') {
+          section = p.value.value;
+          sectionN++;
+        } else report(env, '„section“ erwartet einen Namen in Anführungszeichen', op.verbSpan);
+        return true;
+      }
+      case 'counter': {
+        const p = positional(op)[0];
+        if (p && p.value.k === 'name') deckCounters[p.value.name] = num(evalExpr(env, argByKey(op, 'start')?.value ?? { k: 'num', value: 0, unit: '', span: op.span }), 0);
+        else report(env, '„counter“ erwartet einen Namen', op.verbSpan);
+        return true;
+      }
+      case 'slide':
+        slideOps.push({ op, section, sectionN, src });
+        return true;
+      case 'token':
+      case 'color':
+      case 'font':
+      case 'style':
+      case 'master':
+      case 'layout':
+      case 'component':
+      case 'size':
+        report(env, `„${op.verb}“ ist eine Theme-Definition und gehört in eine Theme-Datei`, op.verbSpan);
+        return true;
+      default:
+        return false;
+    }
+  };
+
+  /** Slides, sections and counters of an included file, at the position of the `include`. */
+  const include = (op: OpNode): void => {
+    const p = positional(op)[0];
+    if (!p || p.value.k !== 'str') {
+      report(deckEnv, '„include“ erwartet einen Dateipfad in Anführungszeichen', op.verbSpan);
+      return;
+    }
+    const path = p.value.value;
+    const doc = opts.includes?.[path];
+    if (!doc) {
+      report(deckEnv, `Datei „${path}“ nicht gefunden`, p.value.span);
+      return;
+    }
+    const incDiags: Diagnostic[] = [...doc.diagnostics.map((d) => ({ ...d }))];
+    const env = baseEnv(doc, 'include', incDiags);
+    const src: Src = { doc, file: 'include', scope: 'slide', path };
+    for (const c of doc.ops) {
+      // deck and theme lines serve the file when opened on its own
+      if (c.verb === 'deck' || c.verb === 'theme' || deckLevel(c, env, src)) continue;
+      if (c.verb === 'include') report(env, '„include“ in einer eingebundenen Datei wird nicht unterstützt', c.verbSpan);
+      else report(env, `„${c.verb}“ muss innerhalb einer Folie stehen`, c.verbSpan);
+    }
+    for (const d of incDiags) diags.push({ ...d, file: 'include', path });
+  };
 
   deck.ops.forEach((op, i) => {
     switch (op.verb) {
+      case 'include':
+        include(op);
+        break;
       case 'deck': {
         if (i !== 0) report(deckEnv, '„deck“ sollte in der ersten Zeile stehen', op.verbSpan, 'warning');
         const p = positional(op)[0];
@@ -1902,35 +1972,8 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
         else report(deckEnv, '„theme“ erwartet einen Dateipfad in Anführungszeichen', op.verbSpan);
         break;
       }
-      case 'section': {
-        const p = positional(op)[0];
-        if (p && p.value.k === 'str') {
-          section = p.value.value;
-          sectionN++;
-        } else report(deckEnv, '„section“ erwartet einen Namen in Anführungszeichen', op.verbSpan);
-        break;
-      }
-      case 'counter': {
-        const p = positional(op)[0];
-        if (p && p.value.k === 'name') deckCounters[p.value.name] = num(evalExpr(deckEnv, argByKey(op, 'start')?.value ?? { k: 'num', value: 0, unit: '', span: op.span }), 0);
-        else report(deckEnv, '„counter“ erwartet einen Namen', op.verbSpan);
-        break;
-      }
-      case 'slide':
-        slideOps.push({ op, section, sectionN });
-        break;
-      case 'token':
-      case 'color':
-      case 'font':
-      case 'style':
-      case 'master':
-      case 'layout':
-      case 'component':
-      case 'size':
-        report(deckEnv, `„${op.verb}“ ist eine Theme-Definition und gehört in eine Theme-Datei`, op.verbSpan);
-        break;
       default:
-        report(deckEnv, `„${op.verb}“ muss innerhalb einer Folie stehen`, op.verbSpan);
+        if (!deckLevel(op, deckEnv, deckSrc)) report(deckEnv, `„${op.verb}“ muss innerhalb einer Folie stehen`, op.verbSpan);
     }
   });
 
@@ -1956,12 +1999,12 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
   const seenIds = new Set<string>();
   let visible = 0;
 
-  slideOps.forEach(({ op, section: sec, sectionN: secN }, index) => {
+  slideOps.forEach(({ op, section: sec, sectionN: secN, src: slideSrc }, index) => {
     const hidden = isHiddenSlide(op);
     if (!hidden) visible++;
     const id = slideIdOf(op, index);
     const key = cache
-      ? [id, visible, total, sec, secN, sectionN, title, JSON.stringify(counters), seenIds.has(id), deck.source.slice(op.line.start, op.blockEnd)].join('\u0000')
+      ? [id, visible, total, sec, secN, sectionN, title, JSON.stringify(counters), seenIds.has(id), slideSrc.path ?? '', slideSrc.doc.source.slice(op.line.start, op.blockEnd)].join('\u0000')
       : '';
     const cached = cache?.slides.get(id);
     if (cache && cached && cached.key === key) {
@@ -1977,9 +2020,8 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
       return;
     }
     const slideDiags: Diagnostic[] = [];
-    if (seenIds.has(id)) slideDiags.push(diag('error', `Folien-ID „@${id}“ ist bereits vergeben`, op.span, 'deck'));
+    if (seenIds.has(id)) slideDiags.push(diag('error', `Folien-ID „@${id}“ ist bereits vergeben`, op.span, slideSrc.file));
     seenIds.add(id);
-    const deckSrc: Src = { doc: deck, file: 'deck', scope: 'slide' };
     const scene: SlideScene = {
       id,
       index,
@@ -1987,7 +2029,7 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
       hidden,
       layout: null,
       master: null,
-      op: opRef(op, deckSrc),
+      op: opRef(op, slideSrc),
       background: { fill: '#FFFFFF' },
       nodes: [],
       byId: new Map(),
@@ -1999,8 +2041,9 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
       hasErrors: false,
     };
     const env: EvalEnv = {
-      src: deck.source,
-      file: 'deck',
+      ...(slideSrc.path !== undefined ? { assetDir: slideSrc.path.replace(/[^/]*$/, '').replace(/\/$/, '') || '.' } : {}),
+      src: slideSrc.doc.source,
+      file: slideSrc.file,
       diags: slideDiags,
       slideW: theme.info.width,
       slideH: theme.info.height,
@@ -2064,11 +2107,14 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
       useSrc(env, s);
       for (const c of layout.op.children) evalOp(ctx, c, s, null, 'layout');
     }
-    useSrc(env, deckSrc);
-    for (const c of op.children) evalOp(ctx, c, deckSrc, null, 'slide');
-    for (const d of slideDiags) if (!d.file) d.file = env.file;
-    scene.hasErrors = slideDiags.some((d) => d.severity === 'error' && d.file === 'deck');
-    for (const d of deck.diagnostics) {
+    useSrc(env, slideSrc);
+    for (const c of op.children) evalOp(ctx, c, slideSrc, null, 'slide');
+    for (const d of slideDiags) {
+      if (!d.file) d.file = env.file;
+      if (d.file === 'include' && slideSrc.path !== undefined) d.path = slideSrc.path;
+    }
+    scene.hasErrors = slideDiags.some((d) => d.severity === 'error' && d.file === slideSrc.file);
+    for (const d of slideSrc.doc.diagnostics) {
       if (d.severity === 'error' && d.span.start >= scene.op.blockSpan.start && d.span.start <= scene.op.blockSpan.end) scene.hasErrors = true;
     }
     slides.push(scene);
@@ -2091,7 +2137,7 @@ function dedupe(ds: Diagnostic[]): Diagnostic[] {
   const seen = new Set<string>();
   const out: Diagnostic[] = [];
   for (const d of ds) {
-    const k = `${d.file}:${d.span.start}:${d.span.end}:${d.message}`;
+    const k = `${d.file}:${d.path ?? ''}:${d.span.start}:${d.span.end}:${d.message}`;
     if (seen.has(k)) continue;
     seen.add(k);
     out.push(d);
@@ -2100,6 +2146,17 @@ function dedupe(ds: Diagnostic[]): Diagnostic[] {
 }
 
 /** Find the theme path declared in a deck without evaluating it. */
+/** Paths of the files included with `include`, as written (relative to the deck file). */
+export function includePathsOf(deck: Document): string[] {
+  const out: string[] = [];
+  for (const op of deck.ops) {
+    if (op.verb !== 'include') continue;
+    const p = positional(op)[0];
+    if (p && p.value.k === 'str' && !out.includes(p.value.value)) out.push(p.value.value);
+  }
+  return out;
+}
+
 export function themePathOf(deck: Document): string | null {
   for (const op of deck.ops) {
     if (op.verb !== 'theme') continue;

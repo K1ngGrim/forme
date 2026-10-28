@@ -13,13 +13,16 @@ export function StatusBar(): JSX.Element {
   useEditor((s) => s.slideId);
   const deckDiags = diagnosticsFor('deck');
   const themeDiags = diagnosticsFor('theme');
-  const errors = [...deckDiags, ...themeDiags].filter((d) => d.severity === 'error').length;
-  const warnings = [...deckDiags, ...themeDiags].filter((d) => d.severity === 'warning').length;
+  // included files are not shown in the code view: their messages carry the file name
+  const includeDiags = diagnosticsFor('include').map((x) => ({ ...x, message: `${x.path ?? ''}: ${x.message}` }));
+  const all = [...deckDiags, ...themeDiags, ...includeDiags];
+  const errors = all.filter((d) => d.severity === 'error').length;
+  const warnings = all.filter((d) => d.severity === 'warning').length;
   const d = displaySlide();
   const visible = scene.slides.filter((s) => !s.hidden).length;
   return (
     <div className="status-bar" data-testid="status-bar">
-      <span className={errors ? 'st-errors' : 'st-ok'} title={[...deckDiags, ...themeDiags].map((x) => x.message).join('\n')}>
+      <span className={errors ? 'st-errors' : 'st-ok'} title={all.map((x) => x.message).join('\n')}>
         {errors ? `${errors} Fehler` : 'Keine Fehler'}
         {warnings ? `, ${warnings} Warnungen` : ''}
       </span>

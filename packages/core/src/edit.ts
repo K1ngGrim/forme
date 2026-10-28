@@ -317,6 +317,20 @@ export function insertInBlock(op: OpNode, lines: string[], at: 'start' | 'end'):
   ];
 }
 
+function includedMessage(slide: SlideScene): string {
+  return `Die Folie stammt aus „${slide.op.path ?? ''}“ und wird dort bearbeitet`;
+}
+
+/** The `include` op of the deck that brings in a file. */
+function includeOp(deck: Document, path: string | undefined): OpNode | undefined {
+  return deck.ops.find((op) => op.verb === 'include' && positional(op)[0]?.value.k === 'str' && (positional(op)[0]?.value as { value: string }).value === path);
+}
+
+/** The op in the deck file that stands for a slide: the slide itself or the `include` that brings it in. */
+function deckOpOf(ctx: EditContext, slide: SlideScene): OpNode | undefined {
+  return slide.op.file === 'include' ? includeOp(ctx.deck, slide.op.path) : (ctx.deck.lines[slide.op.line]?.op ?? undefined);
+}
+
 function findSlide(ctx: EditContext, id: string): SlideScene | undefined {
   return ctx.scene.slides.find((s) => s.id === id);
 }
@@ -490,6 +504,7 @@ export function computeEdit(ctx: EditContext, intent: Intent): EditResult {
     case 'deleteSlide': {
       const s = findSlide(ctx, intent.slide);
       if (!s) return fail('Folie nicht gefunden');
+      if (s.op.file === 'include') return fail(includedMessage(s));
       const op = ctx.deck.lines[s.op.line]?.op as OpNode;
       return { file: 'deck', edits: [removeBlock(ctx.deck, op)], warnings: [] };
     }
@@ -500,6 +515,8 @@ export function computeEdit(ctx: EditContext, intent: Intent): EditResult {
   }
   const slide = findSlide(ctx, intent.slide);
   if (!slide) return fail('Folie nicht gefunden');
+  // slides of included files are edited in their own file (master and layout objects in the theme)
+  if (slide.op.file === 'include' && ctx.mode === 'deck') return fail(includedMessage(slide));
   const b = new Builder(ctx, slide);
   switch (intent.type) {
     case 'move': {
@@ -731,8 +748,8 @@ function addSlide(ctx: EditContext, after: string | undefined, layout: string | 
   const head = `slide @${id}${lay ? ` layout=${lay}` : ''}`;
   const text = slots.includes('title') ? `${head} {\n  fill @title "Titel"\n}` : head;
   const ref = after ? scene.slides.find((s) => s.id === after) : scene.slides[scene.slides.length - 1];
-  if (ref) {
-    const op = ctx.deck.lines[ref.op.line]?.op as OpNode;
+  const op = ref ? deckOpOf(ctx, ref) : undefined;
+  if (op) {
     return { file: 'deck', edits: [{ from: op.blockEnd, to: op.blockEnd, insert: `\n\n${text}` }], warnings: [], slide: id };
   }
   const src = ctx.deck.source;
@@ -746,10 +763,12 @@ function moveSlide(ctx: EditContext, id: string, to: number): EditResult {
   if (from < 0) return fail('Folie nicht gefunden');
   const target = Math.max(0, Math.min(slides.length - 1, to));
   if (target === from) return fail('Keine Änderung');
+  if (slides[from]!.op.file === 'include') return fail(includedMessage(slides[from]!));
   const op = ctx.deck.lines[slides[from]!.op.line]?.op as OpNode;
   const block = ctx.deck.source.slice(op.line.start, op.blockEnd);
   const removal = removeBlock(ctx.deck, op);
-  const other = ctx.deck.lines[slides[target]!.op.line]?.op as OpNode;
+  const other = deckOpOf(ctx, slides[target]!);
+  if (!other || other === op) return fail('Keine Änderung');
   const insert =
     target < from
       ? { from: other.line.start, to: other.line.start, insert: `${block}\n\n` }

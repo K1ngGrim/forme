@@ -16,6 +16,8 @@ export type EditorToHost =
   | { type: 'select'; path: string; reveal: Span | null; spans: Span[] }
   | { type: 'export'; kind: 'pdf' | 'pptx' | 'odp' }
   | { type: 'openText' }
+  /** Open another project file in the Forme editor (an included file). */
+  | { type: 'open'; path: string }
   | { type: 'save' };
 
 export type HostToEditor =

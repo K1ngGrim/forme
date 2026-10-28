@@ -36,11 +36,16 @@ function needDeck(args: Args, io: Io): string {
 async function checkDeck(deckPath: string, io: Io, cache?: LoadCache): Promise<Checked> {
   const loaded = await loadDeck(deckPath, cache ? { cache } : {});
   const themeSrc = loaded.themePath ? await readFile(loaded.themePath, 'utf8').catch(() => '') : '';
-  const items = loaded.scene.diagnostics.map((d) => ({
-    d,
-    file: relative(io.cwd, d.file === 'theme' && loaded.themePath ? loaded.themePath : loaded.deckPath) || basename(loaded.deckPath),
-    src: d.file === 'theme' ? themeSrc : loaded.deck.source,
-  }));
+  const fileOf = (d: Diagnostic): { path: string; src: string } => {
+    if (d.file === 'theme' && loaded.themePath) return { path: loaded.themePath, src: themeSrc };
+    const inc = d.file === 'include' ? loaded.includes.find((i) => i.path === d.path) : undefined;
+    if (inc) return { path: inc.abs, src: inc.doc?.source ?? '' };
+    return { path: loaded.deckPath, src: loaded.deck.source };
+  };
+  const items = loaded.scene.diagnostics.map((d) => {
+    const f = fileOf(d);
+    return { d, file: relative(io.cwd, f.path) || basename(f.path), src: f.src };
+  });
   items.sort((a, b) => a.file.localeCompare(b.file) || a.d.span.start - b.d.span.start);
   return {
     loaded,

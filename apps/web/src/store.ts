@@ -6,6 +6,7 @@ import {
   createMetricMeasurer,
   evaluate,
   imageSize,
+  includePathsOf,
   migrationEdits,
   NEW_DECK_SOURCE,
   parse,
@@ -89,6 +90,17 @@ export interface EditorState {
   assetVersion: number;
   /** Code view next to the canvas (in VS Code hidden by default: its own text editor is the code view). */
   codeVisible: boolean;
+  /** Files brought in with `include`, keyed by the path as written in the deck. */
+  includes: Record<string, IncludedFile>;
+  /** Decks this one was opened from via „Datei öffnen“ on an included slide (for „Zurück“). */
+  includedFrom: string[];
+}
+
+export interface IncludedFile {
+  /** Project path. */
+  path: string;
+  source: string;
+  doc: Document;
 }
 
 const toastId = { n: 0 };
@@ -104,7 +116,7 @@ const evalCache = createEvalCache();
 let math: MathRenderer | undefined;
 let mathLoading = false;
 
-function loadMathIfNeeded(...files: (SourceFile | null)[]): void {
+function loadMathIfNeeded(...files: ({ source: string } | null)[]): void {
   if (math || mathLoading || !files.some((f) => f && /^\s*math\b/m.test(f.source))) return;
   mathLoading = true;
   void import('@forme/render/math').then((m) => {
@@ -113,9 +125,13 @@ function loadMathIfNeeded(...files: (SourceFile | null)[]): void {
   });
 }
 
-function evalScene(deck: SourceFile, theme: SourceFile | null, measurer: TextMeasurer, imageSizes: Record<string, ImageSize>): DeckScene {
-  loadMathIfNeeded(deck, theme);
-  return evaluate(deck.doc, { theme: theme ? theme.doc : null, measurer, imageSizes, cache: evalCache, ...(math ? { math } : {}) });
+function includeDocs(includes: Record<string, IncludedFile>): Record<string, Document> {
+  return Object.fromEntries(Object.entries(includes).map(([k, f]) => [k, f.doc]));
+}
+
+function evalScene(deck: SourceFile, theme: SourceFile | null, measurer: TextMeasurer, imageSizes: Record<string, ImageSize>, includes: Record<string, IncludedFile> = {}): DeckScene {
+  loadMathIfNeeded(deck, theme, ...Object.values(includes));
+  return evaluate(deck.doc, { theme: theme ? theme.doc : null, measurer, imageSizes, cache: evalCache, includes: includeDocs(includes), ...(math ? { math } : {}) });
 }
 
 const initialDeck = makeFile('deck', null, NEW_DECK_SOURCE);
@@ -149,6 +165,8 @@ export const useEditor = create<EditorState>(() => ({
   saving: false,
   assetVersion: 0,
   codeVisible: !host,
+  includes: {},
+  includedFrom: [],
 }));
 
 const get = useEditor.getState;
@@ -211,7 +229,7 @@ export function isDirty(s: EditorState = get()): boolean {
 
 function reevaluate(partial: Partial<EditorState> = {}): void {
   const s = { ...get(), ...partial };
-  const scene = evalScene(s.deck, s.theme, s.measurer, s.imageSizes);
+  const scene = evalScene(s.deck, s.theme, s.measurer, s.imageSizes, s.includes);
   const lastGood = { ...s.lastGood };
   for (const slide of scene.slides) if (!slide.hasErrors) lastGood[slide.id] = slide;
   let slideId = s.slideId;
@@ -251,6 +269,34 @@ async function loadFonts(): Promise<void> {
   }
   if (fs !== projectFs) return;
   reevaluate({ measurer: fonts.length ? createFontMeasurer(fonts) : createMetricMeasurer() });
+}
+
+/** (Re)load the files included by the deck (only those whose path changed, unless forced). */
+async function syncIncludes(force = false): Promise<void> {
+  const s = get();
+  const fs = projectFs;
+  const next: Record<string, IncludedFile> = {};
+  let changed = false;
+  for (const rel of includePathsOf(s.deck.doc)) {
+    const path = resolveFrom(s.deck.path ?? 'deck.forme', rel);
+    const old = s.includes[rel];
+    if (old && !force && old.path === path) {
+      next[rel] = old;
+      continue;
+    }
+    changed = true;
+    const source = path && fs ? await fs.readText(path) : null;
+    if (path && source !== null) {
+      next[rel] = { path, source, doc: parse(source) };
+      void rememberModified(path);
+    }
+  }
+  if (Object.keys(s.includes).some((k) => !(k in next))) changed = true;
+  if (changed && fs === projectFs) reevaluate({ includes: next });
+}
+
+function includesChanged(a: Document, b: Document): boolean {
+  return includePathsOf(a).join('\n') !== includePathsOf(b).join('\n');
 }
 
 /** (Re)load the theme referenced by the deck when its path changed. */
@@ -319,6 +365,7 @@ function commit(role: FileRole, text: string, origin: ChangeOrigin, opts: { grou
   reevaluate(partial);
   if (origin !== 'external' && origin !== 'load') pushToHost(role, file.source, text);
   if (role === 'deck' && themePathOf(next.doc) !== themePathOf(file.doc)) void syncTheme();
+  if (role === 'deck' && includesChanged(next.doc, file.doc)) void syncIncludes();
   if (role === 'theme') void loadFonts();
   updateTitle();
   scheduleAutosave();
@@ -382,7 +429,7 @@ async function pollExternalChanges(): Promise<void> {
   const s = get();
   const fs = projectFs;
   if (!fs || s.project?.kind !== 'folder' || document.visibilityState !== 'visible') return;
-  for (const path of [s.deck.path, s.theme?.path]) {
+  for (const path of [s.deck.path, s.theme?.path, ...Object.values(s.includes).map((i) => i.path)]) {
     if (!path) continue;
     const m = await fs.modified(path);
     if (m === null || m === seenModified.get(path)) continue;
@@ -437,7 +484,7 @@ export const actions = {
       theme: s.theme?.doc ?? null,
       scene: s.scene,
       mode: s.mode,
-      evaluate: (src: string) => evaluate(parse(src), { theme: s.theme?.doc ?? null, measurer: s.measurer, imageSizes: s.imageSizes, ...(math ? { math } : {}) }),
+      evaluate: (src: string) => evaluate(parse(src), { theme: s.theme?.doc ?? null, measurer: s.measurer, imageSizes: s.imageSizes, includes: includeDocs(s.includes), ...(math ? { math } : {}) }),
     };
     let res: EditResult = computeEdit(ctx, intent);
     if (res.error && intent.type === 'delete' && res.warnings.length) {
@@ -476,6 +523,7 @@ export const actions = {
       slideId: entry.slideId ?? s.slideId,
     });
     if (entry.file === 'deck' && themePathOf(next.doc) !== themePathOf(file.doc)) void syncTheme();
+    if (entry.file === 'deck' && includesChanged(next.doc, file.doc)) void syncIncludes();
     updateTitle();
   },
 
@@ -495,6 +543,7 @@ export const actions = {
       revision: s.revision + 1,
     });
     if (entry.file === 'deck' && themePathOf(next.doc) !== themePathOf(file.doc)) void syncTheme();
+    if (entry.file === 'deck' && includesChanged(next.doc, file.doc)) void syncIncludes();
     updateTitle();
   },
 
@@ -561,14 +610,41 @@ export const actions = {
       // storage unavailable (private mode): only the last-project shortcut is lost
     }
     const deck = makeFile('deck', project.info.deckPath, source);
-    set({ undoStack: [], redoStack: [], lastGood: {}, selection: [], mode: 'deck', theme: null, themeError: null, imageSizes: {}, project: project.info, projectsOpen: false });
+    const from = get().project?.id === project.info.id && get().includedFrom;
+    set({ undoStack: [], redoStack: [], lastGood: {}, selection: [], mode: 'deck', theme: null, themeError: null, imageSizes: {}, includes: {}, project: project.info, projectsOpen: false, ...(from ? {} : { includedFrom: [] }) });
     reevaluate({ deck, revision: get().revision + 1, lastOrigin: 'load', slideId: null });
     set({ slideId: get().scene.slides[0]?.id ?? null });
     void rememberModified(project.info.deckPath);
     await syncTheme(true);
+    await syncIncludes(true);
     if (!get().theme) void loadFonts();
     updateTitle();
     return true;
+  },
+
+  /** Open an included file as the deck to edit it („Zurück“ returns to the including deck). */
+  async openIncluded(rel: string): Promise<void> {
+    const s = get();
+    const inc = s.includes[rel];
+    if (!inc || !s.project || !projectFs) return;
+    if (host) {
+      host.post({ type: 'open', path: inc.path });
+      return;
+    }
+    const back = [...s.includedFrom, s.project.deckPath];
+    set({ includedFrom: back });
+    const ok = await actions.openProject({ info: { ...s.project, deckPath: inc.path }, fs: projectFs });
+    if (!ok) set({ includedFrom: s.includedFrom });
+  },
+
+  /** Back to the deck an included file was opened from. */
+  async backToIncluding(): Promise<void> {
+    const s = get();
+    const target = s.includedFrom[s.includedFrom.length - 1];
+    if (!target || !s.project || !projectFs) return;
+    set({ includedFrom: s.includedFrom.slice(0, -1) });
+    const ok = await actions.openProject({ info: { ...s.project, deckPath: target }, fs: projectFs });
+    if (!ok) set({ includedFrom: s.includedFrom });
   },
 
   async save(): Promise<boolean> {
@@ -633,6 +709,11 @@ export const actions = {
   /** External change of a watched file. */
   fileChanged(path: string, source: string): void {
     const s = get();
+    const rel = Object.keys(s.includes).find((k) => s.includes[k]?.path === path);
+    if (rel && s.includes[rel]?.source !== source) {
+      reevaluate({ includes: { ...s.includes, [rel]: { path, source, doc: parse(source) } } });
+      return;
+    }
     if (s.deck.path === path && s.deck.source !== source) {
       commit('deck', source, 'external');
       set({ deck: { ...get().deck, saved: source } });

@@ -703,6 +703,9 @@ distribute h|v @a @b @c [within=region|slide|@id] [gap=]
 stack h|v @a @b … [gap=] [align=start|center|end] [x= y=]
 grid @a @b … [cols=] [gap=] [within=] [x= y= w=] [rowh=]
 
+// Dateien (oberste Ebene)
+include "./kapitel.forme"   // Folien einer anderen Deck-Datei hier einfügen
+
 // Sonstiges (Folie)
 number zähler [@ziel] [caption="… {zähler} …"] [pos=below|above] [gap=] [style=]
 notes "…"

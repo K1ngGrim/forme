@@ -23,7 +23,7 @@ export const CREATE_VERBS = [
 export const MODIFY_VERBS = ['set', 'move', 'resize', 'round', 'style', 'stroke', 'shadow', 'opacity', 'hide', 'show', 'z'] as const;
 export const ARRANGE_VERBS = ['align', 'distribute', 'stack', 'grid'] as const;
 export const SLIDE_VERBS = ['fill', 'notes', 'background', 'number'] as const;
-export const DECK_VERBS = ['deck', 'theme', 'slide', 'section', 'counter'] as const;
+export const DECK_VERBS = ['deck', 'theme', 'include', 'slide', 'section', 'counter'] as const;
 export const THEME_VERBS = ['theme', 'size', 'token', 'color', 'font', 'style', 'master', 'layout', 'component', 'counter'] as const;
 export const LAYOUT_VERBS = ['slot', 'region', 'background', 'hide'] as const;
 

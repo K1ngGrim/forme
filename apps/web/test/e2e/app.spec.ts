@@ -279,4 +279,21 @@ test.describe('Forme im Browser', () => {
     await expect(page.locator('.slide-svg g[data-id="m"] [data-mml-node="mfrac"]')).toHaveCount(1);
     await expect(page.locator('.slide-svg g[data-id="c"] tspan[fill="#CF222E"]', { hasText: /^def$/ })).toHaveCount(1);
   });
+
+  test('include: slides from another file, opened there for editing', async ({ page }) => {
+    await openTemplate(page, 'guide');
+    await page.click('.cm-content');
+    await page.keyboard.press('Control+a');
+    await page.keyboard.insertText('deck "Mit Rezepten"\ntheme "./themes/mein-theme.forme"\n\nslide @eins layout=blank\ninclude "./rezepte.forme"\n');
+    await page.click('[data-testid="slide-text"]');
+    await expect(page.locator('[data-testid="include-bar"]')).toContainText('./rezepte.forme');
+    await expect(page.locator('.slide-svg g[data-id="t1"]')).toHaveCount(1);
+    // gestures on included slides are refused, the file opens on request
+    await page.click('[data-testid="open-include"]');
+    await expect.poll(() => code(page)).toContain('deck "Rezepte"');
+    await expect(page.locator('[data-testid="back-include"]')).toBeVisible();
+    await page.click('[data-testid="back-include"]');
+    await expect.poll(() => code(page)).toContain('deck "Mit Rezepten"');
+    await expect(page.locator('[data-testid="include-bar"]')).toHaveCount(0);
+  });
 });

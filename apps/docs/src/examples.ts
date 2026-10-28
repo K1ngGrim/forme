@@ -51,6 +51,8 @@ export function prepareExample(code: string): PreparedExample | null {
   // placeholders like `<region>` or `…` in the code itself (not in strings or comments)
   const bare = code.replace(/"(?:[^"\\\n]|\\.)*"/g, '""').replace(/\/\/.*$/gm, '');
   if (/<[a-z]/.test(bare) || /…|\.\.\./.test(bare)) return null;
+  // included files are not available to the examples
+  if (/^\s*include\b/m.test(code)) return null;
   if (/^deck\b/m.test(code)) return { source: code, wrapped: false };
   if (/^slide\b/m.test(code)) return { source: `deck "Beispiel"\n\n${code}`, wrapped: false };
   const body = code

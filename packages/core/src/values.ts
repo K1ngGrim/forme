@@ -27,6 +27,8 @@ export interface EvalEnv {
   /** Origin of the enclosing group/component: references inside containers are relative. */
   origin: { x: number; y: number };
   params: Record<string, PropValue> | null;
+  /** Folder of an included file relative to the deck: its image paths are rebased onto the deck. */
+  assetDir?: string;
   /** Inner size of the enclosing box (null on an axis without fixed size); null outside boxes. */
   box?: { w: number | null; h: number | null } | null;
 }
@@ -298,4 +300,15 @@ export function interpolationIds(src: string, e: Expr, diags: Diagnostic[]): str
   const out: string[] = [];
   for (const p of parseInterpolation(src, e.span, diags)) if (p.expr) referencedIds(p.expr, out);
   return out;
+}
+
+/** An image path written in an included file, made relative to the deck (pure string logic). */
+export function assetPath(env: EvalEnv, p: string): string {
+  if (env.file !== 'include' || !env.assetDir || /^([a-z]+:|\/)/i.test(p)) return p;
+  const out: string[] = [];
+  for (const part of `${env.assetDir}/${p}`.split('/')) {
+    if (part === '..' && out.length && out[out.length - 1] !== '..') out.pop();
+    else if (part && part !== '.') out.push(part);
+  }
+  return out.join('/');
 }

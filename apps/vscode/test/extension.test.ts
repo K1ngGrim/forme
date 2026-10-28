@@ -166,6 +166,29 @@ describe('extension', () => {
     typeText(doc, good);
   });
 
+  it('included files: diagnostics in their own file, live text of open editors', async () => {
+    const { Decks } = await import('../src/decks.js');
+    const decks = new Decks();
+    mkdirSync(join(dir, 'kapitel'), { recursive: true });
+    const inc = join(dir, 'kapitel', 'b.forme');
+    writeFileSync(inc, 'slide @b {\n  rect @r like=@nope\n}\n');
+    const main = join(dir, 'haupt.forme');
+    writeFileSync(main, 'deck "Haupt"\nslide @a\ninclude "./kapitel/b.forme"\n');
+    let loaded = await decks.load(main);
+    expect(loaded.scene.slides.map((x) => x.id)).toEqual(['a', 'b']);
+    expect(state.diagnostics.get(inc)?.[0]?.message).toContain('@nope');
+    expect(state.diagnostics.get(inc)?.[0]?.range.start.line).toBe(1);
+    expect(state.diagnostics.get(main)).toEqual([]);
+    // editing the included file (unsaved) updates the including deck
+    const doc = openDoc(inc);
+    typeText(doc, 'slide @b {\n  rect @r\n}\nslide @c\n');
+    expect(await decks.decksFor(doc as never)).toEqual([inc, main]);
+    loaded = await decks.load(main);
+    expect(loaded.scene.slides.map((x) => x.id)).toEqual(['a', 'b', 'c']);
+    expect(state.diagnostics.get(inc)).toEqual([]);
+    decks.dispose();
+  });
+
   it('converts a file in the old indentation syntax (forme.migrate)', async () => {
     const path = join(dir, 'alt.forme');
     writeFileSync(path, 'deck "Alt"\n\nslide @a\n  rect @r // Kasten\n');

@@ -33,6 +33,8 @@ export class Decks implements vscode.Disposable {
   private readonly caches = new Map<string, LoadCache>();
   /** theme path -> deck paths that use it */
   private readonly themeUsers = new Map<string, Set<string>>();
+  /** included file -> deck paths that include it */
+  private readonly includeUsers = new Map<string, Set<string>>();
   private readonly loaded = new Map<string, LoadedDeck>();
   readonly diagnostics = vscode.languages.createDiagnosticCollection(LANGUAGE_ID);
   private readonly onLoadEmitter = new vscode.EventEmitter<LoadedDeck>();
@@ -57,6 +59,8 @@ export class Decks implements vscode.Disposable {
     const themeSource = themeAbs ? liveSource(themeAbs) : undefined;
     const loaded = await loadDeck(deckPath, {
       cache,
+      // included files: the text of open editors as well
+      includeSource: liveSource,
       ...(deckSource !== undefined ? { deckSource } : {}),
       ...(themeSource !== undefined ? { themeSource } : {}),
     });
@@ -65,6 +69,12 @@ export class Decks implements vscode.Disposable {
       const users = this.themeUsers.get(loaded.themePath) ?? new Set();
       users.add(deckPath);
       this.themeUsers.set(loaded.themePath, users);
+    }
+    for (const users of this.includeUsers.values()) users.delete(deckPath);
+    for (const inc of loaded.includes) {
+      const users = this.includeUsers.get(inc.abs) ?? new Set();
+      users.add(deckPath);
+      this.includeUsers.set(inc.abs, users);
     }
     this.loaded.set(deckPath, loaded);
     this.publish(loaded);
@@ -75,7 +85,8 @@ export class Decks implements vscode.Disposable {
   /** Decks affected by a document: the deck itself, or every known deck using a theme. */
   async decksFor(doc: vscode.TextDocument): Promise<string[]> {
     const path = doc.uri.fsPath;
-    if (!isThemeSource(doc.getText())) return [path];
+    // an included file is a deck of its own and part of the decks including it
+    if (!isThemeSource(doc.getText())) return [path, ...(this.includeUsers.get(path) ?? [])];
     const known = this.themeUsers.get(path);
     if (known?.size) return [...known];
     // not seen yet: look for decks in the workspace that reference this theme
@@ -120,13 +131,20 @@ export class Decks implements vscode.Disposable {
     const themeDoc = loaded.themePath ? (openDocument(loaded.themePath) ?? (loaded.theme ? positions(loaded.theme) : null)) : null;
     const forDeck: vscode.Diagnostic[] = [];
     const forTheme: vscode.Diagnostic[] = [];
+    const forIncludes = new Map(loaded.includes.map((i) => [i.path, [] as vscode.Diagnostic[]]));
     for (const d of loaded.scene.diagnostics) {
       if (d.file === 'theme') {
         if (themeDoc) forTheme.push(toVsDiagnostic(d, themeDoc));
+      } else if (d.file === 'include') {
+        const inc = loaded.includes.find((i) => i.path === d.path);
+        const doc = inc ? (openDocument(inc.abs) ?? (inc.doc ? positions(inc.doc) : null)) : null;
+        if (doc) forIncludes.get(d.path ?? '')?.push(toVsDiagnostic(d, doc));
       } else forDeck.push(toVsDiagnostic(d, deckDoc));
     }
     this.diagnostics.set(deckUri, forDeck);
     if (loaded.themePath) this.diagnostics.set(vscode.Uri.file(loaded.themePath), dedupe(forTheme));
+    // an included file that is also loaded on its own reports its diagnostics itself
+    for (const inc of loaded.includes) if (inc.doc && !this.loaded.has(inc.abs)) this.diagnostics.set(vscode.Uri.file(inc.abs), dedupe(forIncludes.get(inc.path) ?? []));
   }
 }
 

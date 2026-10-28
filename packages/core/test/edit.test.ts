@@ -177,6 +177,19 @@ describe('edit engine', () => {
     expect(run(src, { type: 'text', slide: 'a', id: 'f', text: '\\frac{a}{b}' })).toBe('slide @a {\n  math @f """\\frac{a}{b}"""\n}\n');
   });
 
+  it('included slides are edited in their own file; new slides go after the include', () => {
+    const deck = parse('slide @a\ninclude "b.forme"\nslide @c\n');
+    const inc = parse('slide @b {\n  rect @r\n}\n');
+    const scene = evaluate(deck, { includes: { 'b.forme': inc } });
+    const ctx = { deck, theme: null, scene, mode: 'deck' as const };
+    expect(computeEdit(ctx, { type: 'move', slide: 'b', ids: ['r'], dx: 5, dy: 0 }).error).toBe('Die Folie stammt aus „b.forme“ und wird dort bearbeitet');
+    expect(computeEdit(ctx, { type: 'deleteSlide', slide: 'b' }).error).toContain('b.forme');
+    const add = computeEdit(ctx, { type: 'addSlide', after: 'b' });
+    expect(applyEdits(deck.source, add.edits).text).toBe('slide @a\ninclude "b.forme"\n\nslide @s1 layout=content {\n  fill @title "Titel"\n}\nslide @c\n');
+    const move = computeEdit(ctx, { type: 'moveSlide', slide: 'c', to: 0 });
+    expect(applyEdits(deck.source, move.edits).text).toBe('slide @c\n\nslide @a\ninclude "b.forme"\n');
+  });
+
   it('adds, moves and deletes slides', () => {
     const src = 'deck "x"\n\nslide @a {\n  rect @r\n}\n\nslide @b\n';
     expect(run(src, { type: 'addSlide', after: 'a', layout: 'blank' })).toBe('deck "x"\n\nslide @a {\n  rect @r\n}\n\nslide @s1 layout=blank\n\nslide @b\n');

@@ -116,11 +116,14 @@ slide @intro layout=title [master=default] [hidden=true] {
   fill @title "Quartalsbericht Q3"
 }
   …
+include "./kapitel/backup.forme"     // Folien einer anderen Datei an dieser Stelle
 ```
 
-Auf oberster Ebene eines Decks sind nur `deck`, `theme`, `section`, `counter` und `slide`
-erlaubt. Definitionen (`token`, `color`, `font`, `style`, `master`, `layout`, `component`,
-`size`) gehören ausschließlich in eine Theme-Datei.
+Auf oberster Ebene eines Decks sind nur `deck`, `theme`, `include`, `section`, `counter` und
+`slide` erlaubt. Eingebundene Dateien ([`include`](reference/folien/include.md)) sind normale
+Decks; es gilt das Theme des einbindenden Decks, Bildpfade sind relativ zur eingebundenen Datei.
+Definitionen (`token`, `color`, `font`, `style`, `master`, `layout`, `component`, `size`)
+gehören ausschließlich in eine Theme-Datei.
 
 ### Theme
 
@@ -175,7 +178,7 @@ Schlüssel aus `packages/core/src/vocab.ts` dort beschrieben ist).
 | [Erzeugen](reference/erzeugen.md) | `rect` `ellipse` `line` `arrow` `polygon` `path` `text` `code` `math` `list` `item` `image` `table` `group` `use` |
 | [Layout](reference/layout.md) | `row` `column` `box` `align` `distribute` `stack` `grid` |
 | [Verändern](reference/veraendern.md) | `set` `move` `resize` `round` `style` `stroke` `shadow` `opacity` `hide` `show` `z` |
-| [Folien und Deck](reference/folien.md) | `deck` `theme` `slide` `section` `fill` `notes` `background` `number` `counter` |
+| [Folien und Deck](reference/folien.md) | `deck` `theme` `include` `slide` `section` `fill` `notes` `background` `number` `counter` |
 | [Theme](reference/theme.md) | `theme` `size` `token` `color` `font` `style` `master` `layout` `slot` `region` `component` |
 
 Parameter, die viele Operationen teilen (Position, Füllung, Kontur, Schatten, Text, `like=`,

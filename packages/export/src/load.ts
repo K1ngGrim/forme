@@ -2,7 +2,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { dirname, isAbsolute, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { DeckScene, Document, EvalCache, ImageSize, TextMeasurer } from '@forme/core';
-import { collectImagePaths, createEvalCache, evaluate, imageSize, parse, themePathOf } from '@forme/core';
+import { collectImagePaths, createEvalCache, evaluate, imageSize, includePathsOf, parse, themePathOf } from '@forme/core';
 import type { LoadedFont } from '@forme/render';
 import { createFontMeasurer } from '@forme/render';
 import { createMathRenderer } from '@forme/render/math';
@@ -19,8 +19,10 @@ export interface LoadedDeck {
   resolvePath: (p: string) => string;
   /** Like resolvePath, but theme font files resolve against the theme folder. */
   resolveFile: (p: string) => string;
-  /** Every file the scene was built from (deck, theme, fonts, images), for watching. */
+  /** Every file the scene was built from (deck, theme, includes, fonts, images), for watching. */
   dependencies: string[];
+  /** Files brought in with `include` (path as written, absolute path, parsed source; null if missing). */
+  includes: { path: string; abs: string; doc: Document | null }[];
   /** Resolve a path as written in the deck to a file:// URL. */
   resolveUrl: (p: string) => string;
 }
@@ -55,6 +57,8 @@ export interface LoadOverrides {
   deckSource?: string;
   /** In-memory theme source. */
   themeSource?: string | null;
+  /** In-memory source of an included file by absolute path (undefined: read from disk). */
+  includeSource?: (absPath: string) => string | undefined;
   /** Reuse fonts, image sizes and slide evaluations from earlier loads. */
   cache?: LoadCache;
 }
@@ -75,11 +79,20 @@ export async function loadDeck(deckPath: string, over: LoadOverrides = {}): Prom
   const themeDir = themeAbs ? dirname(themeAbs) : baseDir;
   const resolvePath = (p: string): string => (isAbsolute(p) ? p : resolve(baseDir, p));
   const cache = over.cache;
+  const includes: LoadedDeck['includes'] = [];
+  const includeDocs: Record<string, Document> = {};
+  for (const p of includePathsOf(deck)) {
+    const incAbs = resolvePath(p);
+    const src = over.includeSource?.(incAbs) ?? (await readFile(incAbs, 'utf8').catch(() => null));
+    const doc = src === null ? null : parse(src);
+    if (doc) includeDocs[p] = doc;
+    includes.push({ path: p, abs: incAbs, doc });
+  }
   const evaluateWith = (extra: { measurer?: TextMeasurer; imageSizes?: Record<string, ImageSize> }): DeckScene =>
-    evaluate(deck, { theme, math, ...extra, ...(cache ? { cache: cache.evalCache } : {}) });
+    evaluate(deck, { theme, math, includes: includeDocs, ...extra, ...(cache ? { cache: cache.evalCache } : {}) });
   // first pass: discover fonts and images
-  let scene = evaluate(deck, { theme, math });
-  const dependencies = [abs, ...(themeAbs ? [themeAbs] : [])];
+  let scene = evaluate(deck, { theme, math, includes: includeDocs });
+  const dependencies = [abs, ...(themeAbs ? [themeAbs] : []), ...includes.map((i) => i.abs)];
   const fonts: LoadedFont[] = [];
   const fontKey: string[] = [];
   for (const f of scene.theme.fonts) {
@@ -117,5 +130,5 @@ export async function loadDeck(deckPath: string, over: LoadOverrides = {}): Prom
     return isFont && !isAbsolute(p) ? resolve(themeDir, p) : resolvePath(p);
   };
   const resolveUrl = (p: string): string => (/^(https?|data|file):/.test(p) ? p : pathToFileURL(resolveFile(p)).href);
-  return { deckPath: abs, baseDir, deck, theme, themePath: themeAbs, scene, measurer, resolvePath, resolveFile, resolveUrl, dependencies };
+  return { deckPath: abs, baseDir, deck, theme, themePath: themeAbs, scene, measurer, resolvePath, resolveFile, resolveUrl, dependencies, includes };
 }

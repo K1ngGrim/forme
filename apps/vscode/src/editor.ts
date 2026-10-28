@@ -241,6 +241,13 @@ export class EditorSession implements vscode.Disposable {
       case 'save':
         await this.saveWatched();
         return;
+      case 'open': {
+        // an included file: in its own Forme editor
+        const abs = resolve(this.root, m.path);
+        if (relative(this.root, abs).startsWith('..')) return;
+        await vscode.commands.executeCommand('vscode.openWith', vscode.Uri.file(abs), EDITOR_VIEW_TYPE);
+        return;
+      }
     }
   }
 

@@ -220,6 +220,10 @@ Master/Layout per `set @id ...` überschreiben oder per `hide @id` ausblenden.
   Hintergrund und `pad`, Kinder frei positioniert, wie ein div)
 - **Nummerierung:** `counter`, `number`, Interpolation `{slide.n}`, `{deck.total}`,
   `{section}`, `{figure}`, eigene Zähler; `section "Name"` auf Folienebene
+- **Dateien:** `include "./kapitel.forme"` bindet die Folien einer anderen Deck-Datei ein (Theme
+  des Haupt-Decks; die Datei wird von den Aufrufern geladen und als `includes` an `evaluate`
+  übergeben, Diagnosen mit `file: 'include'` und `path`; eingebundene Folien sind im Deck
+  schreibgeschützt und werden in ihrer Datei bearbeitet)
 - **Definitionen (nur Theme):** `token`, `color`, `font`, `style`, `master`, `layout`,
   `region`, `component`
 - **Sonstiges:** `notes` (Sprechernotizen, werden nach PPTX exportiert)

@@ -202,4 +202,5 @@ circle.ov-handle { cursor: move; }
 .tb-help { justify-content: center; font-weight: 700; text-decoration: none; }
 
 .migration-bar { display: flex; align-items: center; gap: 12px; padding: 6px 12px; background: #fef3c7; border-bottom: 1px solid #fcd34d; color: #78350f; font-size: 12px; }
-.migration-bar code { font-family: var(--mono); }
+.migration-bar code, .include-bar code { font-family: var(--mono); }
+.include-bar { display: flex; align-items: center; gap: 12px; padding: 6px 12px; background: var(--accent-soft); border-bottom: 1px solid #bfdbfe; color: #1e3a8a; font-size: 12px; }

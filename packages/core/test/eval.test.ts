@@ -216,3 +216,32 @@ describe('math', () => {
     expect(node(s, 0, 'f').box.w).toBeGreaterThan(0);
   });
 });
+
+describe('include', () => {
+  const backup = 'deck "Backup"\ntheme "../theme.forme"\n\nsection "Backup"\nslide @b1 {\n  rect @r x=10 fill=$primary\n  image @i "../img/a.png"\n  image @j "bild.png"\n}\nslide @b2 {\n  text @t "Abschnitt {section}, Folie {slide.n} von {deck.total}"\n}\n';
+  const deck = 'deck "Haupt"\n\nslide @a {\n  rect @x\n}\n\ninclude "./kapitel/backup.forme"\n\nslide @z\n';
+
+  it('puts the slides of another file at the position of include, with the deck theme', () => {
+    const s = evaluate(parse(deck), { includes: { './kapitel/backup.forme': parse(backup) } });
+    expect(s.diagnostics).toEqual([]);
+    expect(s.slides.map((x) => x.id)).toEqual(['a', 'b1', 'b2', 'z']);
+    expect(node(s, 1, 'r').props.fill).toBe('#2563EB');
+    expect(node(s, 2, 't').props.text).toBe('Abschnitt Backup, Folie 3 von 4');
+    expect(s.slides[1]!.op).toMatchObject({ file: 'include', path: './kapitel/backup.forme' });
+    expect(node(s, 1, 'r').origin).toMatchObject({ file: 'include', path: './kapitel/backup.forme' });
+    // image paths of the included file are relative to it, rebased onto the deck
+    expect(node(s, 1, 'i').props.src).toBe('img/a.png');
+    expect(node(s, 1, 'j').props.src).toBe('kapitel/bild.png');
+  });
+
+  it('reports missing files and errors in the included file with its path', () => {
+    const missing = evaluate(parse(deck));
+    expect(missing.diagnostics.map((d) => d.message)).toEqual(['Datei „./kapitel/backup.forme“ nicht gefunden']);
+    const broken = evaluate(parse(deck), { includes: { './kapitel/backup.forme': parse('slide @b1 {\n  rect @r like=@nope\n}\ninclude "x.forme"\n') } });
+    expect(broken.diagnostics.map((d) => [d.file, d.path, d.message])).toEqual([
+      ['include', './kapitel/backup.forme', '„include“ in einer eingebundenen Datei wird nicht unterstützt'],
+      ['include', './kapitel/backup.forme', 'Unbekanntes Objekt „@nope“'],
+    ]);
+    expect(broken.slides[1]!.hasErrors).toBe(true);
+  });
+});

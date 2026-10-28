@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -76,6 +76,18 @@ describe('commands', () => {
     expect(await run(['migrate', 'deck.forme'], io())).toBe(0);
     expect(await readFile(join(dir, 'deck.forme'), 'utf8')).toBe('deck "x"\n\nslide @a {\n  rect @r // Kasten\n  group @g {\n    text @t "x"\n  }\n}\n');
     expect(await run(['migrate', '.', '--check'], io())).toBe(0);
+  });
+
+  it('includes slides from other files and reports their errors with the file name', async () => {
+    await mkdir(join(dir, 'kapitel'), { recursive: true });
+    await writeFile(join(dir, 'deck.forme'), 'deck "x"\nslide @a\ninclude "./kapitel/b.forme"\n');
+    await writeFile(join(dir, 'kapitel', 'b.forme'), 'deck "b"\nslide @b {\n  rect @r like=@nope\n}\n');
+    expect(await run(['check', 'deck.forme'], io())).toBe(1);
+    expect(lines.join('\n')).toContain(join('kapitel', 'b.forme') + ':3:16');
+    await writeFile(join(dir, 'kapitel', 'b.forme'), 'deck "b"\nslide @b {\n  rect @r\n}\n');
+    lines = [];
+    expect(await run(['check', 'deck.forme'], io())).toBe(0);
+    expect(lines.join('\n')).toContain('2 Folien');
   });
 
   it('unknown command and format', async () => {

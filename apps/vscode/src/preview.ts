@@ -164,7 +164,13 @@ export class Preview implements vscode.Disposable {
       res = computeEdit(ctx, { ...intent, force: true });
     }
     if (res.error) {
-      void vscode.window.showWarningMessage(res.error);
+      const inc = slide?.op.file === 'include' ? loaded.includes.find((i) => i.path === slide.op.path) : undefined;
+      if (inc && this.mode(loaded) === 'deck') {
+        // slides of included files are edited there: offer to open the file
+        void vscode.window.showInformationMessage(res.error, 'Datei öffnen').then((a) => {
+          if (a) void vscode.window.showTextDocument(vscode.Uri.file(inc.abs));
+        });
+      } else void vscode.window.showWarningMessage(res.error);
       return false;
     }
     if (!res.edits.length) return false;
