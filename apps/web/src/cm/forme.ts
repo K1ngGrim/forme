@@ -1,14 +1,14 @@
-import { autocompletion } from '@codemirror/autocomplete';
+import { autocompletion, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 import type { CompletionContext, CompletionResult } from '@codemirror/autocomplete';
 import { defaultKeymap, indentWithTab } from '@codemirror/commands';
-import { indentUnit } from '@codemirror/language';
+import { indentOnInput, indentService, indentUnit } from '@codemirror/language';
 import { lintGutter } from '@codemirror/lint';
 import { highlightSelectionMatches, search, searchKeymap } from '@codemirror/search';
 import { EditorState as CMState, RangeSetBuilder, StateEffect, StateField } from '@codemirror/state';
 import type { Extension } from '@codemirror/state';
 import { Decoration, drawSelection, EditorView, highlightActiveLine, highlightActiveLineGutter, keymap, lineNumbers, ViewPlugin, WidgetType } from '@codemirror/view';
 import type { DecorationSet, ViewUpdate } from '@codemirror/view';
-import { classifyTokens, lex } from '@forme/core';
+import { classifySource, isRawString, lex } from '@forme/core';
 import type { Token } from '@forme/core';
 import { completeLine } from '@forme/core';
 import { actions, displaySlide, useEditor } from '../store.js';
@@ -45,34 +45,28 @@ const MARKS: Record<string, Decoration> = {
 
 function buildHighlights(view: EditorView): DecorationSet {
   const b = new RangeSetBuilder<Decoration>();
-  const doc = view.state.doc;
-  for (const { from, to } of view.visibleRanges) {
-    let pos = from;
-    while (pos <= to) {
-      const line = doc.lineAt(pos);
-      const toks = lex(line.text);
-      for (const [t, kind] of classifyTokens(toks)) {
-        const start = line.from + t.start;
-        const end = line.from + t.end;
-        if (kind === 'color') b.add(start, start, Decoration.widget({ widget: new SwatchWidget(t.text), side: -1 }));
-        if (kind === 'string' && t.text.includes('{')) {
-          // highlight {interpolations} inside strings
-          let last = start;
-          const re = /\{[^}]*\}/g;
-          let m: RegExpExecArray | null;
-          while ((m = re.exec(t.text))) {
-            const s = start + m.index;
-            if (s > last) b.add(last, s, MARKS.string as Decoration);
-            b.add(s, s + m[0].length, MARKS.interp as Decoration);
-            last = s + m[0].length;
-          }
-          if (last < end) b.add(last, end, MARKS.string as Decoration);
-          continue;
-        }
-        b.add(start, end, MARKS[kind] as Decoration);
+  // the whole file at once: raw strings may span several lines (files are small)
+  const ranges = view.visibleRanges;
+  for (const [t, kind] of classifySource(lex(view.state.doc.toString()))) {
+    const start = t.start;
+    const end = t.end;
+    if (!ranges.some((r) => end >= r.from && start <= r.to)) continue;
+    if (kind === 'color') b.add(start, start, Decoration.widget({ widget: new SwatchWidget(t.text), side: -1 }));
+    if (kind === 'string' && t.text.includes('{') && !isRawString(t.text)) {
+      // highlight {interpolations} inside strings
+      let last = start;
+      const re = /\{[^}]*\}/g;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(t.text))) {
+        const s = start + m.index;
+        if (s > last) b.add(last, s, MARKS.string as Decoration);
+        b.add(s, s + m[0].length, MARKS.interp as Decoration);
+        last = s + m[0].length;
       }
-      pos = line.to + 1;
+      if (last < end) b.add(last, end, MARKS.string as Decoration);
+      continue;
     }
+    b.add(start, end, MARKS[kind] as Decoration);
   }
   return b.finish();
 }
@@ -142,6 +136,25 @@ function completionSource(ctx: CompletionContext): CompletionResult | null {
   };
 }
 
+/** Indentation for a new line: one level deeper after `{`, one level less for `}`. */
+const blockIndent = indentService.of((ctx, pos) => {
+  const cur = ctx.lineAt(pos, 1);
+  let prev: string | null = null;
+  for (let p = cur.from; p > 0; ) {
+    const l = ctx.lineAt(p - 1, -1);
+    if (l.text.trim()) {
+      prev = l.text;
+      break;
+    }
+    p = l.from;
+  }
+  if (prev === null) return 0;
+  let indent = (/^\s*/.exec(prev) as RegExpExecArray)[0].length;
+  if (/\{\s*(\/\/.*)?$/.test(prev)) indent += ctx.unit;
+  if (/^\s*\}/.test(cur.text.slice(pos - cur.from))) indent -= ctx.unit;
+  return Math.max(0, indent);
+});
+
 /** All extensions of the Forme code view. CodeMirror's own history is deliberately not used. */
 export function formeExtensions(): Extension[] {
   return [
@@ -155,6 +168,10 @@ export function formeExtensions(): Extension[] {
     highlighter,
     lineMarks,
     indentUnit.of('  '),
+    blockIndent,
+    indentOnInput(),
+    CMState.languageData.of(() => [{ indentOnInput: /^\s*\}$/, closeBrackets: { brackets: ['(', '{', '"'] } }]),
+    closeBrackets(),
     CMState.tabSize.of(2),
     autocompletion({ override: [completionSource], icons: false }),
     keymap.of([
@@ -162,6 +179,7 @@ export function formeExtensions(): Extension[] {
       { key: 'Mod-Shift-z', run: () => (actions.redo(), true), preventDefault: true },
       { key: 'Mod-y', run: () => (actions.redo(), true), preventDefault: true },
       { key: 'Mod-s', run: () => (void actions.save(), true), preventDefault: true },
+      ...closeBracketsKeymap,
       ...searchKeymap,
       ...defaultKeymap,
       indentWithTab,

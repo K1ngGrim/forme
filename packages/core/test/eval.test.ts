@@ -45,7 +45,7 @@ describe('evaluator', () => {
   });
 
   it('uses the built-in theme by default', () => {
-    const s = evalSrc('deck "x"\nslide @a layout=title\n  fill @title "Hallo"\n');
+    const s = evalSrc('deck "x"\nslide @a layout=title {\n  fill @title "Hallo"\n}\n');
     expect(s.diagnostics.filter((d) => d.severity === 'error')).toEqual([]);
     const t = node(s, 0, 'title');
     expect(t.placeholder).toBe(false);
@@ -55,12 +55,12 @@ describe('evaluator', () => {
   });
 
   it('enforces sequential semantics', () => {
-    const s = evalSrc('slide @a\n  rect @r x=@q.right\n  rect @q\n');
+    const s = evalSrc('slide @a {\n  rect @r x=@q.right\n  rect @q\n}\n');
     expect(s.diagnostics.some((d) => d.message.includes('vor ihrer Verwendung'))).toBe(true);
   });
 
   it('computes expressions, percentages and tokens', () => {
-    const s = evalSrc('slide @a\n  rect @r x=10% y=(slide.h / 2) w=(slide.w - 2*$margin) h=50%\n  rect @q x=@r.right+20 y=@r.center\n');
+    const s = evalSrc('slide @a {\n  rect @r x=10% y=(slide.h / 2) w=(slide.w - 2*$margin) h=50%\n  rect @q x=@r.right+20 y=@r.center\n}\n');
     const r = node(s, 0, 'r');
     expect(r.box).toEqual({ x: 192, y: 540, w: 1680, h: 540 });
     const q = node(s, 0, 'q');
@@ -69,7 +69,7 @@ describe('evaluator', () => {
   });
 
   it('wraps text with fixed width', () => {
-    const s = evalSrc('slide @a\n  text @t "Ein ziemlich langer Satz der umbrechen muss" w=300 size=32\n');
+    const s = evalSrc('slide @a {\n  text @t "Ein ziemlich langer Satz der umbrechen muss" w=300 size=32\n}\n');
     const t = node(s, 0, 't');
     expect(t.text!.lines.length).toBeGreaterThan(1);
     expect(t.box.w).toBe(300);
@@ -77,38 +77,38 @@ describe('evaluator', () => {
   });
 
   it('handles move with relative provenance', () => {
-    const s = evalSrc('slide @a\n  rect @r x=100\n  move @r 50 0\n');
+    const s = evalSrc('slide @a {\n  rect @r x=100\n  move @r 50 0\n}\n');
     const r = node(s, 0, 'r');
     expect(r.box.x).toBe(150);
     expect(r.prov.x!.relative).toBe(true);
   });
 
   it('applies stack and grid', () => {
-    const s = evalSrc('slide @a\n  rect @a1 x=100 y=100 h=50\n  rect @a2 h=80\n  rect @a3 h=20\n  stack v @a1 @a2 @a3 gap=10\n');
+    const s = evalSrc('slide @a {\n  rect @a1 x=100 y=100 h=50\n  rect @a2 h=80\n  rect @a3 h=20\n  stack v @a1 @a2 @a3 gap=10\n}\n');
     expect(node(s, 0, 'a2').box.y).toBe(160);
     expect(node(s, 0, 'a3').box.y).toBe(250);
-    const g = evalSrc('slide @a\n  rect @a1\n  rect @a2\n  rect @a3\n  grid @a1 @a2 @a3 cols=2 x=0 y=0 w=1000 gap=20\n');
+    const g = evalSrc('slide @a {\n  rect @a1\n  rect @a2\n  rect @a3\n  grid @a1 @a2 @a3 cols=2 x=0 y=0 w=1000 gap=20\n}\n');
     expect(node(g, 0, 'a2').box).toEqual({ x: 510, y: 0, w: 490, h: 120 });
     expect(node(g, 0, 'a3').box.y).toBe(140);
   });
 
   it('groups use relative coordinates', () => {
-    const s = evalSrc('slide @a\n  group @g x=100 y=100\n    rect @r x=10 y=10 w=50 h=50\n');
+    const s = evalSrc('slide @a {\n  group @g x=100 y=100 {\n    rect @r x=10 y=10 w=50 h=50\n  }\n}\n');
     expect(node(s, 0, 'r').box).toEqual({ x: 110, y: 110, w: 50, h: 50 });
     expect(node(s, 0, 'g').box).toEqual({ x: 110, y: 110, w: 50, h: 50 });
   });
 
   it('references inside groups and components are relative to the container', () => {
-    const s = evalSrc('slide @a\n  group @g x=100 y=100\n    rect @r x=10 y=10 w=50 h=50\n    rect @q x=@r.right y=@r.bottom w=10 h=10\n');
+    const s = evalSrc('slide @a {\n  group @g x=100 y=100 {\n    rect @r x=10 y=10 w=50 h=50\n    rect @q x=@r.right y=@r.bottom w=10 h=10\n  }\n}\n');
     expect(node(s, 0, 'q').box).toEqual({ x: 160, y: 160, w: 10, h: 10 });
-    const theme = 'theme "T"\ncomponent card w=200 h=100\n  text @a "A" x=10 y=10 size=20 line=1\n  text @b "B" x=10 y=@a.bottom+5 size=20 line=1\n';
-    const c = evalSrc('slide @a\n  use @c card x=500 y=300\n', theme);
+    const theme = 'theme "T"\ncomponent card w=200 h=100 {\n  text @a "A" x=10 y=10 size=20 line=1\n  text @b "B" x=10 y=@a.bottom+5 size=20 line=1\n}\n';
+    const c = evalSrc('slide @a {\n  use @c card x=500 y=300\n}\n', theme);
     expect(node(c, 0, 'c').children[1]!.box.y).toBe(300 + 10 + 20 + 5);
   });
 
   it('copies component instances with like=', () => {
-    const theme = 'theme "T"\ncomponent card w=200 h=100 title="x"\n  text @t param.title\n';
-    const s = evalSrc('slide @a\n  use @c1 card x=10 y=20 w=300 title="Eins"\n  use @c2 card like=@c1 title="Zwei"\n', theme);
+    const theme = 'theme "T"\ncomponent card w=200 h=100 title="x" {\n  text @t param.title\n}\n';
+    const s = evalSrc('slide @a {\n  use @c1 card x=10 y=20 w=300 title="Eins"\n  use @c2 card like=@c1 title="Zwei"\n}\n', theme);
     const c2 = node(s, 0, 'c2');
     expect(c2.box).toEqual({ x: 10, y: 20, w: 300, h: 100 });
     expect(c2.children[0]!.props.text).toBe('Zwei');
@@ -121,12 +121,12 @@ describe('evaluator', () => {
   });
 
   it('counts sections', () => {
-    const s = evalSrc('section "A"\nslide @a\n  text @t "Teil {section.n} von {deck.sections}"\nsection "B"\nslide @b\n');
+    const s = evalSrc('section "A"\nslide @a {\n  text @t "Teil {section.n} von {deck.sections}"\n}\nsection "B"\nslide @b\n');
     expect(node(s, 0, 't').props.text).toBe('Teil 1 von 2');
   });
 
   it('numbers hidden slides correctly', () => {
-    const s = evalSrc('slide @a\nslide @b hidden=true\nslide @c\n  text @t "{slide.n}/{deck.total}"\n');
+    const s = evalSrc('slide @a\nslide @b hidden=true\nslide @c {\n  text @t "{slide.n}/{deck.total}"\n}\n');
     expect(node(s, 2, 't').props.text).toBe('2/2');
   });
 });

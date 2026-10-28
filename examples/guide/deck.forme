@@ -1,62 +1,75 @@
 deck "Projektbericht"
 theme "./themes/mein-theme.forme"
 
-slide @titel layout=title
+slide @titel layout=title {
   fill @title "Projektbericht 2026"
   fill @subtitle "Stand, Zahlen und nächste Schritte"
+}
 
 section "Überblick"
 
-slide @agenda layout=content
+slide @agenda layout=content {
   fill @title "Agenda"
-  list @punkte x=content.x y=content.y w=1100 style=body bullet=number
+  list @punkte x=content.x y=content.y w=1100 style=body bullet=number {
     item "Ausgangslage"
     item "Ergebnisse"
     item "Kennzahlen" level=2
     item "Nächste Schritte"
+  }
   notes "Kurz halten, maximal eine Minute."
+}
 
-slide @drei layout=columns
+slide @drei layout=columns {
   fill @title "Drei Erkenntnisse"
   use @c1 card x=col1.x y=col1.y w=col1.w h=400 title="Schneller" body="Durchlaufzeit **−30 %** seit Q1."
   use @c2 card like=@c1 title="Günstiger" body="Kosten je Vorgang deutlich gesenkt."
   use @c3 card like=@c1 title="Zufriedener" body="NPS von 31 auf *48* gestiegen."
   distribute h @c1 @c2 @c3 within=content
+}
 
 section "Zahlen"
 
-slide @zahlen layout=content
+slide @zahlen layout=content {
   fill @title "Kennzahlen"
   use @k1 kpi value="640" label="Aufträge"
   use @k2 kpi value="98 %" label="Termintreue"
   use @k3 kpi value="4,2" label="Ø Bewertung"
   stack h @k1 @k2 @k3 gap=$gap x=content.x y=content.y
-  table @t x=content.x y=@k1.bottom+48 w=content.w style=table cols="2,1,1"
+  table @t x=content.x y=@k1.bottom+48 w=content.w style=table cols="2,1,1" {
     row "Bereich" "2025" "2026"
     row "Vertrieb" "1,1 Mio €" "1,4 Mio €"
     row "Service" "0,6 Mio €" "0,7 Mio €"
+  }
   number figure @t caption="Abb. {figure}: Umsatz nach Bereich"
+}
 
-slide @layout layout=content
+slide @layout layout=content {
   fill @title "Layout mit Zeilen und Spalten"
-  row @haupt within=content gap=$gap
-    column @links span=2 gap=32
+  row @haupt within=content gap=$gap {
+    column @links span=2 gap=32 {
       text @lead "Container ordnen ihren Inhalt automatisch an, wie Zeilen und Spalten in Bootstrap. Sie lassen sich beliebig verschachteln." style=body
-      row @kpis gap=24
+      row @kpis gap=24 {
         use @k4 kpi value="640" label="Aufträge"
         use @k5 kpi value="98 %" label="Termintreue"
         use @k6 kpi value="4,2" label="Ø Bewertung"
-    column @seite fill=$surface radius=24 pad=40 gap=16
+      }
+    }
+    column @seite fill=$surface radius=24 pad=40 gap=16 {
       text @seite_titel "Seitenleiste" style=h2
       text @seite_text "Ein Drittel der Breite, eigener Hintergrund, Innenabstand 40." style=body
+    }
+  }
+}
 
-slide @kapitel layout=section
+slide @kapitel layout=section {
   fill @title "Nächste Schritte"
   fill @subtitle "Was bis Jahresende passiert"
+}
 
-slide @frei layout=blank
+slide @frei layout=blank {
   rect @box x=10% y=30% w=35% h=40% radius=32 fill=$surface
   text @label "Freies Layout" style=h2 in=@box pad=48 valign=middle align=center
   arrow @pfeil x=@box.right+40 y=@box.cy x2=@box.right+400 y2=@box.cy stroke=$accent stroke.width=8
   ellipse @ziel x=@pfeil.right+20 y=(@box.cy-120) w=240 h=240 fill=$accent
   set @footer text="Eigener Fußtext"
+}

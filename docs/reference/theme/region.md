@@ -8,15 +8,17 @@ Eine Region ist eine benannte Fläche im Layout. Sie ist unsichtbar und dient al
 Maße, `distribute … within=content` verteilt darin.
 
 ```forme
-layout raster master=default
+layout raster master=default {
   slot @title style=h2 x=120 y=120 w=1680
   region oben x=120 y=300 w=1680 h=280
   region unten x=120 y=620 w=1680 h=320
+}
 ---
-slide @a layout=raster
+slide @a layout=raster {
   fill @title "Regionen"
   rect @a within=oben radius=24 fill=$primary
   rect @b within=unten radius=24 fill=$surface
+}
 ```
 
 ## Parameter

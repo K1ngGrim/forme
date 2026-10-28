@@ -56,8 +56,9 @@ Textstil der Beschriftung.
 ### Tabelle mit Beschriftung darüber
 
 ```forme
-table @t x=120 y=340 w=1200 size=32
+table @t x=120 y=340 w=1200 size=32 {
   row "Bereich" "2026"
   row "Vertrieb" "1,4 Mio €"
+}
 number table @t caption="Tab. {table}: Umsatz" pos=above
 ```

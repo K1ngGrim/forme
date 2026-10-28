@@ -4,20 +4,21 @@ aliases: item
 ---
 # list
 
-Eine Liste ordnet ihre Einträge untereinander an. Jeder Eintrag ist eine eingerückte
+Eine Liste ordnet ihre Einträge untereinander an. Jeder Eintrag ist eine
 `item`-Zeile.
 
 ```forme
-list @punkte x=120 y=300 w=1200 size=44
+list @punkte x=120 y=300 w=1200 size=44 {
   item "Ausgangslage"
   item "Ergebnisse"
   item "Kennzahlen" level=2
   item "Nächste Schritte"
+}
 ```
 
 ## item
 
-Ein Listeneintrag. Steht nur eingerückt unter `list`. Text mit Markup wie bei
+Ein Listeneintrag. Steht nur im Block von `list`. Text mit Markup wie bei
 [`text`](text.md), `level` rückt ein.
 
 ## Parameter
@@ -55,19 +56,21 @@ Zeilenhöhe als Vielfaches der Schriftgröße.
 ### Nummeriert
 
 ```forme
-list @schritte x=120 y=300 w=1200 size=44 bullet=number
+list @schritte x=120 y=300 w=1200 size=44 bullet=number {
   item "Daten sammeln"
   item "Auswerten"
   item "Teilbereich A" level=2
   item "Teilbereich B" level=2
   item "Vorstellen"
+}
 ```
 
 ### Ohne Zeichen, mit Markup
 
 ```forme
-list @fakten x=120 y=300 w=1400 size=44 bullet=none
+list @fakten x=120 y=300 w=1400 size=44 bullet=none {
   item "**640** Aufträge"
   item "**98 %** Termintreue"
   item "*Quelle: interne Auswertung*" level=2
+}
 ```

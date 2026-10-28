@@ -10,12 +10,13 @@ Legt einen Zähler an, im Theme oder auf oberster Ebene des Decks. Er wird mit
 deck "Mit Zähler"
 counter beispiel start=0
 
-slide @a layout=content
+slide @a layout=content {
   fill @title "Beispiele"
   text @t1 "Beispiel" x=120 y=300 size=48
   number beispiel @t1 caption="Beispiel {beispiel}"
   text @t2 "Noch eins" x=120 y=500 size=48
   number beispiel @t2 caption="Beispiel {beispiel}"
+}
 ```
 
 ## Parameter

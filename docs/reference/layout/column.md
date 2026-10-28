@@ -3,15 +3,16 @@ summary: Container, der seine Kinder untereinander anordnet.
 ---
 # column
 
-Eine Spalte ordnet ihre eingerückten Kinder **untereinander** an. Kinder ohne eigene Breite
+Eine Spalte ordnet die Kinder in ihrem Block **untereinander** an. Kinder ohne eigene Breite
 füllen die Spaltenbreite (`align=stretch`), die Höhe kommt aus dem Inhalt. Nur Kinder mit `span`
 teilen sich zusätzlich freie Höhe.
 
 ```forme
-column @c x=120 y=260 w=900 gap=24 pad=40 fill=$surface radius=24
+column @c x=120 y=260 w=900 gap=24 pad=40 fill=$surface radius=24 {
   text @t1 "Überschrift" size=56 weight=700
   text @t2 "Text unter der Überschrift, in voller Breite der Spalte umgebrochen." size=32
   rect @linie h=6 fill=$primary
+}
 ```
 
 ## Parameter
@@ -47,10 +48,11 @@ Breite der Spalte.
 Feste Höhe. Kinder mit `span` teilen sich dann die freie Höhe.
 
 ```forme
-column @c x=120 y=260 w=600 h=640 gap=24
+column @c x=120 y=260 w=600 h=640 gap=24 {
   rect @kopf h=120 fill=$primary radius=16
   rect @mitte span=1 fill=$surface radius=16
   rect @fuss h=120 fill=$accent radius=16
+}
 ```
 
 ### gap

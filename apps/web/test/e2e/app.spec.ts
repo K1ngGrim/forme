@@ -179,7 +179,7 @@ test.describe('Forme im Browser', () => {
         await w.write(text);
         await w.close();
       };
-      await write('deck.forme', 'deck "Ordner"\n\nslide @a layout=content\n  fill @title "Aus dem Ordner"\n  rect @box x=100 y=300 w=400 h=200\n');
+      await write('deck.forme', 'deck "Ordner"\n\nslide @a layout=content {\n  fill @title "Aus dem Ordner"\n  rect @box x=100 y=300 w=400 h=200\n}\n');
     });
     await page.getByText('Ordner auf dem Rechner öffnen').click();
     await page.waitForSelector('[data-testid="project-dialog"]', { state: 'detached' });
@@ -212,7 +212,7 @@ test.describe('Forme im Browser', () => {
     await page.evaluate(async () => {
       const dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('vortrag');
       const w = await (await dir.getFileHandle('deck.forme')).createWritable();
-      await w.write('deck "Ordner"\n\nslide @a layout=content\n  fill @title "Extern geändert"\n');
+      await w.write('deck "Ordner"\n\nslide @a layout=content {\n  fill @title "Extern geändert"\n}\n');
       await w.close();
     });
     await expect(page.locator('.slide-svg g[data-id="title"]')).toContainText('Extern geändert', { timeout: 10_000 });
@@ -246,5 +246,28 @@ test.describe('Forme im Browser', () => {
     await page.mouse.move(hb.x - 80, hb.y + hb.height / 2, { steps: 6 });
     await page.mouse.up();
     await expect.poll(() => code(page)).toMatch(/column @seite fill=\$surface radius=24 pad=40 gap=16 w=\d+/);
+  });
+
+  test('blocks in braces: auto-indent, old syntax is converted on request', async ({ page }) => {
+    await openTemplate(page, 'leer');
+    // Enter after `{` indents, `}` dedents
+    await page.locator('.cm-line', { hasText: 'fill @subtitle' }).click();
+    await page.keyboard.press('End');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('group @g x=100 y=100 {');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('rect @r w=50 h=50 fill=#ff0000');
+    await expect.poll(() => code(page)).toContain('  group @g x=100 y=100 {\n    rect @r w=50 h=50 fill=#ff0000\n  }\n}');
+    await expect(page.locator('.slide-svg g[data-id="g"] [fill="#ff0000"]')).toHaveCount(1);
+
+    // a file in the old indentation syntax shows the hint; the button converts it
+    await page.click('.cm-content');
+    await page.keyboard.press('Control+a');
+    await page.keyboard.insertText('deck "Alt"\n\nslide @s1 layout=title\n  fill @title "Alt"\n');
+    await expect(page.locator('[data-testid="migration-bar"]')).toBeVisible();
+    await page.click('[data-testid="migrate"]');
+    await expect.poll(() => code(page)).toBe('deck "Alt"\n\nslide @s1 layout=title {\n  fill @title "Alt"\n}\n');
+    await expect(page.locator('[data-testid="migration-bar"]')).toHaveCount(0);
+    await expect(page.locator('.slide-svg text', { hasText: 'Alt' })).toHaveCount(1);
   });
 });

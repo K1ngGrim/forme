@@ -9,9 +9,10 @@ einer Fußzeile, und wird beim Export als Dokumenttitel verwendet.
 ```forme
 deck "Projektbericht 2026"
 
-slide @a layout=title
+slide @a layout=title {
   fill @title "{deck.title}"
   fill @subtitle "{deck.total} Folien"
+}
 ```
 
 ## Parameter

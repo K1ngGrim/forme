@@ -57,7 +57,7 @@ export function prepareExample(code: string): PreparedExample | null {
     .split('\n')
     .map((l) => (l.trim() ? `  ${l}` : l))
     .join('\n');
-  return { source: `deck "Beispiel"\n\nslide @beispiel layout=content\n${body}`, wrapped: true };
+  return { source: `deck "Beispiel"\n\nslide @beispiel layout=content {\n${body.replace(/\n*$/, '')}\n}\n`, wrapped: true };
 }
 
 export interface ExampleContext {

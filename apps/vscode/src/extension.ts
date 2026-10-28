@@ -1,5 +1,5 @@
 import { basename, dirname, extname, join } from 'node:path';
-import { completeLine, computeEdit, parse, TEMPLATES } from '@forme/core';
+import { completeLine, computeEdit, migrationEdits, parse, TEMPLATES, themePathOf } from '@forme/core';
 import type { CompletionItem as FormeCompletion, Document } from '@forme/core';
 import { ChromiumSession, formatOf, loadDeck, writeOutput, writeTemplate } from '@forme/export/node';
 import type { OutputFormat } from '@forme/export/node';
@@ -207,6 +207,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('forme.exportPdf', (uri?: vscode.Uri) => exportDeck(uri, 'pdf')),
     vscode.commands.registerCommand('forme.exportPptx', (uri?: vscode.Uri) => exportDeck(uri, 'pptx')),
     vscode.commands.registerCommand('forme.newProject', newProject),
+    vscode.commands.registerCommand('forme.migrate', migrateSyntax),
 
     // the full editor (canvas, toolbar, slide list, inspector) as a VS Code editor for .forme files
     vscode.window.registerCustomEditorProvider(EDITOR_VIEW_TYPE, editors, { webviewOptions: { retainContextWhenHidden: true } }),
@@ -350,4 +351,27 @@ export function activate(context: vscode.ExtensionContext): void {
 
 export function deactivate(): void {
   lastFormeEditor = undefined;
+}
+
+/** Convert a file (and the theme of a deck) from the old indentation syntax to blocks in braces. */
+async function migrateSyntax(uri?: vscode.Uri): Promise<void> {
+  const target = uri ?? vscode.window.activeTextEditor?.document.uri;
+  if (!target) return;
+  const doc = await vscode.workspace.openTextDocument(target);
+  const docs = [doc];
+  const themePath = themePathOf(parse(doc.getText()));
+  if (themePath) docs.push(await vscode.workspace.openTextDocument(vscode.Uri.file(join(dirname(target.fsPath), themePath))).then((d) => d, () => doc));
+  const we = new vscode.WorkspaceEdit();
+  let changed = 0;
+  for (const d of new Set(docs)) {
+    const edits = migrationEdits(d.getText());
+    if (edits.length) changed++;
+    for (const e of edits) we.replace(d.uri, new vscode.Range(d.positionAt(e.from), d.positionAt(e.to)), e.insert);
+  }
+  if (!changed) {
+    void vscode.window.showInformationMessage('Die Datei verwendet bereits Klammer-Blöcke.');
+    return;
+  }
+  await vscode.workspace.applyEdit(we);
+  void vscode.window.showInformationMessage(changed > 1 ? 'Deck und Theme auf Klammer-Blöcke umgestellt.' : 'Auf Klammer-Blöcke umgestellt.');
 }

@@ -8,10 +8,11 @@ wird mit den angegebenen Parametern aufgebaut; Position und Größe kommen aus `
 `h`.
 
 ```forme
-component kpi w=420 h=240 value="0" label="Kennzahl"
+component kpi w=420 h=240 value="0" label="Kennzahl" {
   rect @bg w=param.w h=param.h radius=24 fill=$surface
   text @value param.value x=40 y=40 size=88 weight=700 color=$primary
   text @label param.label x=40 y=@value.bottom+8 size=32 color=$muted
+}
 ---
 use @k1 kpi x=120 y=300 value="640" label="Aufträge"
 use @k2 kpi x=600 y=300 value="98 %" label="Termintreue"
@@ -64,10 +65,11 @@ Komponentendefinition.
 ### Instanzen verteilen
 
 ```forme
-component kpi w=420 h=240 value="0" label="Kennzahl"
+component kpi w=420 h=240 value="0" label="Kennzahl" {
   rect @bg w=param.w h=param.h radius=24 fill=$surface
   text @value param.value x=40 y=40 size=88 weight=700 color=$primary
   text @label param.label x=40 y=@value.bottom+8 size=32 color=$muted
+}
 ---
 use @k1 kpi x=120 y=300 value="640" label="Aufträge"
 use @k2 kpi like=@k1 value="98 %" label="Termintreue"

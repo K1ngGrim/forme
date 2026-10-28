@@ -3,13 +3,14 @@ summary: Eine Folie, optional mit Layout und Master.
 ---
 # slide
 
-Beginnt eine Folie. Alle eingerückten Zeilen gehören zu ihr. Das Layout bestimmt Platzhalter,
+Beginnt eine Folie. Alle Zeilen in ihrem Block `{ … }` gehören zu ihr. Das Layout bestimmt Platzhalter,
 Regionen und Hintergrund.
 
 ```forme
-slide @kpis layout=content
+slide @kpis layout=content {
   fill @title "Kennzahlen"
   rect @karte x=content.x y=content.y w=600 h=300 radius=24 fill=$surface
+}
 ```
 
 ## Parameter
@@ -40,9 +41,11 @@ Ausgeblendete Folien werden nicht gezeigt, nicht gezählt (`{slide.n}`) und nich
 ```forme
 deck "Mit Reserve"
 
-slide @a layout=title
+slide @a layout=title {
   fill @title "Sichtbar"
+}
 
-slide @reserve layout=content hidden=true
+slide @reserve layout=content hidden=true {
   fill @title "Backup-Folie"
+}
 ```

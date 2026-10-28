@@ -67,7 +67,7 @@ await writeFile(
   join(dist, 'README.md'),
   `# Forme – Kommandozeile
 
-Präsentationen als Code: \`forme compile\`, \`forme watch\`, \`forme check\`, \`forme init\`.
+Präsentationen als Code: \`forme compile\`, \`forme watch\`, \`forme check\`, \`forme init\`, \`forme migrate\`.
 
 \`\`\`
 npm install -g @k1nggrim/forme

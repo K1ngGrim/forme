@@ -3,14 +3,15 @@ summary: Tabelle mit Kopfzeile, Spaltenverhältnissen und Rich Text in den Zelle
 ---
 # table
 
-Eine Tabelle besteht aus eingerückten `row`-Zeilen; jedes Positionsargument ist eine Zelle. Die
+Eine Tabelle besteht aus `row`-Zeilen in ihrem Block; jedes Positionsargument ist eine Zelle. Die
 erste Zeile ist die Kopfzeile. Die Höhe ergibt sich aus dem Inhalt.
 
 ```forme
-table @t x=120 y=280 w=1680 cols="2,1,1"
+table @t x=120 y=280 w=1680 cols="2,1,1" {
   row "Bereich" "2025" "2026"
   row "Vertrieb" "1,1 Mio €" "1,4 Mio €"
   row "Service" "0,6 Mio €" "0,7 Mio €"
+}
 ```
 
 Innerhalb einer Tabelle ist `row` eine Tabellenzeile, kein [Layout-Container](../layout/row.md).
@@ -93,17 +94,19 @@ Zeilenhöhe in den Zellen.
 ### Farbige Kopfzeile und Streifen
 
 ```forme
-table @t x=120 y=280 w=1680 cols="2,1,1" size=32 header.fill=$primary header.color=#FFFFFF stripe=#F9FAFB
+table @t x=120 y=280 w=1680 cols="2,1,1" size=32 header.fill=$primary header.color=#FFFFFF stripe=#F9FAFB {
   row "Kennzahl" "Ist" "Ziel"
   row "Aufträge" "640" "600"
   row "Termintreue" "**98 %**" "95 %"
   row "Bewertung" "4,2" "4,0"
+}
 ```
 
 ### Ohne Kopfzeile
 
 ```forme
-table @t x=120 y=280 w=1200 header=false size=32
+table @t x=120 y=280 w=1200 header=false size=32 {
   row "Ort" "Raum 2.14"
   row "Zeit" "14:00 Uhr"
+}
 ```

@@ -84,6 +84,7 @@ pnpm forme compile <deck.forme> [out]  CLI: rendern ohne UI (.pdf/.pptx/.odp/.ht
 pnpm forme watch <deck.forme> [out]    CLI: bei jeder Änderung neu rendern
 pnpm forme check <deck.forme> [--json] CLI: nur Diagnosen ausgeben
 pnpm forme init [ordner] -t <vorlage>  CLI: Projekt aus einer Vorlage anlegen
+pnpm forme migrate <datei|ordner>      CLI: alte Einrückungs-Syntax auf { }-Blöcke umstellen
 pnpm --filter @forme/cli bundle        CLI als eine Datei nach packages/cli/dist (npm-Paket @k1nggrim/forme)
 pnpm --filter forme-vscode package     VS Code-Erweiterung als apps/vscode/forme.vsix
 pnpm docs                              Dokumentation lokal (http://localhost:4174, baut bei Änderungen neu)
@@ -127,7 +128,8 @@ Hinweise:
 
 ## Die Sprache (Kurzüberblick – Details in docs/language.md)
 
-Zeilenbasiert, eine Operation pro Zeile, Blöcke per Einrückung (2 Leerzeichen).
+Zeilenbasiert, eine Operation pro Zeile, Blöcke in `{ }` (`{` am Zeilenende, `}` allein in
+einer Zeile; Einrückung nur Formatierung). Mehrzeiliger Rohtext in `"""…"""`.
 
 ```
 <verb> [@id] [Positionsargumente] [key=value ...]   // Kommentar
@@ -158,19 +160,22 @@ style h1 font=heading size=64 color=$primary
 style body font=body size=28 line=1.4
 style footer font=body size=18 color=$muted
 
-master default
+master default {
   background fill=#FFFFFF
   text @pagenum "{slide.n}" style=footer x=(slide.w-$margin) y=(slide.h-60) anchor=right
+}
 
-layout title master=default
+layout title master=default {
   background fill=$primary
   hide @pagenum
   slot @title style=h1 color=#FFFFFF x=$margin y=380 w=(slide.w-2*$margin)
   slot @subtitle style=body color=#FFFFFF x=$margin y=@title.bottom+24
+}
 
-layout content master=default
+layout content master=default {
   slot @title style=h1 x=$margin y=$margin w=(slide.w-2*$margin)
   region content x=$margin y=240 w=(slide.w-2*$margin) h=(slide.h-360)
+}
 ```
 
 ### Deck-Datei (`deck.forme`)
@@ -179,11 +184,12 @@ layout content master=default
 deck "Quartalsbericht Q3"
 theme "./themes/corporate.forme"
 
-slide @intro layout=title
+slide @intro layout=title {
   fill @title "Quartalsbericht Q3"
   fill @subtitle "Vertrieb & Marketing"
+}
 
-slide @kpis layout=content
+slide @kpis layout=content {
   fill @title "Kennzahlen"
   rect @card1 x=$margin y=260 w=520 h=320 radius=24 fill=$surface
   rect @card2 like=@card1
@@ -194,6 +200,7 @@ slide @kpis layout=content
   image @chart "./img/umsatz.png" x=$margin y=620 w=800 fit=contain radius=12
   number figure @chart caption="Abb. {figure}: Umsatz nach Region"
   notes "Wachstum im Süden betonen."
+}
 ```
 
 ### Auswertungsreihenfolge pro Folie

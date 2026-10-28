@@ -39,11 +39,12 @@ export function classifyTokens(tokens: Token[]): [Token, HighlightClass][] {
 /** Split a source text into highlighted segments (class null = plain text). Covers the whole text. */
 export function highlightSource(src: string): { text: string; cls: HighlightClass | null }[] {
   const tokens = lex(src);
-  const marks = new Map<Token, HighlightClass>(classifyLines(tokens));
+  const marks = new Map<Token, HighlightClass>(classifySource(tokens));
   return tokens.map((t) => ({ text: t.text, cls: marks.get(t) ?? null }));
 }
 
-function classifyLines(tokens: Token[]): [Token, HighlightClass][] {
+/** Classify all tokens of a source, line by line (a multi-line string belongs to the line it starts in). */
+export function classifySource(tokens: Token[]): [Token, HighlightClass][] {
   const out: [Token, HighlightClass][] = [];
   let line: Token[] = [];
   for (const t of tokens) {

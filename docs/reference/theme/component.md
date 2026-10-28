@@ -9,11 +9,12 @@ Folien setzen sie mit [`use`](../erzeugen/use.md) ein. In der Komponente stehen 
 sind relativ zur Instanz.
 
 ```forme
-component karte w=520 h=360 titel="Überschrift" text="Text"
+component karte w=520 h=360 titel="Überschrift" text="Text" {
   rect @bg w=param.w h=param.h radius=24 fill=$surface
   rect @balken w=param.w h=12 radius=6 fill=$primary
   text @kopf param.titel x=32 y=48 w=(param.w-64) size=40 weight=700
   text @body param.text x=32 y=@kopf.bottom+16 w=(param.w-64) size=28 color=$muted
+}
 ---
 use @a karte x=120 y=300 titel="Schneller" text="Durchlaufzeit **−30 %** seit Q1."
 use @b karte like=@a titel="Günstiger" text="Kosten je Vorgang deutlich gesenkt."

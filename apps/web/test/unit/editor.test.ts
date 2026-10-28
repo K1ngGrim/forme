@@ -3,7 +3,7 @@ import { evaluate, parse } from '@forme/core';
 import { completeLine } from '@forme/core';
 import { normalizePath, relativeTo, resolveFrom } from '../../src/platform/paths.js';
 
-const scene = evaluate(parse('slide @a layout=content\n  rect @box\n  text @t "x"\n'));
+const scene = evaluate(parse('slide @a layout=content {\n  rect @box\n  text @t "x"\n}\n'));
 const slide = scene.slides[0]!;
 const labels = (line: string, col = line.length): string[] => completeLine(line, col, scene, slide)?.items.map((i) => i.label) ?? [];
 
@@ -40,7 +40,7 @@ describe('project paths', () => {
 });
 
 describe('container completion', () => {
-  const s2 = evaluate(parse('slide @a\n  row @r\n'));
+  const s2 = evaluate(parse('slide @a {\n  row @r\n}\n'));
   it('offers flex alignment values for rows and columns', () => {
     const r = completeLine('  row @r align=', 15, s2, s2.slides[0]!);
     expect(r?.items.map((i) => i.label)).toEqual(['start', 'center', 'end', 'stretch']);

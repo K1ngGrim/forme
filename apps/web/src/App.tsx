@@ -4,6 +4,7 @@ import { Canvas } from './components/Canvas.js';
 import { CodeView } from './components/CodeView.js';
 import { CommandLine } from './components/CommandLine.js';
 import { Inspector } from './components/Inspector.js';
+import { MigrationBar } from './components/MigrationBar.js';
 import { Presenter } from './components/Presenter.js';
 import { SlideList } from './components/SlideList.js';
 import { StatusBar } from './components/StatusBar.js';
@@ -226,6 +227,7 @@ export function App(): JSX.Element {
   return (
     <div className="app">
       <Toolbar />
+      <MigrationBar />
       <div className="workspace">
         <SlideList />
         <div className="main-area">

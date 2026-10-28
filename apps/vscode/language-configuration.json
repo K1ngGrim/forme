@@ -4,11 +4,19 @@
   },
   "brackets": [
     [
+      "{",
+      "}"
+    ],
+    [
       "(",
       ")"
     ]
   ],
   "autoClosingPairs": [
+    {
+      "open": "{",
+      "close": "}"
+    },
     {
       "open": "(",
       "close": ")"
@@ -23,6 +31,10 @@
   ],
   "surroundingPairs": [
     [
+      "{",
+      "}"
+    ],
+    [
       "(",
       ")"
     ],
@@ -33,10 +45,7 @@
   ],
   "wordPattern": "[@$]?[A-Za-z_À-ɏ][\\w.À-ɏ-]*|#[0-9A-Fa-f]+|-?\\d+(?:\\.\\d+)?(?:px|%)?",
   "indentationRules": {
-    "increaseIndentPattern": "^\\s*(slide|layout|master|component|group|row|column|list|table|style)\\b.*$",
-    "decreaseIndentPattern": "^(?!)"
-  },
-  "folding": {
-    "offSide": true
+    "increaseIndentPattern": "^.*\\{\\s*(//.*)?$",
+    "decreaseIndentPattern": "^\\s*\\}"
   }
 }

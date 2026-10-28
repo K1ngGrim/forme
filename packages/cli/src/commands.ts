@@ -1,9 +1,9 @@
 import { watch as fsWatch } from 'node:fs';
 import type { FSWatcher } from 'node:fs';
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname, relative, resolve } from 'node:path';
 import type { Diagnostic } from '@forme/core';
-import { TEMPLATES } from '@forme/core';
+import { migrate, TEMPLATES } from '@forme/core';
 import type { LoadCache, LoadedDeck, OutputFormat } from '@forme/export/node';
 import { ChromiumSession, createLoadCache, formatOf, loadDeck, OUTPUT_FORMATS, writeOutput, writeTemplate } from '@forme/export/node';
 import type { Args } from './args.js';
@@ -204,4 +204,41 @@ export function templates(io: Io): number {
   const w = Math.max(...TEMPLATES.map((t) => t.id.length));
   for (const t of TEMPLATES) io.out(`${io.style.bold(t.id.padEnd(w))}  ${t.name} ${io.style.dim(`– ${t.description}`)}`);
   return 0;
+}
+
+async function formeFiles(path: string, out: string[]): Promise<void> {
+  if (!(await stat(path)).isDirectory()) {
+    out.push(path);
+    return;
+  }
+  for (const e of await readdir(path, { withFileTypes: true })) {
+    if (e.name.startsWith('.') || e.name === 'node_modules') continue;
+    if (e.isDirectory()) await formeFiles(resolve(path, e.name), out);
+    else if (e.name.endsWith('.forme')) out.push(resolve(path, e.name));
+  }
+}
+
+/** Convert files from the old indentation syntax to blocks in braces. */
+export async function migrateFiles(args: Args, io: Io): Promise<number> {
+  if (!args.positional.length) throw new Error('Datei oder Ordner fehlt: forme migrate <deck.forme|ordner> …');
+  const files: string[] = [];
+  for (const p of args.positional) await formeFiles(resolve(io.cwd, p), files);
+  const checkOnly = args.options.check === true;
+  let pending = 0;
+  for (const f of files) {
+    const src = await readFile(f, 'utf8');
+    const out = migrate(src);
+    const name = relative(io.cwd, f) || basename(f);
+    if (out === src) continue;
+    pending++;
+    if (checkOnly) io.out(`  ${io.style.yellow('!')} ${name} ${io.style.dim('(alte Syntax)')}`);
+    else {
+      await writeFile(f, out);
+      io.out(`  ${io.style.green('✓')} ${name}`);
+    }
+  }
+  if (!pending) io.out(`${files.length === 1 ? 'Die Datei verwendet' : 'Alle Dateien verwenden'} bereits Klammer-Blöcke.`);
+  else if (checkOnly) io.out(`\n${pending} Datei(en) umzustellen: forme migrate ${args.positional.join(' ')}`);
+  else io.out(`\n${pending} Datei(en) auf Klammer-Blöcke umgestellt.`);
+  return checkOnly && pending ? 1 : 0;
 }

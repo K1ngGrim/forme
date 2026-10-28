@@ -93,6 +93,12 @@
         "category": "Forme"
       },
       {
+        "command": "forme.migrate",
+        "title": "Auf Klammer-Syntax umstellen",
+        "category": "Forme",
+        "enablement": "editorLangId == forme"
+      },
+      {
         "command": "forme.editor.undo",
         "title": "Rückgängig (Forme-Editor)",
         "category": "Forme",

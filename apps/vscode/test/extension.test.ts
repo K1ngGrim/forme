@@ -13,16 +13,18 @@ import { openDoc, showEditor, state, typeText } from './mock-vscode.js';
 const THEME = `theme "T"
 color primary #112233
 style h1 size=64 color=$primary
-layout content
+layout content {
   slot @title style=h1 x=100 y=80 w=1600
+}
 `;
 const DECK = `deck "Test"
 theme "./theme.forme"
 
-slide @a layout=content
+slide @a layout=content {
   fill @title "Hallo"
   rect @box x=100 y=300 w=400 h=200 fill=$primary
   text @t "Text" x=600 y=300 w=500
+}
 `;
 
 let dir = '';
@@ -51,6 +53,11 @@ beforeAll(async () => {
 
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
 
+/** Source with a line added at the end of the last slide block. */
+function inSlide(src: string, line: string): string {
+  return src.replace(/\}\n*$/, `${line}}\n`);
+}
+
 describe('extension', () => {
 
   type P<T> = { [k: string]: (...a: unknown[]) => T };
@@ -59,7 +66,7 @@ describe('extension', () => {
     const doc = openDoc(deckPath());
     showEditor(doc);
     await until(() => state.diagnostics.get(deckPath())?.length === 0);
-    typeText(doc, `${DECK}  rect @x like=@nope\n`);
+    typeText(doc, inSlide(DECK, '  rect @x like=@nope\n'));
     await until(() => (state.diagnostics.get(deckPath())?.length ?? 0) > 0);
     expect(state.diagnostics.get(deckPath())?.[0]?.message).toContain('@nope');
     typeText(doc, DECK);
@@ -68,7 +75,7 @@ describe('extension', () => {
     const theme = openDoc(join(dir, 'theme.forme'));
     typeText(theme, `${THEME}style h2 size=64 color=$nope\n`);
     await until(() => (state.diagnostics.get(join(dir, 'theme.forme'))?.length ?? 0) > 0);
-    expect(state.diagnostics.get(join(dir, 'theme.forme'))?.[0]?.range.start.line).toBe(5);
+    expect(state.diagnostics.get(join(dir, 'theme.forme'))?.[0]?.range.start.line).toBe(6);
     typeText(theme, THEME);
     await until(() => state.diagnostics.get(join(dir, 'theme.forme'))?.length === 0);
   });
@@ -83,11 +90,11 @@ describe('extension', () => {
     expect(defs[0]?.uri.fsPath).toBe(join(dir, 'theme.forme'));
     expect(defs[0]?.range.start.line).toBe(4);
 
-    const line = DECK.split('\n').length - 1;
-    typeText(doc, `${DECK}  rect @n fi`);
+    const line = DECK.split('\n').length - 2;
+    typeText(doc, inSlide(DECK, '  rect @n fi\n'));
     const items = (await (state.providers.completion as P<Promise<{ label: string }[]>>).provideCompletionItems?.(doc, new vscode.Position(line, 13))) ?? [];
     expect(items.map((i) => i.label)).toContain('fill=');
-    typeText(doc, `${DECK}  rect @n fill=$`);
+    typeText(doc, inSlide(DECK, '  rect @n fill=$\n'));
     const tokens = (await (state.providers.completion as P<Promise<{ label: string }[]>>).provideCompletionItems?.(doc, new vscode.Position(line, 17))) ?? [];
     expect(tokens.map((i) => i.label)).toContain('$primary');
     typeText(doc, DECK);
@@ -147,7 +154,7 @@ describe('extension', () => {
     const panel = state.panels[0] as vscode.MockPanel;
     const good = doc.getText();
     panel.posted.length = 0;
-    typeText(doc, `${good}  rect @y like=@nope\n`);
+    typeText(doc, inSlide(good, '  rect @y like=@nope\n'));
     await until(() => panel.posted.some((m) => (m as HostMessage).type === 'scene'));
     const slide = (panel.posted.find((m) => (m as HostMessage).type === 'scene') as Extract<HostMessage, { type: 'scene' }>).slides[0] as PreviewSlide;
     expect(slide.stale).toBe(true);
@@ -157,6 +164,18 @@ describe('extension', () => {
     await until(() => state.messages.length > 0);
     expect(state.messages[0]).toContain('nicht editierbar');
     typeText(doc, good);
+  });
+
+  it('converts a file in the old indentation syntax (forme.migrate)', async () => {
+    const path = join(dir, 'alt.forme');
+    writeFileSync(path, 'deck "Alt"\n\nslide @a\n  rect @r // Kasten\n');
+    const doc = openDoc(path);
+    state.messages.length = 0;
+    await state.commands['forme.migrate']?.(vscode.Uri.file(path));
+    expect(doc.getText()).toBe('deck "Alt"\n\nslide @a {\n  rect @r // Kasten\n}\n');
+    expect(state.messages).toContain('Auf Klammer-Blöcke umgestellt.');
+    await state.commands['forme.migrate']?.(vscode.Uri.file(path));
+    expect(state.messages).toContain('Die Datei verwendet bereits Klammer-Blöcke.');
   });
 });
 

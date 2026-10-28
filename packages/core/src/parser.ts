@@ -5,8 +5,13 @@ import { parseExprTokens } from './expr.js';
 import type { Token } from './lexer.js';
 import { lex } from './lexer.js';
 
-/** One physical line. Its tokens include indentation, comment and the trailing newline. */
+/**
+ * One line. Lines are physical lines, except that a raw string (`"""…"""`) spanning several
+ * lines stays in the line where it starts: that line holds all tokens up to the newline after
+ * the string, and every further physical line it covers is a continuation line without tokens.
+ */
 export interface Line {
+  /** Index in `Document.lines` = physical line number (0-based). */
   index: number;
   start: number;
   /** End of the line content (before the newline). */
@@ -15,8 +20,12 @@ export interface Line {
   fullEnd: number;
   tokens: Token[];
   indent: number;
-  /** null for blank and comment-only lines. */
+  /** null for blank, comment-only, closing-brace and continuation lines. */
   op: OpNode | null;
+  /** The op whose block this line closes with `}`. */
+  closes?: OpNode;
+  /** For continuation lines: the line that holds the tokens. */
+  of?: Line;
 }
 
 export interface Arg {
@@ -34,10 +43,15 @@ export interface OpNode {
   children: OpNode[];
   parent: OpNode | null;
   line: Line;
+  /** Leading whitespace of the op line (formatting only, no meaning). */
   indent: number;
-  /** Span of the op line content (indent excluded, comment excluded). */
+  /** Span of the op content: verb and arguments (indent, `{` and comment excluded). */
   span: Span;
-  /** End offset of the whole block (last descendant line, newline excluded). */
+  /** The `{` opening the block, null for ops without block. */
+  open: Span | null;
+  /** The `}` closing the block and its line (the op line for `{}`), null if missing. */
+  close: { brace: Span; line: Line } | null;
+  /** End offset of the whole block (closing line or last descendant line, newline excluded). */
   blockEnd: number;
   /** Offset after the newline of the last line in the block. */
   blockFullEnd: number;
@@ -49,6 +63,9 @@ export interface Document {
   ops: OpNode[];
   diagnostics: Diagnostic[];
 }
+
+/** Verbs whose block holds further ops; used to recognise the old indentation syntax. */
+const BLOCK_VERBS = new Set(['slide', 'master', 'layout', 'component', 'group', 'row', 'column', 'box', 'list', 'table']);
 
 function splitLines(tokens: Token[]): Token[][] {
   const out: Token[][] = [];
@@ -64,13 +81,27 @@ function splitLines(tokens: Token[]): Token[][] {
   return out;
 }
 
+function isPunct(t: Token | undefined, text: string): boolean {
+  return !!t && t.kind === 'punct' && t.text === text;
+}
+
+/** Only whitespace, a comment and the newline follow from index i on. */
+function onlyTrivia(toks: Token[], i: number): boolean {
+  for (; i < toks.length; i++) {
+    const k = (toks[i] as Token).kind;
+    if (k !== 'ws' && k !== 'comment' && k !== 'newline') return false;
+  }
+  return true;
+}
+
 function parseLineOp(line: Line, toks: Token[], diags: Diagnostic[]): OpNode | null {
   let i = 0;
   while (i < toks.length && toks[i]?.kind === 'ws') i++;
   const first = toks[i];
   if (!first || first.kind === 'newline' || first.kind === 'comment') return null;
   if (first.kind !== 'ident') {
-    diags.push(diag('error', `Operation erwartet, gefunden „${first.text}“`, { start: first.start, end: line.end }));
+    const msg = isPunct(first, '{') ? '„{“ gehört ans Ende der Zeile mit der Operation' : `Operation erwartet, gefunden „${first.text}“`;
+    diags.push(diag('error', msg, { start: first.start, end: line.end }));
     return null;
   }
   const verb = first;
@@ -80,6 +111,8 @@ function parseLineOp(line: Line, toks: Token[], diags: Diagnostic[]): OpNode | n
   let run: Token[] = [];
   let depth = 0;
   let contentEnd = verb.end;
+  let open: Span | null = null;
+  let closeBrace: Span | null = null;
   for (; i < toks.length; i++) {
     const t = toks[i] as Token;
     if (t.kind === 'newline' || t.kind === 'comment') break;
@@ -87,6 +120,20 @@ function parseLineOp(line: Line, toks: Token[], diags: Diagnostic[]): OpNode | n
       if (run.length) runs.push(run);
       run = [];
       continue;
+    }
+    if (depth === 0 && isPunct(t, '{')) {
+      open = { start: t.start, end: t.end };
+      let j = i + 1;
+      while (toks[j]?.kind === 'ws') j++;
+      if (isPunct(toks[j], '}')) {
+        closeBrace = { start: (toks[j] as Token).start, end: (toks[j] as Token).end };
+        j++;
+      }
+      if (!onlyTrivia(toks, j)) {
+        const rest = toks[j] as Token;
+        diags.push(diag('error', 'Nach „{“ endet die Zeile – jede Operation steht in einer eigenen Zeile', { start: rest.start, end: line.end }));
+      }
+      break;
     }
     if (t.kind === 'punct' && t.text === '(') depth++;
     if (t.kind === 'punct' && t.text === ')') depth = Math.max(0, depth - 1);
@@ -135,9 +182,43 @@ function parseLineOp(line: Line, toks: Token[], diags: Diagnostic[]): OpNode | n
     line,
     indent: line.indent,
     span: { start: verb.start, end: contentEnd },
+    open,
+    close: closeBrace ? { brace: closeBrace, line } : null,
     blockEnd: line.end,
     blockFullEnd: line.fullEnd,
   };
+}
+
+function extend(op: OpNode, end: number, fullEnd: number): void {
+  for (let p: OpNode | null = op; p; p = p.parent) {
+    p.blockEnd = end;
+    p.blockFullEnd = fullEnd;
+  }
+}
+
+/** Continuation lines for the physical lines inside multi-line strings of a line. */
+function continuationLines(line: Line, out: Line[]): void {
+  // pairs: offset of a line break inside a string, offset after it
+  const breaks: number[] = [];
+  for (const t of line.tokens) {
+    if (t.kind !== 'string') continue;
+    const re = /\r\n?|\n/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(t.text))) breaks.push(t.start + m.index, t.start + m.index + m[0].length);
+  }
+  for (let k = 0; k < breaks.length; k += 2) {
+    const last = k + 2 >= breaks.length;
+    out.push({
+      index: out.length,
+      start: breaks[k + 1] as number,
+      end: last ? line.end : (breaks[k + 2] as number),
+      fullEnd: last ? line.fullEnd : (breaks[k + 3] as number),
+      tokens: [],
+      indent: 0,
+      op: null,
+      of: line,
+    });
+  }
 }
 
 /** Parse a Forme source into a lossless concrete syntax tree. Never throws. */
@@ -147,9 +228,12 @@ export function parse(source: string): Document {
   const rawLines = splitLines(tokens);
   const lines: Line[] = [];
   const ops: OpNode[] = [];
+  /** Ops whose block is open. */
   const stack: OpNode[] = [];
+  /** Previous op line (for the hint on the old indentation syntax). */
+  let prev: OpNode | null = null;
   let pos = 0;
-  rawLines.forEach((toks, index) => {
+  for (const toks of rawLines) {
     const start = toks[0]?.start ?? pos;
     const last = toks[toks.length - 1];
     const fullEnd = last ? last.end : start;
@@ -157,37 +241,51 @@ export function parse(source: string): Document {
     pos = fullEnd;
     let indent = 0;
     const lead = toks[0];
-    if (lead && lead.kind === 'ws') {
-      if (lead.text.includes('\t')) {
-        diagnostics.push(diag('warning', 'Tabulator in Einrückung – bitte 2 Leerzeichen verwenden', lead));
-      }
-      for (const ch of lead.text) indent += ch === '\t' ? 2 : 1;
-    }
-    const line: Line = { index, start, end, fullEnd, tokens: toks, indent, op: null };
+    if (lead && lead.kind === 'ws') for (const ch of lead.text) indent += ch === '\t' ? 2 : 1;
+    const line: Line = { index: lines.length, start, end, fullEnd, tokens: toks, indent, op: null };
     lines.push(line);
+    continuationLines(line, lines);
+    const firstTok = toks.find((t) => t.kind !== 'ws');
+    if (isPunct(firstTok, '}')) {
+      const owner = stack.pop();
+      const brace = { start: (firstTok as Token).start, end: (firstTok as Token).end };
+      if (!owner) diagnostics.push(diag('error', '„}“ ohne zugehörige „{“', brace));
+      else {
+        owner.close = { brace, line };
+        line.closes = owner;
+        extend(owner, end, fullEnd);
+      }
+      const after = toks.indexOf(firstTok as Token) + 1;
+      if (!onlyTrivia(toks, after)) {
+        const rest = toks.slice(after).find((t) => t.kind !== 'ws') as Token;
+        diagnostics.push(diag('error', 'Nach „}“ endet die Zeile – jede Operation steht in einer eigenen Zeile', { start: rest.start, end }));
+      }
+      prev = null;
+      continue;
+    }
     const op = parseLineOp(line, toks, diagnostics);
-    if (!op) return;
+    if (!op) continue;
     line.op = op;
-    while (stack.length && (stack[stack.length - 1] as OpNode).indent >= indent) stack.pop();
+    if (prev && !prev.open && indent > prev.indent && BLOCK_VERBS.has(prev.verb)) {
+      diagnostics.push(
+        diag('error', `Blöcke stehen in { }: „{“ am Ende von „${prev.verb}“ fehlt (alte Einrückungs-Syntax? „forme migrate“ stellt Dateien um)`, {
+          start: prev.span.start,
+          end: prev.span.end,
+        }),
+      );
+    }
+    prev = op;
     const parent = stack[stack.length - 1] ?? null;
     if (parent) {
       op.parent = parent;
       parent.children.push(op);
-      for (let p: OpNode | null = parent; p; p = p.parent) {
-        p.blockEnd = op.blockEnd;
-        p.blockFullEnd = op.blockFullEnd;
-      }
-    } else {
-      if (indent > 0) {
-        diagnostics.push(diag('error', 'Unerwartete Einrückung', { start: line.start, end: op.span.end }));
-      }
-      ops.push(op);
-    }
-    if (indent % 2 !== 0) {
-      diagnostics.push(diag('warning', 'Einrückung sollte ein Vielfaches von 2 Leerzeichen sein', { start: line.start, end: op.span.start }));
-    }
-    stack.push(op);
-  });
+      extend(parent, op.blockEnd, op.blockFullEnd);
+    } else ops.push(op);
+    if (op.open && !op.close) stack.push(op);
+  }
+  for (const op of stack) {
+    diagnostics.push(diag('error', `„}“ fehlt: Block von „${op.verb}“ wird nicht geschlossen`, op.open as Span));
+  }
   return { source, lines, ops, diagnostics };
 }
 

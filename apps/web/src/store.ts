@@ -6,6 +6,7 @@ import {
   createMetricMeasurer,
   evaluate,
   imageSize,
+  migrationEdits,
   NEW_DECK_SOURCE,
   parse,
   themePathOf,
@@ -396,6 +397,16 @@ export const actions = {
     const file = role === 'theme' ? get().theme : get().deck;
     if (!file) return;
     commit(role, applyEdits(file.source, edits).text, origin, opts);
+  },
+
+  /** Convert deck and theme from the old indentation syntax to blocks in braces. */
+  migrateSyntax(): void {
+    for (const role of ['deck', 'theme'] as const) {
+      const file = role === 'theme' ? get().theme : get().deck;
+      const edits = file ? migrationEdits(file.source) : [];
+      if (edits.length) actions.applyEdits(role, edits);
+    }
+    toast('Auf Klammer-Syntax umgestellt.');
   },
 
   /** Editor gesture -> intent -> minimal text edits -> re-evaluation. */

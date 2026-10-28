@@ -7,9 +7,10 @@ Setzt den Hintergrund: eine Farbe, ein Bild oder beides. Im Master oder Layout g
 Folien damit, auf einer Folie nur für diese.
 
 ```forme
-slide @a layout=title
+slide @a layout=title {
   background fill=$primary
   fill @title "Farbiger Hintergrund" color=#FFFFFF
+}
 ```
 
 ## Parameter
@@ -33,6 +34,7 @@ Hintergrundbild, relativ zur Datei, in der es steht.
 Wie das Bild die Folie füllt.
 
 ```forme
-slide @a layout=blank
+slide @a layout=blank {
   background fill=#0F172A image="./img/umsatz.svg" fit=contain
+}
 ```

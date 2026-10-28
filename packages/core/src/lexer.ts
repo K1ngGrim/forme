@@ -19,7 +19,7 @@ export interface Token {
   end: number;
 }
 
-const PUNCT = new Set(['=', '(', ')', ',', '.', '+', '-', '*', '/', ':']);
+const PUNCT = new Set(['=', '(', ')', ',', '.', '+', '-', '*', '/', ':', '{', '}']);
 
 export function isIdentStart(c: string): boolean {
   return /[A-Za-z_À-ɏ]/.test(c);
@@ -68,6 +68,12 @@ export function lex(src: string, from = 0, to = src.length): Token[] {
       let j = i + 2;
       while (j < to && src[j] !== '\n' && src[j] !== '\r') j++;
       push('comment', j);
+      continue;
+    }
+    if (c === '"' && src.startsWith('"""', i)) {
+      // raw multi-line string: everything up to the next """
+      const close = src.indexOf('"""', i + 3);
+      push('string', close >= 0 && close + 3 <= to ? close + 3 : to);
       continue;
     }
     if (c === '"') {
@@ -149,8 +155,39 @@ export function isTrivia(t: Token): boolean {
   return t.kind === 'ws' || t.kind === 'newline' || t.kind === 'comment';
 }
 
+/** `"""…"""`: raw string that may span several lines. */
+export function isRawString(text: string): boolean {
+  return text.startsWith('"""');
+}
+
+/** A string token without its closing quotes. */
+export function isUnterminated(text: string): boolean {
+  if (isRawString(text)) return text.length < 6 || !text.endsWith('"""');
+  if (text.length < 2 || !text.endsWith('"')) return true;
+  let bs = 0;
+  for (let i = text.length - 2; i > 0 && text[i] === '\\'; i--) bs++;
+  return bs % 2 === 1;
+}
+
+/**
+ * Content of a raw string: a line break right after the opening quotes and the whitespace-only
+ * line before the closing quotes are dropped, the common indentation of all lines is removed.
+ */
+export function rawStringValue(text: string): string {
+  let body = text.slice(3, text.length >= 6 && text.endsWith('"""') ? -3 : undefined).replace(/\r\n?/g, '\n');
+  if (/^[ \t]*\n/.test(body)) body = body.slice(body.indexOf('\n') + 1);
+  body = body.replace(/\n[ \t]*$/, '');
+  const lines = body.split('\n');
+  const lead = (l: string): number => (/^[ \t]*/.exec(l) as RegExpExecArray)[0].length;
+  let common = Infinity;
+  for (const l of lines) if (l.trim()) common = Math.min(common, lead(l));
+  if (!Number.isFinite(common) || common === 0) return body;
+  return lines.map((l) => l.slice(Math.min(common, lead(l)))).join('\n');
+}
+
 /** Decode the body of a string token (without quotes). */
 export function unescapeString(text: string): string {
+  if (isRawString(text)) return rawStringValue(text);
   const body = text.endsWith('"') && text.length >= 2 ? text.slice(1, -1) : text.slice(1);
   let out = '';
   for (let i = 0; i < body.length; i++) {

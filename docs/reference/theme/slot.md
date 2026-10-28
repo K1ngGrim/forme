@@ -8,13 +8,15 @@ Ein Platzhalter im Layout ist eine Textbox (oder ein Bildfeld), die jede Folie m
 werden Platzhalter zu PowerPoint-Platzhaltern.
 
 ```forme
-layout karte master=default
+layout karte master=default {
   slot @title style=h2 x=120 y=120 w=1680 placeholder="Folientitel"
   slot @bild kind=image x=120 y=300 w=900 h=600
+}
 ---
-slide @a layout=karte
+slide @a layout=karte {
   fill @title "Platzhalter für Text und Bild"
   fill @bild "./img/umsatz.svg"
+}
 ```
 
 Andere Objekte im Layout können sich auf den befüllten Inhalt beziehen

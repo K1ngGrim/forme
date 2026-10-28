@@ -16,7 +16,7 @@ const round = (b: { x: number; y: number; w: number; h: number }): number[] => [
 
 describe('row / column containers', () => {
   it('shares the free width of a row by span and stretches the height', () => {
-    const s = evalSrc('slide @s layout=blank\n  row @r x=100 y=100 w=1000 gap=20 pad=10\n    rect @a\n    rect @b w=200\n    rect @c span=2\n');
+    const s = evalSrc('slide @s layout=blank {\n  row @r x=100 y=100 w=1000 gap=20 pad=10 {\n    rect @a\n    rect @b w=200\n    rect @c span=2\n  }\n}\n');
     expect(round(node(s, 'a').box)).toEqual([110, 110, 246.67, 120]);
     expect(round(node(s, 'b').box)).toEqual([376.67, 110, 200, 120]);
     expect(round(node(s, 'c').box)).toEqual([596.67, 110, 493.33, 120]);
@@ -24,7 +24,7 @@ describe('row / column containers', () => {
   });
 
   it('wraps a 12-column grid like Bootstrap', () => {
-    const s = evalSrc('slide @s layout=blank\n  row @r w=1200 cols=12 gap=0\n    rect @a span=6 h=50\n    rect @b span=6 h=80\n    rect @c span=4 h=40\n');
+    const s = evalSrc('slide @s layout=blank {\n  row @r w=1200 cols=12 gap=0 {\n    rect @a span=6 h=50\n    rect @b span=6 h=80\n    rect @c span=4 h=40\n  }\n}\n');
     expect(round(node(s, 'a').box)).toEqual([0, 0, 600, 50]);
     expect(round(node(s, 'b').box)).toEqual([600, 0, 600, 80]);
     expect(round(node(s, 'c').box)).toEqual([0, 80, 400, 40]);
@@ -32,7 +32,7 @@ describe('row / column containers', () => {
   });
 
   it('stacks a column and lets text wrap to its width', () => {
-    const s = evalSrc('slide @s layout=blank\n  column @c x=0 y=0 w=300 gap=10\n    text @t "Ein längerer Text, der umbrechen muss" size=32\n    rect @r h=100\n');
+    const s = evalSrc('slide @s layout=blank {\n  column @c x=0 y=0 w=300 gap=10 {\n    text @t "Ein längerer Text, der umbrechen muss" size=32\n    rect @r h=100\n  }\n}\n');
     const t = node(s, 't');
     expect(t.box.w).toBe(300);
     expect(t.text!.lines.length).toBeGreaterThan(1);
@@ -42,7 +42,7 @@ describe('row / column containers', () => {
 
   it('nests containers', () => {
     const s = evalSrc(
-      'slide @s layout=blank\n  row @r x=0 y=0 w=1000 gap=40\n    column @left gap=10\n      rect @a h=50\n      rect @b h=70\n    rect @side w=300\n',
+      'slide @s layout=blank {\n  row @r x=0 y=0 w=1000 gap=40 {\n    column @left gap=10 {\n      rect @a h=50\n      rect @b h=70\n    }\n    rect @side w=300\n  }\n}\n',
     );
     expect(round(node(s, 'left').box)).toEqual([0, 0, 660, 130]);
     expect(round(node(s, 'a').box)).toEqual([0, 0, 660, 50]);
@@ -51,7 +51,7 @@ describe('row / column containers', () => {
   });
 
   it('fills a region and aligns / justifies', () => {
-    const s = evalSrc('slide @s layout=content\n  row @r within=content justify=center align=center gap=20\n    rect @a w=100 h=50\n    rect @b w=100 h=100\n');
+    const s = evalSrc('slide @s layout=content {\n  row @r within=content justify=center align=center gap=20 {\n    rect @a w=100 h=50\n    rect @b w=100 h=100\n  }\n}\n');
     const region = s.slides[0]!.regions.content!;
     expect(node(s, 'r').box).toEqual(region);
     expect(node(s, 'a').box.x).toBeCloseTo(region.x + (region.w - 220) / 2);
@@ -59,14 +59,14 @@ describe('row / column containers', () => {
   });
 
   it('reflows when a later op changes a child', () => {
-    const s = evalSrc('slide @s layout=blank\n  row @r w=1000\n    rect @a\n    rect @b\n  set @a w=800\n');
+    const s = evalSrc('slide @s layout=blank {\n  row @r w=1000 {\n    rect @a\n    rect @b\n  }\n  set @a w=800\n}\n');
     expect(node(s, 'a').box.w).toBe(800);
     expect(node(s, 'b').box).toMatchObject({ x: 800, w: 200 });
   });
 
   it('rebuilds component instances with the size assigned by the row', () => {
-    const theme = 'theme "T"\ncomponent card w=200 h=100 title="x"\n  rect @bg w=param.w h=param.h\n  text @t param.title\n';
-    const s = evalSrc('slide @s\n  row @r w=1000 gap=0\n    use @c1 card title="A"\n    use @c2 card title="B"\n  set @c2 title="Neu"\n', theme);
+    const theme = 'theme "T"\ncomponent card w=200 h=100 title="x" {\n  rect @bg w=param.w h=param.h\n  text @t param.title\n}\n';
+    const s = evalSrc('slide @s {\n  row @r w=1000 gap=0 {\n    use @c1 card title="A"\n    use @c2 card title="B"\n  }\n  set @c2 title="Neu"\n}\n', theme);
     expect(node(s, 'c1').children[0]!.box.w).toBe(500);
     expect(node(s, 'c2').children[1]!.props.text).toBe('Neu');
   });
@@ -81,11 +81,11 @@ describe('editing containers', () => {
     return applyEdits(src, res.edits).text;
   }
 
-  const src = 'slide @s layout=blank\n  row @r w=1000\n    rect @a\n    rect @b\n    rect @c\n';
+  const src = 'slide @s layout=blank {\n  row @r w=1000 {\n    rect @a\n    rect @b\n    rect @c\n  }\n}\n';
 
   it('resizing a child writes its own width and the row reflows', () => {
     const out = run(src, { type: 'resize', slide: 's', id: 'b', box: { x: 333.33, y: 0, w: 400, h: 120 }, height: false });
-    expect(out).toBe('slide @s layout=blank\n  row @r w=1000\n    rect @a\n    rect @b w=400\n    rect @c\n');
+    expect(out).toBe('slide @s layout=blank {\n  row @r w=1000 {\n    rect @a\n    rect @b w=400\n    rect @c\n  }\n}\n');
     const s = evalSrc(out);
     expect(node(s, 'a').box.w).toBe(300);
   });
@@ -97,7 +97,7 @@ describe('editing containers', () => {
   });
 
   it('reorders children by moving their lines', () => {
-    expect(run(src, { type: 'reorder', slide: 's', id: 'c', index: 0 })).toBe('slide @s layout=blank\n  row @r w=1000\n    rect @c\n    rect @a\n    rect @b\n');
-    expect(run(src, { type: 'reorder', slide: 's', id: 'a', index: 2 })).toBe('slide @s layout=blank\n  row @r w=1000\n    rect @b\n    rect @c\n    rect @a\n');
+    expect(run(src, { type: 'reorder', slide: 's', id: 'c', index: 0 })).toBe('slide @s layout=blank {\n  row @r w=1000 {\n    rect @c\n    rect @a\n    rect @b\n  }\n}\n');
+    expect(run(src, { type: 'reorder', slide: 's', id: 'a', index: 2 })).toBe('slide @s layout=blank {\n  row @r w=1000 {\n    rect @b\n    rect @c\n    rect @a\n  }\n}\n');
   });
 });

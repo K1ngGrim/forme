@@ -47,16 +47,19 @@ Präsentation“), links im Code tippen oder rechts auf der Folie arbeiten.
 ```
 deck "Meine Präsentation"
 
-slide @start layout=title
+slide @start layout=title {
   fill @title "Hallo Forme"
   fill @subtitle "Mein erster Vortrag"
+}
 
-slide @inhalt layout=content
+slide @inhalt layout=content {
   fill @title "Worum es geht"
-  list @punkte x=120 y=260 w=1200
+  list @punkte x=120 y=260 w=1200 {
     item "Erster Punkt"
     item "Zweiter Punkt"
     item "Unterpunkt" level=2
+  }
+}
 ```
 
 **Ohne UI prüfen und rendern:**
@@ -88,7 +91,8 @@ mein-vortrag/
 ```
 
 - **Eine Operation pro Zeile.** Blöcke (Inhalt einer Folie, Listen-Items, Tabellenzeilen,
-  Gruppen) entstehen durch **2 Leerzeichen** Einrückung.
+  Gruppen) stehen in **geschweiften Klammern**: `{` am Zeilenende, `}` in einer eigenen Zeile.
+  Einrückung ist nur Formatierung (üblich: 2 Leerzeichen).
 - **IDs** beginnen mit `@`, nur Buchstaben, Ziffern und `_`: `@titel`, `@card_1`.
   Keine Punkte oder Bindestriche in IDs.
 - **Werte ohne Leerzeichen** stehen direkt (`y=@title.bottom+24`), **mit Leerzeichen in
@@ -140,8 +144,9 @@ Alle Rezepte sind in [`examples/guide/rezepte.forme`](../examples/guide/rezepte.
 ### Folie mit Layout und Platzhaltern
 
 ```
-slide @kpis layout=content        // Layout aus dem Theme
+slide @kpis layout=content {        // Layout aus dem Theme
   fill @title "Kennzahlen"        // Platzhalter (slot) des Layouts befüllen
+}
 ```
 
 Welche Platzhalter es gibt, bestimmt das Layout im Theme (Standard-Theme: `title` hat
@@ -165,11 +170,12 @@ text @t4 "Mittig in der Box" x=1100 y=400 w=600 h=200 align=center valign=middle
 ### Listen
 
 ```
-list @agenda x=content.x y=content.y w=1100 style=body bullet=number
+list @agenda x=content.x y=content.y w=1100 style=body bullet=number {
   item "Ausgangslage"
   item "Ergebnisse"
   item "Kennzahlen" level=2
   item "Nächste Schritte"
+}
 ```
 
 `bullet=disc|dash|number|none`, `level=2` rückt ein.
@@ -177,10 +183,11 @@ list @agenda x=content.x y=content.y w=1100 style=body bullet=number
 ### Tabellen
 
 ```
-table @t x=120 y=500 w=1680 style=table cols="2,1,1"
+table @t x=120 y=500 w=1680 style=table cols="2,1,1" {
   row "Bereich" "2025" "2026"
   row "Vertrieb" "1,1 Mio €" "1,4 Mio €"
   row "Service" "0,6 Mio €" "0,7 Mio €"
+}
 ```
 
 Erste Zeile ist die Kopfzeile (`header=false` schaltet ab). `cols` = Spaltenverhältnis.
@@ -214,9 +221,10 @@ path @welle d="M0 50 C 50 0 100 0 150 50 S 250 100 300 50" x=1000 y=420 w=600 h=
 ### Gruppen
 
 ```
-group @logo x=1500 y=80
+group @logo x=1500 y=80 {
   ellipse @kreis w=80 h=80 fill=$primary
   text @kuerzel "AB" x=@kreis.right+16 y=16 size=40 weight=700
+}
 ```
 
 Koordinaten **und Bezüge** in einer Gruppe sind relativ zur Gruppe. Verschiebt man die Gruppe,
@@ -240,10 +248,11 @@ distribute h @c1 @c2 @c3 within=content
 ```
 section "Zahlen"                    // auf oberster Ebene, gilt für alle folgenden Folien
 
-slide @zahlen layout=content
+slide @zahlen layout=content {
   fill @title "Kennzahlen"
   image @chart "./img/umsatz.svg" x=120 y=240 w=900
   number figure @chart caption="Abb. {figure}: Umsatz nach Bereich"
+}
 ```
 
 - `number figure @x caption="…"` zählt `figure` hoch und legt eine Beschriftung `@x_caption`
@@ -254,18 +263,20 @@ slide @zahlen layout=content
 ### Notizen, ausgeblendete Folien, Hintergrund
 
 ```
-slide @backup layout=content hidden=true    // wird nicht gezeigt, nicht gezählt, nicht exportiert
+slide @backup layout=content hidden=true {    // wird nicht gezeigt, nicht gezählt, nicht exportiert
   notes "Nur falls jemand nachfragt."       // Sprechernotiz (auch im PPTX)
   background fill=#0F172A                   // oder image="./img/bg.jpg" fit=cover
+}
 ```
 
 ### Objekte aus Master/Layout ändern
 
 ```
-slide @frei layout=content
+slide @frei layout=content {
   hide @pagenum                     // ausblenden
   set @footer text="Eigener Fußtext"
   set @title color=#DC2626 y=140    // Platzhalter verschieben/umfärben
+}
 ```
 
 Die Theme-Datei bleibt dabei unverändert; die Änderung gilt nur für diese Folie.
@@ -309,16 +320,20 @@ Für Folien mit mehreren Inhaltsblöcken sind `row` und `column` meist die beste
 wird automatisch angeordnet, und Container lassen sich verschachteln.
 
 ```
-row @haupt within=content gap=$gap
-  column @links span=2 gap=32
+row @haupt within=content gap=$gap {
+  column @links span=2 gap=32 {
     text @lead "Container ordnen ihren Inhalt automatisch an." style=body
-    row @kpis gap=24
+    row @kpis gap=24 {
       use @k4 kpi value="640" label="Aufträge"
       use @k5 kpi value="98 %" label="Termintreue"
       use @k6 kpi value="4,2" label="Ø Bewertung"
-  column @seite fill=$surface radius=24 pad=40 gap=16
+    }
+  }
+  column @seite fill=$surface radius=24 pad=40 gap=16 {
     text @seite_titel "Seitenleiste" style=h2
     text @seite_text "Ein Drittel der Breite, eigener Hintergrund." style=body
+  }
+}
 ```
 
 - **`row`** legt Kinder nebeneinander. Kinder ohne `w` teilen sich die Breite; `span=2`
@@ -411,11 +426,12 @@ style table font=body size=26 color=$text pad=16 border=$line header.fill=$prima
 Der Master enthält, was auf (fast) jeder Folie liegt: Hintergrund, Logo, Fußzeile, Seitenzahl.
 
 ```
-master default
+master default {
   background fill=#FFFFFF
   rect @accentbar x=0 y=0 w=slide.w h=12 fill=$primary
   text @footer "{deck.title} · {section}" style=footer x=$margin y=(slide.h-64)
   text @pagenum "{slide.n} / {deck.total}" style=footer x=(slide.w-$margin) y=(slide.h-64) anchor=right
+}
 ```
 
 Ein Theme kann mehrere Master haben (z. B. `master plain` ohne Fußzeile für Titelfolien).
@@ -423,22 +439,25 @@ Ein Theme kann mehrere Master haben (z. B. `master plain` ohne Fußzeile für Ti
 ### 6.5 Layouts, Platzhalter und Regionen
 
 ```
-layout title master=default
+layout title master=default {
   background fill=$primary
   hide @accentbar @footer @pagenum
   slot @title style=title color=#FFFFFF x=$margin y=360 w=$content.w placeholder="Titel"
   slot @subtitle style=body color=#CCFBF1 x=$margin y=@title.bottom+32 w=$content.w placeholder="Untertitel"
+}
 
-layout content master=default
+layout content master=default {
   slot @title style=h1 x=$margin y=96 w=$content.w placeholder="Folientitel"
   region content x=$margin y=$content.y w=$content.w h=(slide.h-$content.y-140)
+}
 
-layout columns master=default
+layout columns master=default {
   slot @title style=h1 x=$margin y=96 w=$content.w placeholder="Folientitel"
   region content x=$margin y=$content.y w=$content.w h=(slide.h-$content.y-140)
   region col1 x=$margin y=$content.y w=(($content.w-2*$gap)/3) h=content.h
   region col2 x=(col1.right+$gap) y=$content.y w=col1.w h=content.h
   region col3 x=(col2.right+$gap) y=$content.y w=col1.w h=content.h
+}
 ```
 
 - `slot @id` = Platzhalter, auf der Folie mit `fill @id "…"` befüllt. Unbefüllte Slots sieht
@@ -452,10 +471,11 @@ layout columns master=default
 ### 6.6 Kapiteltrenner mit automatischem „Teil X von Y“
 
 ```
-layout section master=default
+layout section master=default {
   hide @footer
   text @part "Teil {section.n} von {deck.sections}" style=small align=center x=$margin y=340 w=$content.w
   slot @title style=title align=center x=$margin y=420 w=$content.w placeholder="Kapitel"
+}
 ```
 
 ### 6.7 Komponenten
@@ -464,16 +484,18 @@ Komponenten sind wiederverwendbare Bausteine mit Parametern. Innerhalb sind alle
 Koordinaten relativ zur Komponente, `param.name` liest Parameter, `param.w`/`param.h` die Größe.
 
 ```
-component card w=520 h=360 title="Überschrift" body="Text"
+component card w=520 h=360 title="Überschrift" body="Text" {
   rect @bg w=param.w h=param.h radius=24 fill=$surface
   rect @bar w=8 h=(param.h-64) x=0 y=32 fill=$primary
   text @heading param.title style=h2 x=40 y=36 w=(param.w-72)
   text @text param.body style=body x=40 y=@heading.bottom+16 w=(param.w-72)
+}
 
-component kpi w=400 h=220 value="0" label="Kennzahl"
+component kpi w=400 h=220 value="0" label="Kennzahl" {
   rect @bg w=param.w h=param.h radius=24 fill=$surface
   text @value param.value font=heading size=96 color=$primary x=32 y=24
   text @label param.label style=small x=32 y=@value.bottom+4 w=(param.w-64)
+}
 ```
 
 Verwendung: `use @k1 kpi value="640" label="Aufträge"`. Rich-Text-Markup in Parametern
@@ -574,7 +596,8 @@ Diesen Abschnitt kann man einer KI als Anweisung mitgeben.
    Textformate per `style=`. Literale Farben nur, wenn das Theme nichts Passendes hat.
 7. **Wiederholungen als Komponente** (im Theme) oder mit `like=`; Gleichverteilung mit
    `distribute`/`stack`/`grid`.
-8. **Einrückung genau 2 Leerzeichen**, keine Tabs. Werte mit Leerzeichen in Klammern.
+8. **Blöcke in `{ }`**, `{` am Zeilenende, `}` allein in einer Zeile, Inhalt 2 Leerzeichen
+   eingerückt. Werte mit Leerzeichen in Klammern.
 9. **Text kurz halten:** Folien sind 1920×1080 px. Fließtext mit `w=` begrenzen, damit er
    umbricht; nicht mehr als ca. 6 Punkte pro Folie.
 10. **Bestehende Dateien minimal ändern:** Bei Änderungswünschen nur die betroffenen Zeilen
@@ -652,10 +675,10 @@ line|arrow @id x y x2 y2 stroke stroke.width stroke.dash [head=end|start|both|no
 polygon @id points="x,y x,y …" x y [w h]
 path @id d="M… L… C… Q… Z" x y [w h]
 text @id "Text" x y [w h] style font size weight italic color line align valign anchor pad fill radius
-list @id x y w style bullet=disc|dash|number|none   +  item "…" [level=2]
-table @id x y w style cols="1,2" header header.fill header.color border stripe pad   +  row "…" "…"
+list @id x y w style bullet=disc|dash|number|none { item "…" [level=2] }
+table @id x y w style cols="1,2" header header.fill header.color border stripe pad { row "…" "…" }
 image @id "pfad" x y w [h] fit=contain|cover|fill radius
-group @id x y   +  eingerückte Kinder (relativ)
+group @id x y { Kinder (relativ) }
 use @id komponente x y w h [like=@andere] param=…
 fill @slot "Text oder Bildpfad" [key=value …]
 // Meta-Schlüssel überall: like=@a  style=name  in=@box  hidden=true
@@ -687,8 +710,8 @@ theme "Name"            size 1920x1080
 token name wert         color name #RRGGBB
 font name "Familie" [weight=] [italic=true] [file="…"]
 style name [base=andere] key=value …
-master name             + eingerückte Ops (background, Objekte)
-layout name [master=]   + slot, region, background, hide, set, Objekte
-component name [w= h= param="default" …]   + eingerückte Ops (param.name, param.w, param.h)
+master name { background, Objekte }
+layout name [master=] { slot, region, background, hide, set, Objekte }
+component name [w= h= param="default" …] { Ops mit param.name, param.w, param.h }
 region name x y w h     (in Master/Layout)
 ```

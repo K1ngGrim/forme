@@ -36,9 +36,10 @@ auch `gap=` und `span=`.
 ### Platzhalter aus dem Layout verschieben
 
 ```forme
-slide @a layout=content
+slide @a layout=content {
   fill @title "Titel weiter unten"
   set @title y=400 color=$primary
+}
 ```
 
 ### Mehrere Objekte auf einmal

@@ -12,15 +12,17 @@ deck "Bericht"
 
 section "Einleitung"
 
-slide @a layout=content
+slide @a layout=content {
   fill @title "{section}"
   text @teil "Teil {section.n} von {deck.sections}" x=120 y=300 size=48
+}
 
 section "Zahlen"
 
-slide @b layout=content
+slide @b layout=content {
   fill @title "{section}"
   text @teil "Teil {section.n} von {deck.sections}" x=120 y=300 size=48
+}
 ```
 
 ## Parameter

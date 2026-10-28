@@ -15,3 +15,4 @@ export * from './imagesize.js';
 export * from './complete.js';
 export * from './templates.js';
 export * from './highlight.js';
+export * from './migrate.js';

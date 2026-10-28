@@ -200,3 +200,6 @@ circle.ov-handle { cursor: move; }
 .dialog-foot { margin: 22px 0 0; padding-top: 14px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
 .st-save { color: var(--muted); }
 .tb-help { justify-content: center; font-weight: 700; text-decoration: none; }
+
+.migration-bar { display: flex; align-items: center; gap: 12px; padding: 6px 12px; background: #fef3c7; border-bottom: 1px solid #fcd34d; color: #78350f; font-size: 12px; }
+.migration-bar code { font-family: var(--mono); }

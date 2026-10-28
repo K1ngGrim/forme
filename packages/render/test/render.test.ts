@@ -18,7 +18,7 @@ describe('svg renderer', () => {
   });
 
   it('marks ids and placeholders only in editor mode', () => {
-    const s = evaluate(parse('slide @a layout=title\n  rect @r\n'));
+    const s = evaluate(parse('slide @a layout=title {\n  rect @r\n}\n'));
     const editor = renderSlideSvg(s, s.slides[0]!, { editor: true });
     const print = renderSlideSvg(s, s.slides[0]!);
     expect(editor).toContain('data-id="r"');
@@ -34,7 +34,7 @@ describe('svg renderer', () => {
   });
 
   it('escapes text', () => {
-    const s = evaluate(parse('slide @a\n  text @t "<b> & \\"q\\""\n'));
+    const s = evaluate(parse('slide @a {\n  text @t "<b> & \\"q\\""\n}\n'));
     expect(renderSlideSvg(s, s.slides[0]!)).toContain('&lt;b&gt; &amp; &quot;q&quot;');
   });
 });

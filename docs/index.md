@@ -8,9 +8,10 @@ jede Änderung im Code erscheint sofort auf der Folie.
 ```
 deck "Mein Vortrag"
 
-slide @start layout=title
+slide @start layout=title {
   fill @title "Hallo Forme"
   fill @subtitle "Präsentationen als Code und Canvas"
+}
 ```
 
 Jedes Beispiel in dieser Dokumentation ist echter Forme-Code. Die Vorschau daneben erzeugt

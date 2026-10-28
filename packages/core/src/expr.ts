@@ -1,7 +1,7 @@
 import type { Diagnostic, Span } from './diagnostics.js';
 import { diag } from './diagnostics.js';
 import type { Token } from './lexer.js';
-import { lex, unescapeString } from './lexer.js';
+import { isRawString, isUnterminated, lex, rawStringValue, unescapeString } from './lexer.js';
 
 export type Expr =
   | { k: 'num'; value: number; unit: '' | '%' | 'px'; span: Span }
@@ -141,8 +141,8 @@ class ExprParser {
         return { k: 'dim', w: w ?? 0, h: h ?? 0, span };
       }
       case 'string':
-        if (!t.text.endsWith('"') || t.text.length < 2) {
-          this.diags.push(diag('error', 'Zeichenkette ohne schließendes Anführungszeichen', span));
+        if (isUnterminated(t.text)) {
+          this.diags.push(diag('error', isRawString(t.text) ? 'Zeichenkette ohne schließendes """' : 'Zeichenkette ohne schließendes Anführungszeichen', span));
         }
         return { k: 'str', raw: t.text, value: unescapeString(t.text), span };
       case 'color':
@@ -212,6 +212,8 @@ export interface InterpPart {
  */
 export function parseInterpolation(src: string, span: Span, diags: Diagnostic[]): InterpPart[] {
   const raw = src.slice(span.start, span.end);
+  // raw strings are taken literally: braces in code and formulas stay text
+  if (isRawString(raw)) return [{ text: rawStringValue(raw) }];
   const offset = span.start;
   const parts: InterpPart[] = [];
   const bodyEnd = raw.endsWith('"') && raw.length >= 2 ? raw.length - 1 : raw.length;

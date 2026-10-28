@@ -37,7 +37,8 @@ Ein oder mehrere Objekte.
 ### Seitenzahl auf einer Folie ausblenden
 
 ```forme
-slide @a layout=content
+slide @a layout=content {
   fill @title "Ohne Seitenzahl"
   hide @pagenum
+}
 ```

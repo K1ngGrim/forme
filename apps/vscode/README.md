@@ -20,5 +20,6 @@ Geste ist ein normaler Undo-Schritt im Editor.
 - **Export:** PDF, PPTX, HTML, SVG und ODP über „Forme: Exportieren …“. PDF braucht Chrome,
   Edge oder Chromium (wird automatisch gesucht, sonst Einstellung `forme.chromiumPath`).
 - **Neue Präsentation aus Vorlage:** dieselben Vorlagen wie in der Web-App.
+- **Auf Klammer-Syntax umstellen:** wandelt Dateien der früheren Einrückungs-Syntax um.
 
 Die Sprache ist in `docs/language.md` beschrieben, Beispiele in `docs/guide.md`.

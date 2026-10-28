@@ -8,6 +8,9 @@
     },
     {
       "include": "#op"
+    },
+    {
+      "include": "#brace"
     }
   ],
   "repository": {
@@ -38,6 +41,9 @@
         },
         {
           "include": "#value"
+        },
+        {
+          "include": "#brace"
         }
       ]
     },
@@ -93,48 +99,61 @@
       ]
     },
     "string": {
-      "begin": "\"",
-      "end": "\"",
-      "name": "string.quoted.double.forme",
       "patterns": [
         {
-          "match": "\\\\.",
-          "name": "constant.character.escape.forme"
+          "begin": "\"\"\"",
+          "end": "\"\"\"",
+          "name": "string.quoted.triple.forme"
         },
         {
-          "begin": "\\{",
-          "end": "\\}",
-          "name": "meta.interpolation.forme",
-          "beginCaptures": {
-            "0": {
-              "name": "punctuation.section.interpolation.begin.forme"
-            }
-          },
-          "endCaptures": {
-            "0": {
-              "name": "punctuation.section.interpolation.end.forme"
-            }
-          },
+          "begin": "\"",
+          "end": "\"",
+          "name": "string.quoted.double.forme",
           "patterns": [
             {
-              "match": "[\\w.]+",
-              "name": "variable.other.forme"
+              "match": "\\\\.",
+              "name": "constant.character.escape.forme"
+            },
+            {
+              "begin": "\\{",
+              "end": "\\}",
+              "name": "meta.interpolation.forme",
+              "beginCaptures": {
+                "0": {
+                  "name": "punctuation.section.interpolation.begin.forme"
+                }
+              },
+              "endCaptures": {
+                "0": {
+                  "name": "punctuation.section.interpolation.end.forme"
+                }
+              },
+              "patterns": [
+                {
+                  "match": "[\\w.]+",
+                  "name": "variable.other.forme"
+                }
+              ]
+            },
+            {
+              "match": "\\*\\*[^*\"]+\\*\\*",
+              "name": "markup.bold.forme"
+            },
+            {
+              "match": "(?<!\\*)\\*[^*\"]+\\*(?!\\*)",
+              "name": "markup.italic.forme"
+            },
+            {
+              "match": "\\[[^\\]\"]*\\]\\([^)\"]*\\)",
+              "name": "markup.underline.link.forme"
             }
           ]
-        },
-        {
-          "match": "\\*\\*[^*\"]+\\*\\*",
-          "name": "markup.bold.forme"
-        },
-        {
-          "match": "(?<!\\*)\\*[^*\"]+\\*(?!\\*)",
-          "name": "markup.italic.forme"
-        },
-        {
-          "match": "\\[[^\\]\"]*\\]\\([^)\"]*\\)",
-          "name": "markup.underline.link.forme"
         }
       ]
+    },
+    "brace": {
+      "match": "[{}]",
+      "name": "punctuation.section.block.forme"
     }
   }
 }

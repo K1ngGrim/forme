@@ -41,9 +41,9 @@ describe('incremental evaluation', () => {
 
   it('re-evaluates following slides when counters change', () => {
     const cache = createEvalCache();
-    const src = 'slide @a\n  rect @r\n  number figure @r caption="Abb. {figure}"\nslide @b\n  rect @q\n  number figure @q caption="Abb. {figure}"\n';
+    const src = 'slide @a {\n  rect @r\n  number figure @r caption="Abb. {figure}"\n}\nslide @b {\n  rect @q\n  number figure @q caption="Abb. {figure}"\n}\n';
     evaluate(parse(src), { cache });
-    const next = applyEdits(src, [{ from: src.indexOf('  number figure @r'), to: src.indexOf('slide @b'), insert: '' }]).text;
+    const next = applyEdits(src, [{ from: src.indexOf('  number figure @r'), to: src.indexOf('}\nslide @b'), insert: '' }]).text;
     const scene = evaluate(parse(next), { cache });
     expect(scene.slides[1]!.byId.get('q_caption')!.props.text).toBe('Abb. 1');
   });

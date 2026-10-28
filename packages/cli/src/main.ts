@@ -1,6 +1,6 @@
 import { parseArgs } from './args.js';
 import type { Args } from './args.js';
-import { check, compile, init, templates, watch } from './commands.js';
+import { check, compile, init, migrateFiles, templates, watch } from './commands.js';
 import type { Io } from './commands.js';
 import { COLORS, PLAIN } from './report.js';
 
@@ -15,6 +15,7 @@ Verwendung:
   forme check <deck.forme> [--json]      nur Fehler und Warnungen ausgeben
   forme init [ordner] [--template <id>]  neues Projekt anlegen (Standard: leer)
   forme templates                        verfügbare Vorlagen auflisten
+  forme migrate <datei|ordner> [--check] alte Einrückungs-Syntax auf { }-Blöcke umstellen
 
 Ausgabeformate (nach Dateiendung oder --format):
   .pdf   wie der Druck aus der App (braucht Chrome, Edge oder Chromium)
@@ -56,6 +57,8 @@ export async function run(argv: string[], io: Io, signal: AbortSignal = new Abor
         return await init(args, io);
       case 'templates':
         return templates(io);
+      case 'migrate':
+        return await migrateFiles(args, io);
       default:
         io.err(`Unbekannter Befehl „${args.command}“\n\n${USAGE}`);
         return 1;

@@ -22,6 +22,7 @@ forme check vortrag/deck.forme         # nur Fehler und Warnungen
 | `forme check <deck> [--json]` | Gibt Fehler und Warnungen mit Quelltext-Ausschnitt aus. `--json` liefert sie maschinenlesbar. |
 | `forme init [ordner] [-t vorlage]` | Legt ein Projekt an. Vorhandene Dateien werden nie überschrieben. |
 | `forme templates` | Listet die Vorlagen. |
+| `forme migrate <datei\|ordner> [--check]` | Stellt Dateien der früheren Einrückungs-Syntax auf Blöcke in `{ }` um (Ordner rekursiv). Nur Klammern werden eingefügt. `--check` ändert nichts und endet mit Code 1, wenn noch Dateien umzustellen sind. |
 
 ### Ausgabeformate
 
@@ -120,6 +121,9 @@ letzten gültigen Stand sichtbar und sind gesperrt, bis der Fehler behoben ist.
 Chromium; Forme sucht selbst, sonst die Einstellung `forme.chromiumPath`.
 „Forme: Neue Präsentation aus Vorlage …“ legt ein Projekt aus denselben Vorlagen an wie die
 Web-App.
+
+„Forme: Auf Klammer-Syntax umstellen“ wandelt eine Datei der früheren Einrückungs-Syntax um, bei
+einem Deck auch sein Theme. Die App zeigt dafür einen Hinweis mit Schaltfläche.
 
 ### Installation
 

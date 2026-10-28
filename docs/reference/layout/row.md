@@ -3,15 +3,16 @@ summary: Container, der seine Kinder nebeneinander anordnet – wie eine Bootstr
 ---
 # row
 
-Eine Zeile ordnet ihre eingerückten Kinder **nebeneinander** an. Kinder ohne feste Breite teilen
+Eine Zeile ordnet die Kinder in ihrem Block **nebeneinander** an. Kinder ohne feste Breite teilen
 sich den Platz nach `span`; mit `cols` entsteht ein Raster wie in Bootstrap. Zeilen und
 [Spalten](column.md) lassen sich verschachteln.
 
 ```forme
-row @drei within=content gap=32
+row @drei within=content gap=32 {
   rect @a fill=$primary radius=24
   rect @b fill=$accent radius=24
   rect @c fill=$muted radius=24
+}
 ```
 
 Koordinaten und Bezüge der Kinder sind relativ zum Container. Position und Größe der Kinder
@@ -69,10 +70,11 @@ Innenabstand zwischen Rand und Kindern.
 Querachse (vertikal): Kinder ohne eigene Höhe füllen bei `stretch` die ganze Zeilenhöhe.
 
 ```forme
-row @r x=120 y=300 w=1680 h=400 gap=32 align=center fill=$surface pad=32
+row @r x=120 y=300 w=1680 h=400 gap=32 align=center fill=$surface pad=32 {
   rect @a h=120 fill=$primary
   rect @b h=240 fill=$accent
   rect @c h=80 fill=$muted
+}
 ```
 
 ### justify
@@ -83,10 +85,11 @@ row @r x=120 y=300 w=1680 h=400 gap=32 align=center fill=$surface pad=32
 Verteilung freien Platzes auf der Hauptachse, wenn alle Kinder eine feste Breite haben.
 
 ```forme
-row @r x=120 y=360 w=1680 justify=between
+row @r x=120 y=360 w=1680 justify=between {
   rect @a w=300 h=200 fill=$primary
   rect @b w=300 h=200 fill=$accent
   rect @c w=300 h=200 fill=$muted
+}
 ```
 
 ### cols
@@ -96,12 +99,13 @@ Raster mit `cols` Spalten: Jedes Kind belegt `span` Spalten, bei Überlauf begin
 Zeile. `cols=12` entspricht dem Bootstrap-Raster.
 
 ```forme
-row @raster within=content cols=12 gap=24
+row @raster within=content cols=12 gap=24 {
   rect @a span=8 h=200 fill=$primary
   rect @b span=4 h=200 fill=$accent
   rect @c span=4 h=200 fill=$muted
   rect @d span=4 h=200 fill=$muted
   rect @e span=4 h=200 fill=$muted
+}
 ```
 
 ### span
@@ -123,21 +127,25 @@ Hintergrund des Containers („Content-Block“), zusammen mit `radius`, `stroke
 ### Feste Breite und Rest
 
 ```forme
-row @r within=content gap=32
+row @r within=content gap=32 {
   rect @nav w=320 fill=$surface radius=24
   rect @inhalt fill=$primary radius=24
+}
 ```
 
 ### Verschachtelt
 
 ```forme
-row @haupt within=content gap=32
-  column @links span=2 gap=24
+row @haupt within=content gap=32 {
+  column @links span=2 gap=24 {
     rect @oben h=300 fill=$primary radius=24
-    row @unten gap=24
+    row @unten gap=24 {
       rect @u1 h=200 fill=$accent radius=24
       rect @u2 h=200 fill=$accent radius=24
+    }
+  }
   rect @rechts fill=$surface radius=24
+}
 ```
 
 ## Im Editor

@@ -22,14 +22,16 @@ describe('pptx z-order', () => {
   it('keeps master objects above shapes that cannot live in a PowerPoint master', async () => {
     const theme = [
       'theme "T"',
-      'master default',
+      'master default {',
       '  rect @under x=0 y=0 w=100 h=100 fill=#111111', // bottom-most: may stay in the master
       '  ellipse @ring x=0 y=0 w=500 h=500 fill=#222222', // ellipses cannot be master objects
       '  rect @bar x=0 y=1000 w=1920 h=80 fill=#333333', // above the ellipse: must not go below it
-      'layout content master=default',
+      '}',
+      'layout content master=default {',
       '  slot @title x=100 y=100',
+      '}',
     ].join('\n');
-    const files = await pptxFiles('deck "x"\nslide @a layout=content\n  fill @title "Hallo"\n  rect @own fill=#444444\n', theme);
+    const files = await pptxFiles('deck "x"\nslide @a layout=content {\n  fill @title "Hallo"\n  rect @own fill=#444444\n}\n', theme);
     const layout = Object.keys(files).filter((f) => /slideLayouts\/slideLayout\d+\.xml$/.test(f)).flatMap((f) => fills(files, f));
     expect(layout).toContain('111111');
     expect(layout).not.toContain('333333');

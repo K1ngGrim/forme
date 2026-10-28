@@ -265,7 +265,7 @@ class Builder {
     }
     const line = `set @${ov.node.id} ${[...ov.props].map(([k, t]) => `${k}=${t}`).join(' ')}`;
     if (anchor) this.push(file, { from: anchor.blockEnd, to: anchor.blockEnd, insert: `\n${' '.repeat(anchor.indent)}${line}` });
-    else if (slideOp) this.push(file, { from: slideOp.line.end, to: slideOp.line.end, insert: `\n${bodyIndent(slideOp)}${line}` });
+    else if (slideOp) for (const e of insertInBlock(slideOp, [line], 'start')) this.push(file, e);
   }
 
   result(extra: Partial<EditResult> = {}): EditResult {
@@ -285,9 +285,36 @@ function isCreation(verb: string): boolean {
   return CREATION.has(verb);
 }
 
-function bodyIndent(slideOp: OpNode): string {
-  const first = slideOp.children[0];
-  return ' '.repeat(first ? first.indent : slideOp.indent + 2);
+function bodyIndent(op: OpNode): string {
+  const first = op.children[0];
+  return ' '.repeat(first ? first.indent : op.indent + 2);
+}
+
+/**
+ * Edits that insert lines into the block of an op, at its start or its end.
+ * An op without block gets `{ … }`.
+ */
+export function insertInBlock(op: OpNode, lines: string[], at: 'start' | 'end'): TextEdit[] {
+  const ind = bodyIndent(op);
+  const body = lines.map((l) => ind + l);
+  const close = ' '.repeat(op.indent) + '}';
+  if (op.open && op.close && op.close.line !== op.line) {
+    if (at === 'start') return [{ from: op.line.end, to: op.line.end, insert: '\n' + body.join('\n') }];
+    return [{ from: op.close.line.start, to: op.close.line.start, insert: body.join('\n') + '\n' }];
+  }
+  if (op.open && op.close) {
+    // `{}` on the op line
+    return [{ from: op.open.start, to: op.close.brace.end, insert: `{\n${body.join('\n')}\n${close}` }];
+  }
+  if (op.open) {
+    // unclosed block: keep it unclosed, append after the last line
+    return [{ from: op.blockEnd, to: op.blockEnd, insert: '\n' + body.join('\n') }];
+  }
+  if (op.span.end === op.line.end) return [{ from: op.span.end, to: op.span.end, insert: ` {\n${body.join('\n')}\n${close}` }];
+  return [
+    { from: op.span.end, to: op.span.end, insert: ' {' },
+    { from: op.line.end, to: op.line.end, insert: `\n${body.join('\n')}\n${close}` },
+  ];
 }
 
 function findSlide(ctx: EditContext, id: string): SlideScene | undefined {
@@ -299,9 +326,8 @@ function fail(error: string): EditResult {
 }
 
 /** Append a line at the end of a slide block. */
-function appendToSlide(ctx: EditContext, slide: SlideScene, line: string): TextEdit {
-  const op = ctx.deck.lines[slide.op.line]?.op as OpNode;
-  return { from: op.blockEnd, to: op.blockEnd, insert: `\n${bodyIndent(op)}${line}` };
+function appendToSlide(ctx: EditContext, slide: SlideScene, line: string): TextEdit[] {
+  return insertInBlock(ctx.deck.lines[slide.op.line]?.op as OpNode, [line], 'end');
 }
 
 /** Allocate a fresh id like `rect3`. */
@@ -440,10 +466,7 @@ function deleteIntent(ctx: EditContext, slide: SlideScene, ids: string[], force:
     else merged.push({ ...r });
   }
   const filtered = [...edits.filter((e) => !merged.some((r) => e.from >= r.from && e.to <= r.to)), ...merged];
-  if (hides.length) {
-    const line = `\n${bodyIndent(slideOp)}hide ${hides.map((h) => '@' + h).join(' ')}`;
-    filtered.push({ from: slideOp.line.end, to: slideOp.line.end, insert: line });
-  }
+  if (hides.length) filtered.push(...insertInBlock(slideOp, [`hide ${hides.map((h) => '@' + h).join(' ')}`], 'start'));
   return { file: 'deck', edits: filtered, warnings, select: [] };
 }
 
@@ -506,7 +529,7 @@ export function computeEdit(ctx: EditContext, intent: Intent): EditResult {
     case 'create': {
       if (ctx.mode === 'theme') return fail('Im Theme-Modus werden keine Objekte auf Folien erzeugt');
       const id = freshId(ctx.scene, slide, intent.kind);
-      return { file: 'deck', edits: [appendToSlide(ctx, slide, opLine(intent.kind, id, intent.props, intent.content))], warnings: [], select: [id] };
+      return { file: 'deck', edits: appendToSlide(ctx, slide, opLine(intent.kind, id, intent.props, intent.content)), warnings: [], select: [id] };
     }
     case 'delete':
       return deleteIntent(ctx, slide, intent.ids, !!intent.force);
@@ -516,16 +539,16 @@ export function computeEdit(ctx: EditContext, intent: Intent): EditResult {
       return arrangeIntent(ctx, b, slide, intent);
     case 'number': {
       const line = `number ${intent.counter} @${intent.id} caption=${escapeString(intent.caption)}`;
-      return { file: 'deck', edits: [appendToSlide(ctx, slide, line)], warnings: [], select: [intent.id] };
+      return { file: 'deck', edits: appendToSlide(ctx, slide, line), warnings: [], select: [intent.id] };
     }
     case 'z':
-      return { file: 'deck', edits: [appendToSlide(ctx, slide, `z @${intent.id} ${intent.mode}`)], warnings: [], select: [intent.id] };
+      return { file: 'deck', edits: appendToSlide(ctx, slide, `z @${intent.id} ${intent.mode}`), warnings: [], select: [intent.id] };
     case 'reorder':
       return reorderIntent(ctx, slide, intent.id, intent.index);
     case 'command': {
       const text = intent.text.trim();
       if (!text) return fail('Leere Eingabe');
-      return { file: 'deck', edits: [appendToSlide(ctx, slide, text)], warnings: [] };
+      return { file: 'deck', edits: appendToSlide(ctx, slide, text), warnings: [] };
     }
   }
   return fail('Unbekannte Aktion');
@@ -557,28 +580,28 @@ function textIntent(ctx: EditContext, b: Builder, slide: SlideScene, id: string,
   if (node.kind === 'list') {
     const op = node.origin.file === 'deck' && b.inSlide(node.origin) ? ctx.deck.lines[node.origin.line]?.op : null;
     if (!op) return fail('Diese Liste ist nicht auf der Folie definiert');
-    const indent = ' '.repeat(op.indent + 2);
     const lines = text
       .split('\n')
       .filter((l) => l.trim())
       .map((l) => {
         const m = /^(\s*)(.*)$/.exec(l) as RegExpExecArray;
         const level = Math.floor((m[1] as string).length / 2) + 1;
-        return `${indent}item ${escapeString((m[2] as string).replace(/^[-•]\s*/, ''))}${level > 1 ? ` level=${level}` : ''}`;
+        return `item ${escapeString((m[2] as string).replace(/^[-•]\s*/, ''))}${level > 1 ? ` level=${level}` : ''}`;
       });
     if (op.children.length) {
       const first = op.children[0] as OpNode;
-      return { file: 'deck', edits: [{ from: first.line.start, to: op.blockEnd, insert: lines.join('\n') }], warnings: [], select: [id] };
+      const last = op.children[op.children.length - 1] as OpNode;
+      const indent = ' '.repeat(first.indent);
+      return { file: 'deck', edits: [{ from: first.line.start, to: last.blockEnd, insert: lines.map((l) => indent + l).join('\n') }], warnings: [], select: [id] };
     }
-    return { file: 'deck', edits: [{ from: op.line.end, to: op.line.end, insert: '\n' + lines.join('\n') }], warnings: [], select: [id] };
+    return { file: 'deck', edits: insertInBlock(op, lines, 'end'), warnings: [], select: [id] };
   }
   const key = node.kind === 'image' ? 'src' : 'text';
   const prov = node.prov[key];
   if (node.slot && ctx.mode === 'deck' && (!prov || !b.inSlide(prov.op))) {
     // unfilled slot (or filled from elsewhere): add a fill op at the top of the slide
     const slideOp = ctx.deck.lines[slide.op.line]?.op as OpNode;
-    const at = slideOp.line.end;
-    return { file: 'deck', edits: [{ from: at, to: at, insert: `\n${bodyIndent(slideOp)}fill @${id} ${escapeString(text)}` }], warnings: [], select: [id] };
+    return { file: 'deck', edits: insertInBlock(slideOp, [`fill @${id} ${escapeString(text)}`], 'start'), warnings: [], select: [id] };
   }
   // strings on this slide are replaced in place, interpolations included
   if (prov && prov.value && b.inSlide(prov.op) && ctx.deck.source[prov.value.start] === '"' && !prov.semantic && !prov.inherited) {
@@ -627,8 +650,7 @@ function duplicateIntent(ctx: EditContext, slide: SlideScene, ids: string[]): Ed
     const rel = shifts.map((s) => ({ from: s.from - op.line.start, to: s.to - op.line.start, insert: s.insert }));
     const copy = applyEdits(block, rel).text;
     const slideOp = ctx.deck.lines[slide.op.line]?.op as OpNode;
-    const reindented = copy.replace(/^ */, bodyIndent(slideOp));
-    edits.push({ from: slideOp.blockEnd, to: slideOp.blockEnd, insert: '\n' + reindented });
+    edits.push(...insertInBlock(slideOp, [copy.replace(/^ */, '')], 'end'));
     select.push(newId);
   }
   if (!edits.length) return fail('Nur auf der Folie erzeugte Objekte können dupliziert werden');
@@ -637,10 +659,10 @@ function duplicateIntent(ctx: EditContext, slide: SlideScene, ids: string[]): Ed
 
 function arrangeIntent(ctx: EditContext, b: Builder, slide: SlideScene, intent: Extract<Intent, { type: 'arrange' }>): EditResult {
   const line = [intent.verb, intent.mode ?? '', ...intent.ids.map((i) => '@' + i), intent.extra ?? ''].filter(Boolean).join(' ');
-  if (!intent.bake) return { file: 'deck', edits: [appendToSlide(ctx, slide, line)], warnings: [], select: intent.ids };
+  if (!intent.bake) return { file: 'deck', edits: appendToSlide(ctx, slide, line), warnings: [], select: intent.ids };
   if (!ctx.evaluate) return fail('Backen nicht verfügbar');
   // evaluate with the semantic op appended, then write the computed literals
-  const tmp = applyEdits(ctx.deck.source, [appendToSlide(ctx, slide, line)]).text;
+  const tmp = applyEdits(ctx.deck.source, appendToSlide(ctx, slide, line)).text;
   const after = ctx.evaluate(tmp);
   const s2 = after.slides[slide.index];
   if (!s2) return fail('Auswertung fehlgeschlagen');
@@ -700,9 +722,8 @@ function addSlide(ctx: EditContext, after: string | undefined, layout: string | 
   const id = freshId(scene, undefined, 's');
   const lay = layout ?? (scene.theme.layouts.includes('content') ? 'content' : scene.theme.layouts[0]);
   const slots = lay ? scene.theme.slots[lay] ?? [] : [];
-  const lines = [`slide @${id}${lay ? ` layout=${lay}` : ''}`];
-  if (slots.includes('title')) lines.push('  fill @title "Titel"');
-  const text = lines.join('\n');
+  const head = `slide @${id}${lay ? ` layout=${lay}` : ''}`;
+  const text = slots.includes('title') ? `${head} {\n  fill @title "Titel"\n}` : head;
   const ref = after ? scene.slides.find((s) => s.id === after) : scene.slides[scene.slides.length - 1];
   if (ref) {
     const op = ctx.deck.lines[ref.op.line]?.op as OpNode;

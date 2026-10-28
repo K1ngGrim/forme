@@ -18,25 +18,29 @@ style body font=body size=32 color=$text line=1.4
 style caption font=body size=22 color=$muted
 style footer font=body size=20 color=$muted
 
-master default
+master default {
   background fill=#FFFFFF
   text @pagenum "{slide.n}" style=footer x=(slide.w-$margin) y=(slide.h-80) anchor=right
+}
 
-layout title master=default
+layout title master=default {
   hide @pagenum
   slot @title style=h1 x=$margin y=380 w=(slide.w-2*$margin) placeholder="Titel"
   slot @subtitle style=body color=$muted x=$margin y=@title.bottom+24 w=(slide.w-2*$margin) placeholder="Untertitel"
+}
 
-layout content master=default
+layout content master=default {
   slot @title style=h2 x=$margin y=$margin w=(slide.w-2*$margin) placeholder="Titel"
   region content x=$margin y=260 w=(slide.w-2*$margin) h=(slide.h-400)
+}
 
 layout blank master=default
 `;
 
 export const NEW_DECK_SOURCE = `deck "Neue Präsentation"
 
-slide @s1 layout=title
+slide @s1 layout=title {
   fill @title "Neue Präsentation"
   fill @subtitle "Untertitel"
+}
 `;

@@ -5,12 +5,26 @@ Diese Referenz ist verbindlich. Jede Änderung an der Sprache wird hier nachgezo
 
 ## Grundlagen
 
-Eine Forme-Datei ist zeilenbasiert: **eine Operation pro Zeile**, Blöcke entstehen durch
-Einrückung mit **2 Leerzeichen**.
+Eine Forme-Datei ist zeilenbasiert: **eine Operation pro Zeile**. Operationen, die weitere
+Operationen enthalten (Folien, Master, Layouts, Komponenten, Gruppen, Zeilen, Spalten, Listen,
+Tabellen), öffnen am Zeilenende einen **Block in geschweiften Klammern**.
 
 ```
 <verb> [@id] [Positionsargumente] [key=value ...]   // Kommentar
+<verb> [@id] [Argumente] {                          // Block
+  <verb> …
+}
 ```
+
+- `{` steht am Ende der Zeile mit der Operation, `}` allein in einer eigenen Zeile (danach
+  höchstens ein Kommentar). Ein leerer Block darf `{}` geschrieben werden, ein Block ohne
+  Inhalt kann auch ganz entfallen.
+- Einrückung hat **keine Bedeutung**. Üblich sind 2 Leerzeichen pro Ebene; der Editor rückt
+  beim Schreiben so ein und hält sich beim Rückschreiben an die vorhandene Einrückung.
+- Dateien in der früheren Einrückungs-Syntax (Blöcke nur durch Einrückung) meldet der Parser
+  mit einem Hinweis. `forme migrate <datei>` stellt sie um, ebenso der Befehl „Auf
+  Klammer-Syntax umstellen“ in der App und in VS Code. Dabei werden nur Klammern eingefügt;
+  Kommentare und Formatierung bleiben erhalten.
 
 - Argumente werden durch Leerzeichen getrennt. Ein Wert ohne Leerzeichen steht direkt
   (`y=@title.bottom+24`), sonst in Klammern (`w=(slide.w - 2*$margin)`).
@@ -28,6 +42,7 @@ Einrückung mit **2 Leerzeichen**.
 | Prozent | `10%` | relativ zur Folie: bei x/w/x2/dx zur Breite, sonst zur Höhe |
 | Größe | `1920x1080` | nur bei `size` |
 | Zeichenkette | `"Text"` | Escapes: `\"`, `\\`, `\n`, `\t` |
+| Rohtext | `"""…"""` | darf mehrere Zeilen umfassen, ohne Escapes und Interpolation (siehe unten) |
 | Farbe | `#1E40AF`, `#fff`, `#00000080`, `rgba(0,0,0,0.25)`, `rgb(…)` | |
 | Token | `$primary`, `$space.l` | aus dem Theme (`token`, `color`) |
 | Objektbezug | `@box.x`, `@title.bottom` | Eigenschaft eines vorher definierten Objekts |
@@ -54,6 +69,24 @@ text @footer "Folie {slide.n} von {deck.total} – {section}"
 number figure @chart caption="Abb. {figure}: Umsatz nach Region"
 ```
 
+### Rohtext über mehrere Zeilen
+
+Zwischen `"""` und `"""` steht Text wörtlich, auch über mehrere Zeilen: keine Escapes, keine
+`{…}`-Interpolation. Ein Zeilenumbruch direkt nach den öffnenden Anführungszeichen und die
+Zeile vor den schließenden fallen weg, die gemeinsame Einrückung aller Zeilen wird entfernt.
+Damit lässt sich Text passend zum Block einrücken:
+
+```
+slide @zitat layout=content {
+  fill @title "Rohtext"
+  text @t x=120 y=300 w=1600 style=body """
+    Erste Zeile
+      zweite Zeile, eingerückt
+    {keine Interpolation}
+  """
+}
+```
+
 ### Rich Text
 
 Innerhalb von Text-Zeichenketten:
@@ -78,8 +111,9 @@ theme "./themes/corporate.forme"     // optional, sonst eingebautes Standard-The
 section "Zahlen"                     // gilt für alle folgenden Folien
 counter step start=0                 // eigener Zähler
 
-slide @intro layout=title [master=default] [hidden=true]
+slide @intro layout=title [master=default] [hidden=true] {
   fill @title "Quartalsbericht Q3"
+}
   …
 ```
 
@@ -101,17 +135,20 @@ style h1 font=heading size=64 color=$primary
 style h2 base=h1 size=48                 // erbt von h1
 counter figure start=0
 
-master default
+master default {
   background fill=#FFFFFF
   text @pagenum "{slide.n}" style=footer x=(slide.w-$margin) y=(slide.h-60) anchor=right
+}
 
-layout content master=default
+layout content master=default {
   slot @title style=h1 x=$margin y=$margin w=(slide.w-2*$margin) placeholder="Titel"
   region content x=$margin y=240 w=(slide.w-2*$margin) h=(slide.h-360)
+}
 
-component kpi w=520 h=320 label="Kennzahl" value="0"
+component kpi w=520 h=320 label="Kennzahl" value="0" {
   rect @bg w=param.w h=param.h radius=24 fill=$surface
   text @value param.value style=h1 x=32 y=48
+}
 ```
 
 Ein Theme ist eine gewöhnliche Forme-Datei. Das eingebaute Standard-Theme ist ebenfalls in

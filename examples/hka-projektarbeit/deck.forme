@@ -1,13 +1,14 @@
 deck "lego::lab: Schnittstellen zu externen Displays"
 theme "./theme.forme"
 
-slide @titel layout=title
+slide @titel layout=title {
   fill @context "Projektarbeit – Informatik Master"
   fill @title "lego::lab: Schnittstellen zu externen Displays"
   fill @subtitle "Eine Middleware für entfernte Objekte über einen anfragegetriebenen Bus"
   fill @author "Florian Kaiser"
+}
 
-slide @ueberblick layout=content
+slide @ueberblick layout=content {
   fill @title "Überblick"
   use @s1 step x=$margin y=250 num="1" title="Ausgangslage und Problem" body="Hub, drei Einschränkungen, Anforderungen K1 bis K6"
   use @s2 step x=$margin num="2" title="Generische Architektur" body="Fünf Schichten, drei Rollen, zwei Kanäle"
@@ -16,50 +17,58 @@ slide @ueberblick layout=content
   use @s5 step x=$margin num="5" title="Evaluation" body="Übertragungsaufwand, Reaktionszeit, Anforderungen"
   use @s6 step x=$margin num="6" title="Grenzen und Ausblick" body="Was fehlt und welcher Weg dorthin führt"
   stack v @s1 @s2 @s3 @s4 @s5 @s6 gap=36
+}
 
 section "Problem"
 
-slide @problem layout=columns
+slide @problem layout=columns {
   fill @title "Problemstellung: drei Einschränkungen zugleich"
   use @k1 ncard x=col1.x y=$content.y w=col1.w h=400 num="1" title="Anfragegetrieben" body="Nur der Hub stößt Übertragungen an. Das Display kann antworten, aber nichts von sich aus senden."
   use @k2 ncard x=col2.x y=$content.y w=col2.w h=400 num="2" title="16 Byte je Paket" body="Feste, sehr kleine Blockgröße. Nachrichten üblicher Größe passen nicht in ein Paket."
   use @k3 ncard x=col3.x y=$content.y w=col3.w h=400 num="3" title="Beschränkte Laufzeit" body="Pybricks: kein Netzwerkstack, keine Threads, Ganzzahlen nur bis 2³⁰−1."
   use @frage callout x=$margin y=@k1.bottom+48 w=$content.w h=270 label="Leitfrage" body="Wie lässt sich eine Middleware entwerfen, die **entfernte Objekte** über eine anfragegetriebene Verbindung mit sehr kleiner Paketgröße auf beschränkten Laufzeitumgebungen **transparent nutzbar** macht?"
+}
 
 section "Architektur"
 
-slide @teil2 layout=section
+slide @teil2 layout=section {
   fill @title "Generische Architektur"
   fill @subtitle "Unabhängig von Plattform und Bus: Schichten, Rollen, Entwurf der Übertragung"
+}
 
-slide @rollen layout=columns
+slide @rollen layout=columns {
   fill @title "Drei wiederkehrende Rollen"
   use @r1 card x=col1.x y=$content.y w=col1.w h=520 title="Interceptor" body="Einziger Ansatzpunkt für den Übertragungsweg. Client: verpackt den Aufruf, sendet Pakete, holt das Ergebnis."
   use @r2 card x=col2.x y=$content.y w=col2.w h=520 title="Dispatcher" body="Ordnet eine Nachricht der Methode zu: Der **Scope** wählt den Empfänger, die Methodenkennung die Operation."
   use @r3 card x=col3.x y=$content.y w=col3.w h=520 title="Stellvertreter und Adapter" body="Stellvertreter (Client) leitet jeden Aufruf weiter, der Adapter (Server) enthält die Logik."
+}
 
 section "Evaluation"
 
-slide @messung layout=columns
+slide @messung layout=columns {
   fill @title "Funktionaler Nachweis und Messaufbau"
   use @m1 kpi x=col1.x y=$content.y w=col1.w value="640" label="Aufrufe in vier Läufen, keine Wiederholung, kein Fehlschlag"
   use @m2 kpi x=col2.x y=$content.y w=col2.w value="8 × 20" label="Textlängen × Wiederholungen je Konfiguration"
   use @m3 kpi x=col3.x y=$content.y w=col3.w value="4" label="Konfigurationen: 13 oder 7 Byte Nutzlast, MessagePack oder JSON"
-  table @werte x=$margin y=@m1.bottom+48 w=$content.w style=table cols="2,1,1,1,1"
+  table @werte x=$margin y=@m1.bottom+48 w=$content.w style=table cols="2,1,1,1,1" {
     row "Konfiguration" "Round Trips" "Median" "Minimum" "Maximum"
     row "MessagePack, 13 Byte" "4 bis 13" "920 ms" "457 ms" "1499 ms"
     row "MessagePack, 7 Byte" "5 bis 23" "1434 ms" "571 ms" "2642 ms"
     row "JSON, 13 Byte" "6 bis 15" "1085 ms" "685 ms" "1716 ms"
+  }
   number table @werte caption="Tab. {table}: Messwerte je Konfiguration"
+}
 
 section "Ausblick"
 
-slide @fazit layout=columns
+slide @fazit layout=columns {
   fill @title "Fazit"
   use @f1 ncard x=col1.x y=$content.y w=col1.w h=460 num="1" title="Middleware statt Einzellösung" body="Fünf Schichten, drei Rollen. Alles Wegabhängige liegt unterhalb einer einzigen Operation."
   use @f2 ncard x=col2.x y=$content.y w=col2.w h=460 num="2" title="Übertragungen zählen" body="114 ms je Round Trip, davon 100 ms Wartezeit. Header und Format halbieren die Übertragungen."
   use @f3 ncard x=col3.x y=$content.y w=col3.w h=460 num="3" title="Nutzbar, mit bekannten Grenzen" body="Eine interaktive Oberfläche läuft. 3 von 6 Anforderungen erfüllt, 3 teilweise."
+}
 
-slide @danke layout=closing
+slide @danke layout=closing {
   fill @title "Vielen Dank – Fragen?"
   fill @body "Quelltext: github.com/mat-mv/legolab-tft-display\nMiddleware: github.com/K1ngGrim/micro-rpc"
+}

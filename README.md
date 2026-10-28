@@ -6,13 +6,14 @@ der jede Folie als Abfolge von Operationen beschrieben ist. Beide Ansichten sind
 synchron, und die Datei ist die Quelle der Wahrheit.
 
 ```
-slide @kpis layout=content
+slide @kpis layout=content {
   fill @title "Kennzahlen"
   rect @card1 x=$margin y=260 w=520 h=320 radius=24 fill=$surface
   rect @card2 like=@card1
   rect @card3 like=@card1
   distribute h @card1 @card2 @card3 within=content
   text @kpi1 "1,2 Mio €" style=h1 in=@card1 pad=$space.l
+}
 ```
 
 ## Schnellstart
@@ -113,7 +114,7 @@ Vektorpfad nachgebaut (`use @logo hka x=… y=… w=… h=… color=$primary`).
 | `packages/core` | Lexer, verlustfreier Parser (CST), Printer, Evaluator mit Provenienz, Szenengraph, Edit-Engine. Reines TypeScript ohne DOM- oder Node-API. |
 | `packages/render` | Szenengraph → SVG, Schriftvermessung mit echten Fontdateien |
 | `packages/export` | PDF-HTML und PPTX (pptxgenjs), browser-tauglich; `@forme/export/node`: Laden von Platte, Ausgabedateien, ODP (LibreOffice) |
-| `packages/cli` | Kommandozeile `forme`: compile, watch, check, init |
+| `packages/cli` | Kommandozeile `forme`: compile, watch, check, init, migrate |
 | `apps/web` | Browser-App: React + Zustand, CodeMirror 6, SVG-Canvas, Projekte in IndexedDB oder Ordnern |
 | `apps/vscode` | VS Code-Erweiterung: Sprache, Diagnosen, Live-Vorschau mit direkter Manipulation, Export |
 | `apps/docs` | Dokumentations-Website aus `docs/*.md`, mit live gerenderten Beispielen und Suche |

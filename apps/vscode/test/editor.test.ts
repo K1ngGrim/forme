@@ -19,16 +19,18 @@ import { openDoc, saveDocument, showEditor, state, typeText } from './mock-vscod
 const THEME = `theme "T"
 color primary #112233
 style h1 size=64 color=$primary
-layout content
+layout content {
   slot @title style=h1 x=100 y=80 w=1600
+}
 `;
 const DECK = `deck "Test"
 theme "./theme.forme"
 
-slide @a layout=content
+slide @a layout=content {
   fill @title "Hallo"
   rect @box x=100 y=300 w=400 h=200 fill=$primary
   text @t "Text" x=900 y=300 w=500
+}
 `;
 
 const TYPES: Record<string, string> = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.woff': 'font/woff', '.svg': 'image/svg+xml' };

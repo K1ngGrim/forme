@@ -37,7 +37,7 @@ describe('args', () => {
 
 describe('diagnostics', () => {
   it('prints a code frame', () => {
-    const src = 'slide @a\n  rect @r like=@nope\n';
+    const src = 'slide @a {\n  rect @r like=@nope\n}\n';
     const start = src.indexOf('@nope');
     const text = formatDiagnostic({ severity: 'error', message: 'Unbekanntes Objekt', span: { start, end: start + 5 } }, 'deck.forme', src);
     expect(text).toBe(['Fehler: Unbekanntes Objekt', '  ┌─ deck.forme:2:16', '2 │   rect @r like=@nope', '  │                ^^^^^'].join('\n'));
@@ -61,11 +61,21 @@ describe('commands', () => {
   });
 
   it('check fails on errors and writes nothing on compile', async () => {
-    await writeFile(join(dir, 'deck.forme'), 'deck "X"\n\nslide @a\n  rect @r like=@nope\n');
+    await writeFile(join(dir, 'deck.forme'), 'deck "X"\n\nslide @a {\n  rect @r like=@nope\n}\n');
     expect(await run(['check', 'deck.forme', '--json'], io())).toBe(1);
     expect(JSON.parse(lines.join('\n')).diagnostics[0]).toMatchObject({ severity: 'error', line: 4, column: 16 });
     expect(await run(['compile', 'deck.forme', 'x.html'], io())).toBe(1);
     await expect(readFile(join(dir, 'x.html'))).rejects.toThrow();
+  });
+
+  it('migrate converts the old indentation syntax, --check only reports', async () => {
+    const old = 'deck "x"\n\nslide @a\n  rect @r // Kasten\n  group @g\n    text @t "x"\n';
+    await writeFile(join(dir, 'deck.forme'), old);
+    expect(await run(['migrate', '.', '--check'], io())).toBe(1);
+    expect(await readFile(join(dir, 'deck.forme'), 'utf8')).toBe(old);
+    expect(await run(['migrate', 'deck.forme'], io())).toBe(0);
+    expect(await readFile(join(dir, 'deck.forme'), 'utf8')).toBe('deck "x"\n\nslide @a {\n  rect @r // Kasten\n  group @g {\n    text @t "x"\n  }\n}\n');
+    expect(await run(['migrate', '.', '--check'], io())).toBe(0);
   });
 
   it('unknown command and format', async () => {
@@ -77,14 +87,14 @@ describe('commands', () => {
 
   it('watch recompiles when the deck or the theme changes', async () => {
     await writeFile(join(dir, 'theme.forme'), 'theme "T"\ncolor primary #112233\n');
-    await writeFile(join(dir, 'deck.forme'), 'deck "X"\ntheme "./theme.forme"\n\nslide @a\n  rect @r x=0 y=0 w=100 h=100 fill=$primary\n');
+    await writeFile(join(dir, 'deck.forme'), 'deck "X"\ntheme "./theme.forme"\n\nslide @a {\n  rect @r x=0 y=0 w=100 h=100 fill=$primary\n}\n');
     const abort = new AbortController();
     const done = run(['watch', 'deck.forme', 'out.html'], io(), abort.signal);
     const html = (): Promise<string> => readFile(join(dir, 'out.html'), 'utf8').catch(() => '');
     await until(async () => (await html()).includes('#112233'));
     await writeFile(join(dir, 'theme.forme'), 'theme "T"\ncolor primary #445566\n');
     await until(async () => (await html()).includes('#445566'));
-    await writeFile(join(dir, 'deck.forme'), 'deck "X"\ntheme "./theme.forme"\n\nslide @a\n  rect @r x=0 y=0 w=100 h=100 fill=#778899\n');
+    await writeFile(join(dir, 'deck.forme'), 'deck "X"\ntheme "./theme.forme"\n\nslide @a {\n  rect @r x=0 y=0 w=100 h=100 fill=#778899\n}\n');
     await until(async () => (await html()).includes('#778899'));
     abort.abort();
     expect(await done).toBe(0);
