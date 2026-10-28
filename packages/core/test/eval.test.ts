@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { evaluate, highlightCode, parse } from '../src/index.js';
-import type { DeckScene, SceneNode } from '../src/index.js';
+import type { DeckScene, MathRenderer, SceneNode } from '../src/index.js';
 
 const ex = (p: string): string => readFileSync(resolve(__dirname, '../../../examples', p), 'utf8');
 
@@ -194,5 +194,25 @@ describe('code', () => {
     expect(node(s, 0, 'c').props.fill).toBe('#282C34');
     expect(node(s, 0, 'c').runs!.find((r) => r.text === 'return')?.color).toBe('#FF0000');
     expect(s.diagnostics.map((d) => d.message)).toEqual(['Unbekannte Sprache „cobol“ – ohne Hervorhebung']);
+  });
+});
+
+describe('math', () => {
+  const fake: MathRenderer = (tex) => (tex.includes('{') && !tex.includes('}') ? { body: '', viewBox: '0 0 0 0', w: 0, h: 0, error: 'Missing close brace' } : { body: '<path/>', viewBox: '0 -750 2000 1000', w: 2, h: 1 });
+
+  it('sizes formulas from the renderer, scales into a given box, reports errors', () => {
+    const s = evaluate(parse('slide @a {\n  math @f x=10 y=20 size=50 """\\frac{a}{b}"""\n  math @g w=300 h=100 """x"""\n  math @e """\\frac{a"""\n}\n'), { math: fake });
+    expect(node(s, 0, 'f').box).toEqual({ x: 10, y: 20, w: 100, h: 50 });
+    expect(node(s, 0, 'f').math?.viewBox).toBe('0 -750 2000 1000');
+    expect(node(s, 0, 'f').props.text).toBe('\\frac{a}{b}');
+    expect(node(s, 0, 'g').box).toEqual({ x: 0, y: 0, w: 300, h: 100 });
+    expect(s.diagnostics.map((d) => d.message)).toEqual(['Formel: Missing close brace']);
+  });
+
+  it('warns about formulas in normal strings and estimates a size without renderer', () => {
+    const s = evalSrc('slide @a {\n  math @f "\\\\alpha"\n}\n');
+    expect(s.diagnostics[0]?.message).toContain('Rohtext');
+    expect(node(s, 0, 'f').math).toBeNull();
+    expect(node(s, 0, 'f').box.w).toBeGreaterThan(0);
   });
 });

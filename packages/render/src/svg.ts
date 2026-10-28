@@ -285,6 +285,19 @@ function tableNode(scene: DeckScene, node: SceneNode): string {
   return out;
 }
 
+/** A typeset formula as nested SVG, scaled into the box; the TeX source if no formula renderer ran. */
+function mathNode(node: SceneNode): string {
+  const b = node.box;
+  const color = str(node.props.color, '#111827');
+  if (!node.math) {
+    return `<text x="${n(b.x)}" y="${n(b.y + b.h * 0.75)}" font-family="serif" font-style="italic" font-size="${n(num(node.props.size, 48))}" fill="${esc(color)}">${esc(str(node.props.text, ''))}</text>`;
+  }
+  return (
+    `<svg x="${n(b.x)}" y="${n(b.y)}" width="${n(Math.max(0, b.w))}" height="${n(Math.max(0, b.h))}" viewBox="${esc(node.math.viewBox)}" ` +
+    `preserveAspectRatio="xMidYMid meet" overflow="visible" color="${esc(color)}">${node.math.body}</svg>`
+  );
+}
+
 function renderNode(scene: DeckScene, node: SceneNode, defs: Defs, opts: RenderOptions): string {
   if (node.props.hidden === true) return '';
   if (opts.skip?.has(node.id)) return '';
@@ -323,6 +336,9 @@ function renderNode(scene: DeckScene, node: SceneNode, defs: Defs, opts: RenderO
       break;
     case 'table':
       body = tableNode(scene, node);
+      break;
+    case 'math':
+      body = mathNode(node);
       break;
     case 'box':
     case 'group':

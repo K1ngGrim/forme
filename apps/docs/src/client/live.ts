@@ -1,7 +1,7 @@
 // Live editor for examples: the code becomes editable and the preview is re-rendered with the
 // real compiler (core + render) on every change. Loaded on demand.
 import { highlightSource, parse } from '@forme/core';
-import type { Document, ImageSize, TextMeasurer } from '@forme/core';
+import type { Document, ImageSize, MathRenderer, TextMeasurer } from '@forme/core';
 import { createFontMeasurer } from '@forme/render';
 import { assetResolver, prepareExample, renderExample } from '../examples.js';
 
@@ -11,7 +11,7 @@ interface ExamplesData {
   fonts: { file: string; weight: number; italic: boolean }[];
 }
 
-let shared: Promise<{ measurer: TextMeasurer; themes: { name: string; doc: Document | null }[]; imageSizes: Record<string, ImageSize> }> | null = null;
+let shared: Promise<{ measurer: TextMeasurer; themes: { name: string; doc: Document | null }[]; imageSizes: Record<string, ImageSize>; math: MathRenderer }> | null = null;
 
 function load(root: string): NonNullable<typeof shared> {
   shared ??= (async () => {
@@ -19,7 +19,10 @@ function load(root: string): NonNullable<typeof shared> {
     const fonts = await Promise.all(
       data.fonts.map(async (f) => ({ family: 'Inter', weight: f.weight, italic: f.italic, data: await (await fetch(`${root}assets/fonts/${f.file}`)).arrayBuffer() })),
     );
+    // MathJax is large: only loaded together with the live editor
+    const { createMathRenderer } = await import('@forme/render/math');
     return {
+      math: createMathRenderer(),
       measurer: createFontMeasurer(fonts),
       themes: [
         { name: 'standard', doc: null },

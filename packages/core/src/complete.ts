@@ -23,6 +23,7 @@ const VERB_INFO: Record<string, string> = {
   path: 'Pfad',
   text: 'Text',
   code: 'Quelltext mit Syntaxhervorhebung',
+  math: 'Formel (LaTeX)',
   list: 'Liste',
   image: 'Bild',
   table: 'Tabelle',

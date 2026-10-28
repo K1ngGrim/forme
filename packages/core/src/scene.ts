@@ -12,7 +12,8 @@ export type NodeKind =
   | 'image'
   | 'table'
   | 'group'
-  | 'box';
+  | 'box'
+  | 'math';
 
 export type PropValue = number | string | boolean;
 export type Props = Record<string, PropValue>;
@@ -131,6 +132,8 @@ export interface SceneNode {
   rows?: string[][];
   /** Component name for `use` instances. */
   component?: string;
+  /** `math`: the typeset formula, natural size in px (null while no formula renderer is available). */
+  math?: MathLayout | null;
   /** `code` blocks: language and the highlighted runs (colors resolved). */
   code?: string;
   runs?: TextRun[];
@@ -204,3 +207,19 @@ export interface DeckScene {
   themePath: string | null;
   diagnostics: Diagnostic[];
 }
+
+/** A typeset formula: SVG content in its own coordinate system. */
+export interface MathLayout {
+  /** Inner SVG markup (paths use `currentColor`). */
+  body: string;
+  viewBox: string;
+  /** Natural size in px at the object's font size. */
+  w: number;
+  h: number;
+}
+
+/**
+ * Typesets TeX. Sizes are in em (font size 1). Injected by the caller (`@forme/render` uses
+ * MathJax) so that `core` stays free of dependencies.
+ */
+export type MathRenderer = (tex: string, display: boolean) => { body: string; viewBox: string; w: number; h: number; error?: string };

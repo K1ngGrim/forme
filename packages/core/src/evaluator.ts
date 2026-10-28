@@ -8,12 +8,14 @@ import { createMetricMeasurer } from './metrics.js';
 import type { Arg, Document, OpNode } from './parser.js';
 import { argByKey, parse, positional } from './parser.js';
 import { layoutParagraphs, parseRich } from './richtext.js';
+import { isRawString } from './lexer.js';
 import { CODE_PALETTES, codeLanguage, highlightCode } from './codehl.js';
 import type { CodeClass } from './codehl.js';
 import { MONO_FAMILY } from './metrics.js';
 import type {
   Background,
   Box,
+  MathRenderer,
   TextRun,
   DeckScene,
   FontDef,
@@ -52,6 +54,8 @@ export interface EvaluateOptions {
   measurer?: TextMeasurer;
   /** Natural image sizes keyed by the path as written in the file. */
   imageSizes?: Record<string, ImageSize>;
+  /** Typesetting of `math` formulas (TeX). Without it formulas get an estimated size and no image. */
+  math?: MathRenderer;
   /**
    * Reuse slides whose source and context did not change since the last call
    * (incremental re-evaluation). Pass the same object on every call.
@@ -72,6 +76,7 @@ export interface EvalCache {
   theme?: Document;
   measurer?: TextMeasurer;
   imageSizes?: Record<string, ImageSize>;
+  math?: MathRenderer;
   slides: Map<string, CacheEntry>;
   /** Number of slides reused by the last evaluation (for tests and diagnostics). */
   reused: number;
@@ -158,6 +163,7 @@ interface Ctx {
   componentObjects: Map<string, SceneNode> | null;
   /** Body of each box, to evaluate it again when the box gets a new size. */
   boxBodies: Map<SceneNode, BoxBody>;
+  math: MathRenderer | null;
 }
 
 interface BoxBody {
@@ -806,6 +812,18 @@ function refresh(ctx: Ctx, node: SceneNode): void {
       sizeBox(ctx, node);
       break;
     }
+    case 'math': {
+      const size = num(p.size, 48);
+      const tex = str(p.text, '');
+      const r = ctx.math ? ctx.math(tex, p.display !== false) : null;
+      node.math = r && !r.error ? { body: r.body, viewBox: r.viewBox, w: r.w * size, h: r.h * size } : null;
+      const natural = node.math ?? { w: Math.max(1, tex.length) * 0.5 * size, h: 1.2 * size };
+      // a given size scales the formula into the box (like fit=contain)
+      const w = 'w' in node.prov ? num(p.w, natural.w) : natural.w;
+      const h = 'h' in node.prov ? num(p.h, natural.h) : natural.h;
+      node.box = { x: o.x + num(p.x, 0), y: o.y + num(p.y, 0), w, h };
+      break;
+    }
     case 'group': {
       for (const c of node.children) refresh(ctx, c);
       const ox = o.x + num(p.x, 0);
@@ -888,6 +906,8 @@ function defaultsFor(kind: NodeKind): Props {
       return { x: 0, y: 0 };
     case 'box':
       return { x: 0, y: 0 };
+    case 'math':
+      return { x: 0, y: 0, size: 48, color: DEFAULT_TEXT, text: '' };
   }
 }
 
@@ -1045,10 +1065,13 @@ function createOp(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null): voi
   touch(ctx, node, op, src);
 
   // positional content
-  if ((kind === 'text' || kind === 'image') && !isSlot && rest[0]) {
+  if ((kind === 'text' || kind === 'image' || kind === 'math') && !isSlot && rest[0]) {
     const a = rest[0];
     const v = evalExpr(ctx.env, a.value);
-    if (typeof v === 'string') setProp(node, kind === 'text' ? 'text' : 'src', v, argProv(op, src, a));
+    if (kind === 'math' && a.value.k === 'str' && !isRawString(a.value.raw) && /[\\{]/.test(a.value.raw)) {
+      report(ctx.env, 'Formeln als Rohtext schreiben: """…""" (sonst gelten \\ und {…} als Escape bzw. Ausdruck)', a.value.span, 'warning');
+    }
+    if (typeof v === 'string') setProp(node, kind === 'image' ? 'src' : 'text', v, argProv(op, src, a));
     else if (v !== undefined) report(ctx.env, 'Zeichenkette erwartet', a.value.span);
     rest = rest.slice(1);
   }
@@ -1080,6 +1103,10 @@ function createOp(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null): voi
   }
 
   applyKeyed(ctx, node, op, src, verb);
+  if (verb === 'math' && ctx.math) {
+    const err = ctx.math(str(node.props.text, ''), node.props.display !== false).error;
+    if (err) report(ctx.env, `Formel: ${err}`, node.prov.text?.value ?? op.verbSpan);
+  }
   if (verb === 'code') {
     const lang = argByKey(op, 'lang');
     node.code = str(node.props.lang, 'text');
@@ -1913,10 +1940,12 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
   for (const d of deck.diagnostics) diags.push({ ...d, file: 'deck' });
 
   const cache = opts.cache;
-  if (cache && (cache.theme !== themeDoc || cache.measurer !== m || cache.imageSizes !== opts.imageSizes)) {
+  if (cache && (cache.theme !== themeDoc || cache.measurer !== m || cache.imageSizes !== opts.imageSizes || cache.math !== opts.math)) {
     cache.slides.clear();
     cache.theme = themeDoc;
     cache.measurer = m;
+    if (opts.math) cache.math = opts.math;
+    else delete cache.math;
     if (opts.imageSizes) cache.imageSizes = opts.imageSizes;
     else delete cache.imageSizes;
   }
@@ -1994,6 +2023,7 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
       env,
       m,
       imageSizes: opts.imageSizes ?? {},
+      math: opts.math ?? null,
       pendingFills: new Map(),
       deckDoc: deck,
       parents: new Map(),

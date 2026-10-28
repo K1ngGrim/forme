@@ -5,6 +5,7 @@ import type { DeckScene, Document, EvalCache, ImageSize, TextMeasurer } from '@f
 import { collectImagePaths, createEvalCache, evaluate, imageSize, parse, themePathOf } from '@forme/core';
 import type { LoadedFont } from '@forme/render';
 import { createFontMeasurer } from '@forme/render';
+import { createMathRenderer } from '@forme/render/math';
 
 export interface LoadedDeck {
   deckPath: string;
@@ -58,6 +59,9 @@ export interface LoadOverrides {
   cache?: LoadCache;
 }
 
+/** Formula typesetting, shared by all loads (MathJax starts on the first formula). */
+const math = createMathRenderer();
+
 /** Load a deck from disk: theme, fonts and image sizes included. */
 export async function loadDeck(deckPath: string, over: LoadOverrides = {}): Promise<LoadedDeck> {
   const abs = resolve(deckPath);
@@ -72,9 +76,9 @@ export async function loadDeck(deckPath: string, over: LoadOverrides = {}): Prom
   const resolvePath = (p: string): string => (isAbsolute(p) ? p : resolve(baseDir, p));
   const cache = over.cache;
   const evaluateWith = (extra: { measurer?: TextMeasurer; imageSizes?: Record<string, ImageSize> }): DeckScene =>
-    evaluate(deck, { theme, ...extra, ...(cache ? { cache: cache.evalCache } : {}) });
+    evaluate(deck, { theme, math, ...extra, ...(cache ? { cache: cache.evalCache } : {}) });
   // first pass: discover fonts and images
-  let scene = evaluate(deck, { theme });
+  let scene = evaluate(deck, { theme, math });
   const dependencies = [abs, ...(themeAbs ? [themeAbs] : [])];
   const fonts: LoadedFont[] = [];
   const fontKey: string[] = [];

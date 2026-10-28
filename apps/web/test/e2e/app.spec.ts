@@ -270,4 +270,13 @@ test.describe('Forme im Browser', () => {
     await expect(page.locator('[data-testid="migration-bar"]')).toHaveCount(0);
     await expect(page.locator('.slide-svg text', { hasText: 'Alt' })).toHaveCount(1);
   });
+
+  test('code and formulas: MathJax is loaded on demand', async ({ page }) => {
+    await openTemplate(page, 'leer');
+    await page.click('.cm-content');
+    await page.keyboard.press('Control+a');
+    await page.keyboard.insertText('deck "F"\n\nslide @s1 {\n  code @c lang=python x=100 y=100 """\n    def f(x):\n        return x\n  """\n  math @m x=100 y=500 size=64 """\\frac{a}{b}"""\n}\n');
+    await expect(page.locator('.slide-svg g[data-id="m"] [data-mml-node="mfrac"]')).toHaveCount(1);
+    await expect(page.locator('.slide-svg g[data-id="c"] tspan[fill="#CF222E"]', { hasText: /^def$/ })).toHaveCount(1);
+  });
 });

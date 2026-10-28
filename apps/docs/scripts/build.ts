@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { highlightSource, imageSize, KEYS_BY_VERB, parse } from '@forme/core';
 import type { ImageSize } from '@forme/core';
 import { createFontMeasurer } from '@forme/render';
+import { createMathRenderer } from '@forme/render/math';
 import type { LoadedFont } from '@forme/render';
 import { build as esbuild } from 'esbuild';
 import { Marked } from 'marked';
@@ -210,7 +211,7 @@ export async function buildDocs(outDir: string): Promise<BuildReport> {
     const root = rootOf(page.slug);
     const toc: TocEntry[] = [];
     let exampleNo = 0;
-    const ctx: ExampleContext = { themes, measurer, imageSizes, resolveAsset: assetResolver(root) };
+    const ctx: ExampleContext = { themes, measurer, imageSizes, resolveAsset: assetResolver(root), math: createMathRenderer() };
     const fileDir = posix.dirname(page.file);
 
     /** Links in the Markdown: other docs files become site pages, repository files GitHub links. */

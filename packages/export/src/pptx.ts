@@ -451,6 +451,10 @@ class Exporter {
         target.addTable(data, { x: pos.x, y: pos.y, w: pos.w, colW: t.colWidths.map(inch), rowH: t.rowHeights.map(inch) });
         return;
       }
+      case 'math':
+        // PowerPoint cannot show MathJax output as editable equations
+        await this.rasterizeNode(target, slide, node, 'Formel');
+        return;
       case 'box':
       case 'group':
         if (node.layout || node.kind === 'box') {

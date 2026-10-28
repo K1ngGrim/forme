@@ -1,5 +1,5 @@
 import { ALL_VERBS, DEFAULT_THEME_SOURCE, evaluate, parse } from '@forme/core';
-import type { DeckScene, Document, ImageSize, TextMeasurer } from '@forme/core';
+import type { DeckScene, Document, ImageSize, MathRenderer, TextMeasurer } from '@forme/core';
 import { renderSlideSvg } from '@forme/render';
 
 /**
@@ -66,6 +66,7 @@ export interface ExampleContext {
   measurer: TextMeasurer;
   imageSizes: Record<string, ImageSize>;
   resolveAsset: (path: string) => string;
+  math?: MathRenderer;
 }
 
 export interface RenderedExample {
@@ -88,7 +89,7 @@ export function renderExample(ex: PreparedExample, ctx: ExampleContext, prefix: 
     const layouts = ex.wrapped ? WRAP_LAYOUTS : [null];
     for (const layout of layouts) {
       const source = layout ? ex.source.replace('slide @beispiel layout=content', `slide @beispiel layout=${layout}`) : ex.source;
-      const scene: DeckScene = evaluate(parse(source), { theme: t.doc, measurer: ctx.measurer, imageSizes: ctx.imageSizes });
+      const scene: DeckScene = evaluate(parse(source), { theme: t.doc, measurer: ctx.measurer, imageSizes: ctx.imageSizes, ...(ctx.math ? { math: ctx.math } : {}) });
       if (layout && !scene.theme.layouts.includes(layout)) continue;
       const errors = scene.diagnostics.filter((d) => d.severity === 'error').map((d) => d.message);
       const warnings = scene.diagnostics.filter((d) => d.severity === 'warning').map((d) => d.message);

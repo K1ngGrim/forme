@@ -607,7 +607,10 @@ function textIntent(ctx: EditContext, b: Builder, slide: SlideScene, id: string,
   if (prov && prov.value && b.inSlide(prov.op) && ctx.deck.source[prov.value.start] === '"' && !prov.semantic && !prov.inherited) {
     // raw strings stay raw (code, multi-line text)
     const op = ctx.deck.lines[prov.op.line]?.op;
-    const raw = isRawString(ctx.deck.source.slice(prov.value.start, prov.value.end)) && op ? formatRawString(text, ' '.repeat(op.indent)) : null;
+    const wasRaw = isRawString(ctx.deck.source.slice(prov.value.start, prov.value.end));
+    // formulas are always written raw: backslashes and braces are TeX
+    const oneLine = node.kind === 'math' && !text.includes('\n') && !text.includes('"""') ? `"""${text}"""` : null;
+    const raw = oneLine ?? ((wasRaw || node.kind === 'math') && op ? formatRawString(text, ' '.repeat(op.indent)) : null);
     b.replace('deck', prov.value, raw ?? escapeString(text));
     return b.result({ select: [id] });
   }

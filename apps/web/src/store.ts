@@ -11,7 +11,7 @@ import {
   parse,
   themePathOf,
 } from '@forme/core';
-import type { DeckScene, Diagnostic, Document, EditResult, FileRole, ImageSize, Intent, SlideScene, TextEdit, TextMeasurer } from '@forme/core';
+import type { DeckScene, Diagnostic, Document, EditResult, FileRole, ImageSize, Intent, MathRenderer, SlideScene, TextEdit, TextMeasurer } from '@forme/core';
 import { createFontMeasurer } from '@forme/render';
 import type { LoadedFont } from '@forme/render';
 import { create } from 'zustand';
@@ -100,8 +100,22 @@ function makeFile(role: FileRole, path: string | null, source: string): SourceFi
 /** Slides whose source and context did not change are reused (only affected slides are re-evaluated). */
 const evalCache = createEvalCache();
 
+/** Formula typesetting (MathJax), loaded on demand when a file contains `math`. */
+let math: MathRenderer | undefined;
+let mathLoading = false;
+
+function loadMathIfNeeded(...files: (SourceFile | null)[]): void {
+  if (math || mathLoading || !files.some((f) => f && /^\s*math\b/m.test(f.source))) return;
+  mathLoading = true;
+  void import('@forme/render/math').then((m) => {
+    math = m.createMathRenderer();
+    reevaluate();
+  });
+}
+
 function evalScene(deck: SourceFile, theme: SourceFile | null, measurer: TextMeasurer, imageSizes: Record<string, ImageSize>): DeckScene {
-  return evaluate(deck.doc, { theme: theme ? theme.doc : null, measurer, imageSizes, cache: evalCache });
+  loadMathIfNeeded(deck, theme);
+  return evaluate(deck.doc, { theme: theme ? theme.doc : null, measurer, imageSizes, cache: evalCache, ...(math ? { math } : {}) });
 }
 
 const initialDeck = makeFile('deck', null, NEW_DECK_SOURCE);
@@ -423,7 +437,7 @@ export const actions = {
       theme: s.theme?.doc ?? null,
       scene: s.scene,
       mode: s.mode,
-      evaluate: (src: string) => evaluate(parse(src), { theme: s.theme?.doc ?? null, measurer: s.measurer, imageSizes: s.imageSizes }),
+      evaluate: (src: string) => evaluate(parse(src), { theme: s.theme?.doc ?? null, measurer: s.measurer, imageSizes: s.imageSizes, ...(math ? { math } : {}) }),
     };
     let res: EditResult = computeEdit(ctx, intent);
     if (res.error && intent.type === 'delete' && res.warnings.length) {

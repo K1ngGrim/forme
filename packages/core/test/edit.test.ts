@@ -172,6 +172,11 @@ describe('edit engine', () => {
     expect(run(src, { type: 'text', slide: 'a', id: 'c', text: 'x = 2\nif x:\n    y = x' })).toBe('slide @a {\n  code @c lang=python """\n    x = 2\n    if x:\n        y = x\n  """\n}\n');
   });
 
+  it('formulas are written back as raw strings', () => {
+    const src = 'slide @a {\n  math @f "x"\n}\n';
+    expect(run(src, { type: 'text', slide: 'a', id: 'f', text: '\\frac{a}{b}' })).toBe('slide @a {\n  math @f """\\frac{a}{b}"""\n}\n');
+  });
+
   it('adds, moves and deletes slides', () => {
     const src = 'deck "x"\n\nslide @a {\n  rect @r\n}\n\nslide @b\n';
     expect(run(src, { type: 'addSlide', after: 'a', layout: 'blank' })).toBe('deck "x"\n\nslide @a {\n  rect @r\n}\n\nslide @s1 layout=blank\n\nslide @b\n');

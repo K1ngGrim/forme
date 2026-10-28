@@ -676,6 +676,7 @@ polygon @id points="x,y x,y …" x y [w h]
 path @id d="M… L… C… Q… Z" x y [w h]
 text @id "Text" x y [w h] style font size weight italic color line align valign anchor pad fill radius
 code @id lang=python|java|sql|… x y [w h] [palette=light|dark] [numbers=true] [wrap=true] """…"""
+math @id x y [size=48] [color] [display=false] """\frac{a}{b}"""   // LaTeX, immer als Rohtext
 list @id x y w style bullet=disc|dash|number|none { item "…" [level=2] }
 table @id x y w style cols="1,2" header header.fill header.color border stripe pad { row "…" "…" }
 image @id "pfad" x y w [h] fit=contain|cover|fill radius
