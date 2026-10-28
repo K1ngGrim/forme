@@ -11,6 +11,7 @@ export const CREATE_VERBS = [
   'polygon',
   'path',
   'text',
+  'code',
   'list',
   'image',
   'table',
@@ -55,6 +56,7 @@ export const KEYS_BY_VERB: Record<string, string[]> = {
   path: [...BOX, ...PAINT, 'd', ...META],
   text: [...BOX, ...PAINT, ...RADIUS, ...TEXT, ...META],
   list: [...BOX, ...PAINT, ...TEXT, 'bullet', ...META],
+  code: [...BOX, ...PAINT, ...RADIUS, 'font', 'size', 'weight', 'color', 'line', 'pad', 'text', 'lang', 'palette', 'numbers', 'wrap', ...META],
   image: [...BOX, 'opacity', 'hidden', 'src', 'fit', ...RADIUS, 'stroke', 'stroke.width', 'shadow.x', 'shadow.y', 'shadow.blur', 'shadow.color', ...META],
   table: ['x', 'y', 'w', 'font', 'size', 'color', 'pad', 'line', 'header', 'header.fill', 'header.color', 'border', 'stripe', 'cols', 'fill', 'opacity', 'hidden', ...META],
   group: ['x', 'y', 'opacity', 'hidden', 'span'],
@@ -63,7 +65,7 @@ export const KEYS_BY_VERB: Record<string, string[]> = {
   box: [...BOX, ...PAINT, ...RADIUS, 'pad', ...META],
   column: [...CONTAINER, ...META],
   slot: [...BOX, ...PAINT, ...RADIUS, ...TEXT, 'kind', 'placeholder', 'src', 'fit', 'bullet', ...META],
-  set: [...BOX, ...PAINT, ...RADIUS, ...TEXT, 'x2', 'y2', 'head', 'src', 'fit', 'points', 'd', 'bullet', 'kind', 'placeholder', 'header', 'header.fill', 'header.color', 'border', 'stripe', 'cols', 'gap', 'justify', 'span'],
+  set: [...BOX, ...PAINT, ...RADIUS, ...TEXT, 'lang', 'palette', 'numbers', 'wrap', 'x2', 'y2', 'head', 'src', 'fit', 'points', 'd', 'bullet', 'kind', 'placeholder', 'header', 'header.fill', 'header.color', 'border', 'stripe', 'cols', 'gap', 'justify', 'span'],
   move: ['dx', 'dy'],
   resize: ['w', 'h'],
   round: ['tl', 'tr', 'br', 'bl'],
@@ -112,7 +114,7 @@ export const NUMERIC_KEYS = new Set([
 ]);
 
 export const COLOR_KEYS = new Set(['fill', 'color', 'stroke', 'shadow.color', 'border', 'header.fill', 'header.color', 'stripe']);
-export const BOOL_KEYS = new Set(['italic', 'hidden', 'header']);
+export const BOOL_KEYS = new Set(['italic', 'hidden', 'header', 'numbers', 'wrap']);
 
 export const ENUM_VALUES: Record<string, string[]> = {
   align: ['left', 'center', 'right'],
@@ -124,6 +126,8 @@ export const ENUM_VALUES: Record<string, string[]> = {
   kind: ['text', 'image'],
   pos: ['below', 'above'],
   justify: ['start', 'center', 'end', 'between', 'around'],
+  palette: ['light', 'dark'],
+  lang: ['python', 'java', 'sql', 'javascript', 'typescript', 'c', 'cpp', 'csharp', 'go', 'rust', 'kotlin', 'json', 'bash', 'forme', 'text'],
 };
 
 export const ALIGN_MODES = ['left', 'center', 'right', 'top', 'middle', 'bottom'];

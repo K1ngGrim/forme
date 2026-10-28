@@ -26,6 +26,19 @@ export function formatValue(v: WriteValue): string {
   return v.raw;
 }
 
+/**
+ * A raw multi-line string for an op indented by `indent`: content one level deeper, closing
+ * quotes on the op's level. Null when the text itself contains three quotes.
+ */
+export function formatRawString(value: string, indent: string): string | null {
+  if (value.includes('"""')) return null;
+  const body = value
+    .split('\n')
+    .map((l) => (l ? `${indent}  ${l}` : l))
+    .join('\n');
+  return `"""\n${body}\n${indent}"""`;
+}
+
 /** Wrap a value in parentheses if it contains whitespace (language rule). */
 export function wrapIfSpaced(text: string): string {
   if (text.startsWith('"')) return text;

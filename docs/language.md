@@ -172,7 +172,7 @@ Schlüssel aus `packages/core/src/vocab.ts` dort beschrieben ist).
 
 | Gruppe | Operationen |
 | --- | --- |
-| [Erzeugen](reference/erzeugen.md) | `rect` `ellipse` `line` `arrow` `polygon` `path` `text` `list` `item` `image` `table` `group` `use` |
+| [Erzeugen](reference/erzeugen.md) | `rect` `ellipse` `line` `arrow` `polygon` `path` `text` `code` `list` `item` `image` `table` `group` `use` |
 | [Layout](reference/layout.md) | `row` `column` `box` `align` `distribute` `stack` `grid` |
 | [Verändern](reference/veraendern.md) | `set` `move` `resize` `round` `style` `stroke` `shadow` `opacity` `hide` `show` `z` |
 | [Folien und Deck](reference/folien.md) | `deck` `theme` `slide` `section` `fill` `notes` `background` `number` `counter` |

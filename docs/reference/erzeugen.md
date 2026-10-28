@@ -1,6 +1,6 @@
 ---
 summary: Objekte anlegen – Formen, Linien, Text, Listen, Bilder, Tabellen, Gruppen und Komponenten.
-ops: rect ellipse line arrow polygon path text list item image table group use
+ops: rect ellipse line arrow polygon path text code list item image table group use
 ---
 # Erzeugen
 

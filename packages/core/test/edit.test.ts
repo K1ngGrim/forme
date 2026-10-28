@@ -167,6 +167,11 @@ describe('edit engine', () => {
     expect(run(src, { type: 'resize', slide: 'a', id: 'k', box: { x: 100, y: 100, w: 600, h: 300 } })).toBe(src.replace('w=400 pad=20', 'w=600 pad=20 h=300'));
   });
 
+  it('text edits keep raw strings raw', () => {
+    const src = 'slide @a {\n  code @c lang=python """\n    x = 1\n  """\n}\n';
+    expect(run(src, { type: 'text', slide: 'a', id: 'c', text: 'x = 2\nif x:\n    y = x' })).toBe('slide @a {\n  code @c lang=python """\n    x = 2\n    if x:\n        y = x\n  """\n}\n');
+  });
+
   it('adds, moves and deletes slides', () => {
     const src = 'deck "x"\n\nslide @a {\n  rect @r\n}\n\nslide @b\n';
     expect(run(src, { type: 'addSlide', after: 'a', layout: 'blank' })).toBe('deck "x"\n\nslide @a {\n  rect @r\n}\n\nslide @s1 layout=blank\n\nslide @b\n');

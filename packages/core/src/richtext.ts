@@ -78,6 +78,8 @@ export interface LayoutOptions {
   lineHeight: number;
   align: 'left' | 'center' | 'right';
   paragraphGap?: number;
+  /** Keep spaces at the start of lines (code). */
+  preserveSpaces?: boolean;
 }
 
 interface Piece {
@@ -153,7 +155,7 @@ export function layoutParagraphs(paras: ParagraphSpec[], opts: LayoutOptions, m:
         curW = 0;
       };
       for (const p of pieces) {
-        if (p.space && cur.length === 0) continue;
+        if (p.space && cur.length === 0 && !opts.preserveSpaces) continue;
         if (!p.space && curW + p.width > avail + 0.01 && cur.some((c) => !c.space)) {
           emit();
         }

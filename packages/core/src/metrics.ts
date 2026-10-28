@@ -51,6 +51,13 @@ function charWidth(ch: string): number {
   return code > 0x2e80 ? 1000 : 556;
 }
 
+/** Built-in monospace font (`code` without a theme font): all glyphs 0.6 em wide. */
+export const MONO_FAMILY = 'monospace';
+
+export function isMonospace(family: string): boolean {
+  return /^(monospace|courier( new)?|consolas|menlo|monaco)$|\bmono\b/i.test(family.trim());
+}
+
 /**
  * Deterministic fallback measurer based on Helvetica metrics. Used when no real
  * font data is available (and in tests), so layout is identical everywhere.
@@ -58,6 +65,7 @@ function charWidth(ch: string): number {
 export function createMetricMeasurer(): TextMeasurer {
   return {
     width(text, font) {
+      if (isMonospace(font.family)) return [...text].length * 0.6 * font.size;
       let w = 0;
       for (const ch of text) w += charWidth(ch);
       const boldFactor = font.weight >= 600 ? 1.06 : 1;

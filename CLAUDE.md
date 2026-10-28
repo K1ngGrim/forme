@@ -210,7 +210,8 @@ Master/Layout per `set @id ...` überschreiben oder per `hide @id` ausblenden.
 
 ### Operationsgruppen
 
-- **Erzeugen:** `rect`, `ellipse`, `line`/`arrow`, `polygon`, `path`, `text`, `list`,
+- **Erzeugen:** `rect`, `ellipse`, `line`/`arrow`, `polygon`, `path`, `text`, `code`
+  (Syntaxhervorhebung), `list`,
   `image`, `table`, `group`, `slot` (im Layout), `fill` (Slot befüllen), `use` (Komponente)
 - **Verändern:** `set`, `move`, `resize`, `round` (Ecken, einzeln oder gesamt), `style`,
   `stroke`, `shadow`, `opacity`, `hide`, `z` (Ebenenreihenfolge)

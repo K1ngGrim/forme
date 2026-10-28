@@ -22,6 +22,7 @@ const VERB_INFO: Record<string, string> = {
   polygon: 'Polygon',
   path: 'Pfad',
   text: 'Text',
+  code: 'Quelltext mit Syntaxhervorhebung',
   list: 'Liste',
   image: 'Bild',
   table: 'Tabelle',

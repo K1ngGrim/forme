@@ -1,5 +1,5 @@
 import type { DeckScene, ListItem, SceneNode, SlideScene, TextRun } from '@forme/core';
-import { parseRich } from '@forme/core';
+import { MONO_FAMILY, parseRich } from '@forme/core';
 import { renderSlideSvg } from '@forme/render';
 import PptxGenJS from 'pptxgenjs';
 
@@ -75,7 +75,8 @@ function fontOf(scene: DeckScene, node: SceneNode): { face: string; bold: boolea
   const def = scene.theme.fonts.find((f) => f.name === name);
   const weight = typeof p.weight === 'number' ? p.weight : def ? def.weight : 400;
   return {
-    face: def ? def.family : name || 'Inter',
+    // built-in monospace font of code blocks: Consolas exists wherever PowerPoint runs
+    face: def ? def.family : name === MONO_FAMILY ? 'Consolas' : name || 'Inter',
     bold: weight >= 600,
     italic: p.italic === true || (p.italic === undefined && !!def?.italic),
     size: pt(num(p.size, 32)),
@@ -379,7 +380,7 @@ class Exporter {
       }
       case 'text': {
         const color = str(p.color, '#111827');
-        const runs = runsToText(parseRich(str(p.text, '')), color);
+        const runs = runsToText(node.runs ?? parseRich(str(p.text, '')), color);
         target.addText(runs.length ? runs : '', this.textOptions(node));
         return;
       }
@@ -560,7 +561,7 @@ export async function exportPptx(scene: DeckScene, opts: PptxOptions): Promise<P
         objects.push({ rect: rp });
         statics.add(node.id);
       } else if (node.kind === 'text') {
-        const runs = runsToText(parseRich(str(node.props.text, '')), str(node.props.color, '#111827'));
+        const runs = runsToText(node.runs ?? parseRich(str(node.props.text, '')), str(node.props.color, '#111827'));
         objects.push({ text: { text: runs.map((r) => r.text).join(''), options: ex.textOptions(node) } });
         statics.add(node.id);
       } else if (node.kind === 'image' && str(node.props.src, '')) {

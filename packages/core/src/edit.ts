@@ -1,9 +1,9 @@
 import type { FileRole, Span } from './diagnostics.js';
-import { escapeString, unescapeString } from './lexer.js';
+import { escapeString, isRawString, unescapeString } from './lexer.js';
 import type { Document, OpNode } from './parser.js';
 import { argByKey, positional, walkOps } from './parser.js';
 import type { WriteValue } from './printer.js';
-import { formatNumber, formatValue, wrapIfSpaced } from './printer.js';
+import { formatNumber, formatRawString, formatValue, wrapIfSpaced } from './printer.js';
 import type { Box, DeckScene, Prov, SceneNode, SlideScene } from './scene.js';
 import { referencedIds } from './values.js';
 
@@ -605,7 +605,10 @@ function textIntent(ctx: EditContext, b: Builder, slide: SlideScene, id: string,
   }
   // strings on this slide are replaced in place, interpolations included
   if (prov && prov.value && b.inSlide(prov.op) && ctx.deck.source[prov.value.start] === '"' && !prov.semantic && !prov.inherited) {
-    b.replace('deck', prov.value, escapeString(text));
+    // raw strings stay raw (code, multi-line text)
+    const op = ctx.deck.lines[prov.op.line]?.op;
+    const raw = isRawString(ctx.deck.source.slice(prov.value.start, prov.value.end)) && op ? formatRawString(text, ' '.repeat(op.indent)) : null;
+    b.replace('deck', prov.value, raw ?? escapeString(text));
     return b.result({ select: [id] });
   }
   b.writeProp(node, key, text);

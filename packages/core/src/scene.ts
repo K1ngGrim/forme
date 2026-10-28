@@ -131,6 +131,9 @@ export interface SceneNode {
   rows?: string[][];
   /** Component name for `use` instances. */
   component?: string;
+  /** `code` blocks: language and the highlighted runs (colors resolved). */
+  code?: string;
+  runs?: TextRun[];
   /** Layout container (`row` / `column`): children are arranged automatically. */
   layout?: 'row' | 'column';
 }

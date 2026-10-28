@@ -1,4 +1,5 @@
 import type { Box, DeckScene, FontDef, LayoutLine, SceneNode, SlideScene, TextLayout, TextRun } from '@forme/core';
+import { isMonospace, MONO_FAMILY } from '@forme/core';
 
 export interface RenderOptions {
   /** Map a path as written in the file to a URL the renderer can load. */
@@ -31,7 +32,12 @@ function str(v: unknown, d: string): string {
   return typeof v === 'string' ? v : d;
 }
 
+/** Built-in monospace font of `code` blocks: fonts with 0.6 em glyphs first (like the measurer). */
+export const MONO_FALLBACK = 'Menlo, "DejaVu Sans Mono", "Liberation Mono", "Courier New", monospace';
+
 export function familyCss(family: string): string {
+  if (family === MONO_FAMILY) return MONO_FALLBACK.replace(/"/g, '&quot;');
+  if (isMonospace(family)) return `&quot;${esc(family)}&quot;, ${MONO_FALLBACK.replace(/"/g, '&quot;')}`;
   return `&quot;${esc(family)}&quot;, ${FONT_FALLBACK.replace(/"/g, '&quot;')}`;
 }
 

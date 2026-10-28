@@ -8,9 +8,13 @@ import { createMetricMeasurer } from './metrics.js';
 import type { Arg, Document, OpNode } from './parser.js';
 import { argByKey, parse, positional } from './parser.js';
 import { layoutParagraphs, parseRich } from './richtext.js';
+import { CODE_PALETTES, codeLanguage, highlightCode } from './codehl.js';
+import type { CodeClass } from './codehl.js';
+import { MONO_FAMILY } from './metrics.js';
 import type {
   Background,
   Box,
+  TextRun,
   DeckScene,
   FontDef,
   NodeKind,
@@ -646,6 +650,54 @@ export function pathBounds(d: string): Box {
   return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
 }
 
+/** Palette of a code block: `palette=dark|light`, theme colors `code.<class>` override it. */
+function codePalette(ctx: Ctx, props: Props): Record<string, string> {
+  const base = CODE_PALETTES[props.palette === 'dark' ? 'dark' : 'light'];
+  const out: Record<string, string> = { ...base };
+  for (const k of Object.keys(base)) {
+    const t = ctx.env.tokens[`code.${k}`];
+    if (typeof t === 'string') out[k] = t;
+  }
+  return out;
+}
+
+function codeDefaults(ctx: Ctx, node: SceneNode, op: OpNode): void {
+  const pal = argByKey(op, 'palette');
+  const dark = !!pal && pal.value.k === 'name' && pal.value.name === 'dark';
+  const colors = codePalette(ctx, { palette: dark ? 'dark' : 'light' });
+  const font = ctx.theme.fonts.has('code') ? 'code' : MONO_FAMILY;
+  Object.assign(node.props, { font, size: 28, line: 1.45, pad: 32, fill: colors.background as string, color: colors.plain as string, lang: 'text' });
+  for (const c of ['tl', 'tr', 'br', 'bl']) node.props[`radius.${c}`] = 16;
+}
+
+/** Highlighted runs of a code block, with line numbers if wanted. */
+function codeRuns(ctx: Ctx, node: SceneNode): TextRun[] {
+  const p = node.props;
+  const colors = codePalette(ctx, p);
+  const src = str(p.text, '').replace(/\t/g, '    ');
+  const color = (cls: CodeClass): string | undefined => (cls === 'plain' ? undefined : colors[cls]);
+  const runs: TextRun[] = highlightCode(src, str(p.lang, 'text')).map((t) => ({ text: t.text, bold: false, italic: t.cls === 'comment', ...(color(t.cls) ? { color: color(t.cls) as string } : {}) }));
+  if (p.numbers !== true) return runs;
+  // split runs at line breaks and put a number in front of every line
+  const lines = src.split('\n').length;
+  const width = String(lines).length;
+  const out: TextRun[] = [];
+  let n = 1;
+  const num = (): TextRun => ({ text: `${String(n++).padStart(width)}  `, bold: false, italic: false, color: colors.lineNumber as string });
+  out.push(num());
+  for (const r of runs) {
+    const parts = r.text.split('\n');
+    parts.forEach((part, i) => {
+      if (i > 0) {
+        out.push({ ...r, text: '\n' });
+        out.push(num());
+      }
+      if (part) out.push({ ...r, text: part });
+    });
+  }
+  return out;
+}
+
 function isTextual(node: SceneNode): boolean {
   return node.kind === 'text' || node.kind === 'list';
 }
@@ -681,6 +733,11 @@ function refresh(ctx: Ctx, node: SceneNode): void {
           };
         });
         node.text = layoutParagraphs(paras, { font, maxWidth, lineHeight: num(p.line, 1.3), align: 'left', paragraphGap: font.size * 0.35 }, ctx.m);
+      } else if (node.code !== undefined) {
+        node.code = str(p.lang, node.code);
+        node.runs = codeRuns(ctx, node);
+        const wrapW = p.wrap === true ? maxWidth : undefined;
+        node.text = layoutParagraphs([{ runs: node.runs, indent: 0 }], { font, maxWidth: wrapW, lineHeight: num(p.line, 1.25), align, preserveSpaces: true }, ctx.m);
       } else {
         const content = node.placeholder ? str(p.placeholder, '') : str(p.text, '');
         node.text = layoutParagraphs([{ runs: parseRich(content), indent: 0 }], { font, maxWidth, lineHeight: num(p.line, 1.25), align }, ctx.m);
@@ -971,13 +1028,14 @@ function createOp(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null): voi
   }
   const isSlot = verb === 'slot';
   const container = verb === 'row' || verb === 'column' ? verb : null;
-  let kind: NodeKind = isSlot ? 'text' : container ? 'group' : (verb as NodeKind);
+  let kind: NodeKind = isSlot || verb === 'code' ? 'text' : container ? 'group' : (verb as NodeKind);
   if (isSlot) {
     const k = argByKey(op, 'kind');
     if (k && k.value.k === 'name' && k.value.name === 'image') kind = 'image';
   }
   const node = newNode(ctx, kind, id, op, src);
   if (container) node.layout = container;
+  if (verb === 'code') codeDefaults(ctx, node, op);
   node.slot = isSlot;
   if (isSlot) {
     node.placeholder = true;
@@ -1022,6 +1080,11 @@ function createOp(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null): voi
   }
 
   applyKeyed(ctx, node, op, src, verb);
+  if (verb === 'code') {
+    const lang = argByKey(op, 'lang');
+    node.code = str(node.props.lang, 'text');
+    if (lang && !codeLanguage(node.code)) report(ctx.env, `Unbekannte Sprache „${node.code}“ – ohne Hervorhebung`, lang.value.span, 'warning');
+  }
 
   if (isSlot) {
     const fill = ctx.pendingFills.get(id);

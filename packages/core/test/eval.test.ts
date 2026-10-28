@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { evaluate, parse } from '../src/index.js';
+import { evaluate, highlightCode, parse } from '../src/index.js';
 import type { DeckScene, SceneNode } from '../src/index.js';
 
 const ex = (p: string): string => readFileSync(resolve(__dirname, '../../../examples', p), 'utf8');
@@ -159,5 +159,40 @@ describe('box', () => {
   it('reports box.w without a fixed width and box outside of boxes', () => {
     const s = b('box @k {\n  rect @r w=box.w\n}\nrect @q w=box.w');
     expect(s.diagnostics.map((d) => d.message)).toEqual(['Die Box hat keine feste Breite', '„box“ ist nur innerhalb einer Box verfügbar']);
+  });
+});
+
+describe('code', () => {
+  it('highlights Python, Java and SQL', () => {
+    const cls = (src: string, lang: string): string =>
+      highlightCode(src, lang)
+        .filter((t) => t.cls !== 'plain')
+        .map((t) => `${t.cls}:${t.text}`)
+        .join(' ');
+    expect(cls('def f(x):  # hi\n    return "a"', 'python')).toBe('keyword:def function:f comment:# hi keyword:return string:"a"');
+    expect(cls('@Override public int n = 0x1F;', 'java')).toBe('meta:@Override keyword:public type:int number:0x1F');
+    expect(cls("select name from t where a = 'x' -- c", 'sql')).toBe("keyword:select keyword:from keyword:where string:'x' comment:-- c");
+    expect(highlightCode('a b', 'brainfuck')).toEqual([{ text: 'a b', cls: 'plain' }]);
+  });
+
+  it('lays out monospaced, keeps indentation, colors runs and numbers lines', () => {
+    const s = evalSrc('slide @a {\n  code @c lang=python x=100 y=100 numbers=true """\n    if x:\n        y = 1\n  """\n}\n');
+    const c = node(s, 0, 'c');
+    expect(s.diagnostics).toEqual([]);
+    expect(c.kind).toBe('text');
+    expect(c.props.text).toBe('if x:\n    y = 1');
+    const lines = c.text!.lines.map((l) => l.runs.map((r) => r.text).join(''));
+    expect(lines).toEqual(['1  if x:', '2      y = 1']);
+    // 0.6 em per character at size 28, plus padding 32 on both sides
+    expect(c.box.w).toBeCloseTo(12 * 0.6 * 28 + 64);
+    expect(c.runs!.find((r) => r.text === 'if')?.color).toBe('#CF222E');
+    expect(c.props.fill).toBe('#F6F8FA');
+  });
+
+  it('dark palette, theme colors and unknown languages', () => {
+    const s = evalSrc('slide @a {\n  code @c "return 1" lang=java palette=dark\n  code @d "x" lang=cobol\n}\n', 'theme "T"\ncolor code.keyword #FF0000\n');
+    expect(node(s, 0, 'c').props.fill).toBe('#282C34');
+    expect(node(s, 0, 'c').runs!.find((r) => r.text === 'return')?.color).toBe('#FF0000');
+    expect(s.diagnostics.map((d) => d.message)).toEqual(['Unbekannte Sprache „cobol“ – ohne Hervorhebung']);
   });
 });
