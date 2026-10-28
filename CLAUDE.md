@@ -84,7 +84,7 @@ pnpm forme compile <deck.forme> [out]  CLI: rendern ohne UI (.pdf/.pptx/.odp/.ht
 pnpm forme watch <deck.forme> [out]    CLI: bei jeder Änderung neu rendern
 pnpm forme check <deck.forme> [--json] CLI: nur Diagnosen ausgeben
 pnpm forme init [ordner] -t <vorlage>  CLI: Projekt aus einer Vorlage anlegen
-pnpm --filter @forme/cli bundle        CLI als eine Datei nach packages/cli/dist (npm install -g)
+pnpm --filter @forme/cli bundle        CLI als eine Datei nach packages/cli/dist (npm-Paket @k1nggrim/forme)
 pnpm --filter forme-vscode package     VS Code-Erweiterung als apps/vscode/forme.vsix
 pnpm docs                              Dokumentation lokal (http://localhost:4174, baut bei Änderungen neu)
 pnpm build:docs                        Dokumentation nach apps/docs/dist
@@ -116,6 +116,9 @@ Hinweise:
   Theme-Code (ergänzt das Standard-Theme) und unten die Folie. Forme-Codeblöcke werden mit dem echten Compiler gerendert und lassen sich
   im Browser bearbeiten; Theme-Ausschnitte und Fragmente bleiben reiner Code. Ein Beispiel, das
   absichtlich einen Fehler zeigt, bekommt einen Kommentar `// FEHLER`.
+- Releases: `.github/workflows/release.yml` (Actions → Release → Run workflow mit Version, oder
+  Tag `v*`): GitHub-Release mit `forme-cli.tgz` und `forme.vsix`, npm-Paket `@k1nggrim/forme`
+  falls das Secret `NPM_TOKEN` gesetzt ist. `forme-cli` auf npm gehört nicht zu Forme.
 - GitHub Pages: `.github/workflows/pages.yml` prüft jeden Push/PR (Typecheck, Tests, Build) und
   veröffentlicht `apps/web/dist` vom Standard-Branch, die Dokumentation darin unter `docs/`. `base: './'` in `vite.config.ts` beibehalten,
   damit die Seite unter `/<repo>/` funktioniert.

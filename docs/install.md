@@ -19,16 +19,25 @@ Rechner (Chrome, Edge, Opera). Sichern und weitergeben über „Datei → Als ZI
   mit `--chromium <pfad>` bzw. der Umgebungsvariable `FORME_CHROMIUM` angeben.
 - Für **ODP**: LibreOffice; `soffice` muss im Pfad liegen.
 
-### Aus einem Release installieren
-
-Jedes Release auf GitHub enthält das fertige Paket `forme-cli.tgz`:
+### Mit npm installieren
 
 ```text
-npm install -g https://github.com/K1ngGrim/forme/releases/latest/download/forme-cli.tgz
+npm install -g @k1nggrim/forme
 forme --version
 ```
 
-Aktualisieren: denselben Befehl erneut ausführen. Entfernen: `npm uninstall -g forme-cli`.
+Aktualisieren: `npm update -g @k1nggrim/forme`. Entfernen: `npm uninstall -g @k1nggrim/forme`.
+
+Achtung: Das Paket heißt `@k1nggrim/forme`. Das npm-Paket `forme-cli` gehört nicht zu Forme.
+
+### Aus einem GitHub-Release installieren
+
+Jedes Release auf GitHub enthält dasselbe Paket als `forme-cli.tgz`. Das funktioniert auch ohne
+npm-Registry:
+
+```text
+npm install -g https://github.com/K1ngGrim/forme/releases/latest/download/forme-cli.tgz
+```
 
 ### Aus dem Quellcode bauen
 
@@ -46,6 +55,14 @@ plus die Vorlagen. Im Repository geht es auch ohne Installation mit `pnpm forme 
 
 Den Stand eines beliebigen Commits gibt es ohne Bauen in GitHub unter **Actions → Pages →
 (Lauf) → Artifacts → `forme-cli`**: entpacken und `npm install -g ./forme-cli` ausführen.
+
+### Ein Release veröffentlichen
+
+Für Maintainer: **Actions → Release → Run workflow**, Version eintragen (z. B. `0.2.0`), oder
+einen Tag `v0.2.0` pushen. Der Workflow prüft und testet, legt Tag und GitHub-Release mit
+`forme-cli.tgz` und `forme.vsix` an und veröffentlicht das npm-Paket `@k1nggrim/forme`, wenn im
+Repository das Secret `NPM_TOKEN` hinterlegt ist (npmjs.com → Access Tokens → „Automation“ bzw.
+„Granular“ mit Schreibrecht; dann GitHub → Settings → Secrets and variables → Actions).
 
 ### Erste Schritte
 

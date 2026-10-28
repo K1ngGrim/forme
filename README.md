@@ -58,9 +58,9 @@ forme compile vortrag/deck.forme vortrag.pptx
 forme check vortrag/deck.forme      # Fehler mit Quelltext-Ausschnitt, --json für Werkzeuge
 ```
 
-Installieren (Node.js 20+):
-`npm install -g https://github.com/K1ngGrim/forme/releases/latest/download/forme-cli.tgz`,
-sobald ein Release veröffentlicht ist (Tag `v*` pushen, siehe `.github/workflows/release.yml`).
+Installieren (Node.js 20+): `npm install -g @k1nggrim/forme`, oder ohne npm-Registry
+`npm install -g https://github.com/K1ngGrim/forme/releases/latest/download/forme-cli.tgz`.
+Releases entstehen über „Actions → Release → Run workflow“ (`.github/workflows/release.yml`).
 Im Repository heißt der Aufruf `pnpm forme …`. Als eigenständiges Programm aus dem Quellcode:
 `pnpm --filter @forme/cli bundle` erzeugt `packages/cli/dist` (eine Datei plus Vorlagen), danach
 `npm install -g ./packages/cli/dist`. Für PDF braucht die CLI einen Chromium-Browser; sie

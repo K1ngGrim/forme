@@ -59,10 +59,10 @@ Fehler: Unbekanntes Objekt „@nope“
 ### Installation
 
 ```text
-npm install -g https://github.com/K1ngGrim/forme/releases/latest/download/forme-cli.tgz
+npm install -g @k1nggrim/forme
 ```
 
-Voraussetzungen, Installation aus dem Quellcode und LibreOffice für ODP stehen unter
+Voraussetzungen, Installation aus einem GitHub-Release oder aus dem Quellcode und LibreOffice für ODP stehen unter
 [Installation](install.md#kommandozeile). Im Repository geht es auch ohne Installation mit
 `pnpm forme <befehl>`.
 

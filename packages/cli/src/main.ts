@@ -4,7 +4,8 @@ import { check, compile, init, templates, watch } from './commands.js';
 import type { Io } from './commands.js';
 import { COLORS, PLAIN } from './report.js';
 
-export const VERSION = '0.1.0';
+/** Set by the bundle (FORME_VERSION, e.g. from the release tag); the package version otherwise. */
+export const VERSION = process.env.FORME_VERSION ?? '0.1.0';
 
 export const USAGE = `Forme ${VERSION} – Präsentationen als Code
 

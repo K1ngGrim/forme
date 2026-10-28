@@ -1,18 +1,27 @@
-# Publishes a GitHub release with the CLI (npm package) and the VS Code extension when a version
-# tag is pushed, e.g. `git tag v0.1.0 && git push origin v0.1.0`. The docs link to
-# releases/latest/download/forme-cli.tgz and releases/latest/download/forme.vsix.
+# Publishes a release of the CLI and the VS Code extension:
+# - GitHub release with forme-cli.tgz and forme.vsix (the docs link to releases/latest/download/…)
+# - npm package @k1nggrim/forme, if the repository has an NPM_TOKEN secret
+# Start it with "Actions → Release → Run workflow" (enter a version) or by pushing a tag v1.2.3.
 name: Release
 
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version, z. B. 0.1.0
+        required: true
 
 permissions:
-  contents: write
+  contents: write # create the tag and the release
+  id-token: write # npm provenance
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -22,17 +31,39 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Version
+        run: |
+          V="${{ inputs.version || github.ref_name }}"
+          V="${V#v}"
+          echo "$V" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$' || { echo "Ungültige Version: $V"; exit 1; }
+          echo "FORME_VERSION=$V" >> "$GITHUB_ENV"
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @forme/web exec playwright install --with-deps chromium
       - run: pnpm typecheck
       - run: pnpm test
 
-      - run: pnpm --filter @forme/cli bundle
-      - run: npm pack ./packages/cli/dist && mv forme-cli-*.tgz forme-cli.tgz
-      - run: pnpm --filter forme-vscode package && cp apps/vscode/forme.vsix forme.vsix
+      - name: CLI package
+        run: |
+          pnpm --filter @forme/cli bundle
+          npm pack ./packages/cli/dist
+          mv k1nggrim-forme-*.tgz forme-cli.tgz
 
-      - name: Create release
+      - name: VS Code extension
+        run: |
+          node -e "const f='apps/vscode/package.json',fs=require('fs'),p=JSON.parse(fs.readFileSync(f));p.version=process.env.FORME_VERSION;fs.writeFileSync(f,JSON.stringify(p,null,2)+'\n')"
+          pnpm --filter forme-vscode package
+          cp apps/vscode/forme.vsix forme.vsix
+
+      - name: GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" forme-cli.tgz forme.vsix --title "Forme $GITHUB_REF_NAME" --generate-notes
+        run: gh release create "v$FORME_VERSION" forme-cli.tgz forme.vsix --target "$GITHUB_SHA" --title "Forme v$FORME_VERSION" --generate-notes
+
+      - name: npm
+        if: env.NPM_TOKEN != ''
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish ./packages/cli/dist --access public --provenance
