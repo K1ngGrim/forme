@@ -43,6 +43,7 @@ Das Format ergibt sich aus der Dateiendung oder aus `--format`:
 | `-o, --out <datei>` | Ausgabedatei statt des zweiten Arguments |
 | `-f, --format <fmt>` | `pdf`, `pptx`, `odp`, `html` oder `svg` |
 | `--slide <id>` | nur diese Folie (SVG) |
+| `--notes` | PDF/HTML mit den Sprechernotizen rechts neben jeder Folie (Seiten doppelt so breit, für [pympress](https://github.com/Cimbali/pympress)) |
 | `--chromium <pfad>` | Browser für PDF. Sonst `FORME_CHROMIUM`, Playwrights Chromium, Google Chrome oder Microsoft Edge |
 | `--no-color` | Ausgabe ohne Farben |
 

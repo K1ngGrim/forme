@@ -95,7 +95,7 @@ async function build(args: Args, io: Io, deckPath: string, out: string, chromium
     return c;
   }
   const slide = stringOption(args, 'slide')?.replace(/^@/, '');
-  const res = await writeOutput(c.loaded, out, chromium, slide ? { slide } : {});
+  const res = await writeOutput(c.loaded, out, chromium, { ...(slide ? { slide } : {}), ...(args.options.notes === true ? { notes: true } : {}) });
   for (const l of res.log) io.err(`${io.style.dim('Export')} ${l}`);
   const files = res.files.map((f) => relative(io.cwd, f) || f);
   const shown = files.length > 3 ? `${files.slice(0, 2).join(', ')} … (${files.length} Dateien)` : files.join(', ');

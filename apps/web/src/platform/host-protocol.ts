@@ -14,7 +14,7 @@ export type EditorToHost =
   | { type: 'edit'; path: string; hash: string; edits: TextEdit[] }
   /** Canvas selection: highlight the ops in a visible text editor of that file. */
   | { type: 'select'; path: string; reveal: Span | null; spans: Span[] }
-  | { type: 'export'; kind: 'pdf' | 'pptx' | 'odp' }
+  | { type: 'export'; kind: 'pdf' | 'pdf-notes' | 'pptx' | 'odp' }
   | { type: 'openText' }
   /** Open another project file in the Forme editor (an included file). */
   | { type: 'open'; path: string }

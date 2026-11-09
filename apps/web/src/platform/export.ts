@@ -26,8 +26,8 @@ export async function rasterizeSvg(svg: string, width: number, height: number): 
  * PDF through the browser's print dialog ("Als PDF speichern"). The pages are the same
  * SVGs as in the editor, so the result matches it exactly and stays vector-based.
  */
-export async function printPdf(scene: DeckScene, resolveAsset: (p: string) => string): Promise<void> {
-  const html = renderDeckHtml(scene, { resolveAsset });
+export async function printPdf(scene: DeckScene, resolveAsset: (p: string) => string, notes = false): Promise<void> {
+  const html = renderDeckHtml(scene, { resolveAsset, ...(notes ? { notes: true } : {}) });
   const frame = document.createElement('iframe');
   frame.setAttribute('aria-hidden', 'true');
   frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';

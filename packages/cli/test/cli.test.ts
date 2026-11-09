@@ -52,6 +52,8 @@ describe('commands', () => {
     expect(await readFile(join(dir, 'out/slide-1.svg'), 'utf8')).toMatch(/^<svg /);
     expect(await run(['compile', 'p/deck.forme', '-f', 'html'], io())).toBe(0);
     expect(await readFile(join(dir, 'p/deck.html'), 'utf8')).toContain('class="page"');
+    expect(await run(['compile', 'p/deck.forme', 'notes.html', '--notes'], io())).toBe(0);
+    expect(await readFile(join(dir, 'notes.html'), 'utf8')).toContain('class="notes"');
   });
 
   it('init never overwrites', async () => {

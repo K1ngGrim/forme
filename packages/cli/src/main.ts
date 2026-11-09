@@ -26,6 +26,7 @@ Optionen:
   -o, --out <datei>      Ausgabedatei (statt des zweiten Arguments)
   -f, --format <fmt>     pdf, pptx, odp, html oder svg
       --slide <id>       nur diese Folie (SVG)
+      --notes            PDF/HTML mit Sprechernotizen rechts neben jeder Folie (für pympress)
       --chromium <pfad>  Browser für PDF (sonst FORME_CHROMIUM, Playwright, Chrome, Edge)
       --no-color         ohne Farben
   -h, --help             diese Hilfe

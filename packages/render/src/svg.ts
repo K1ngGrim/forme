@@ -1,5 +1,5 @@
 import type { Box, DeckScene, FontDef, LayoutLine, SceneNode, SlideScene, TextLayout, TextRun } from '@forme/core';
-import { isMonospace, MONO_FAMILY } from '@forme/core';
+import { isMonospace, MONO_FAMILY, parseRich, plainText } from '@forme/core';
 
 export interface RenderOptions {
   /** Map a path as written in the file to a URL the renderer can load. */
@@ -394,22 +394,82 @@ export function renderSlideSvg(scene: DeckScene, slide: SlideScene, opts: Render
 }
 
 /** HTML document with one page per visible slide, sized for printToPDF. */
-export function renderDeckHtml(scene: DeckScene, opts: RenderOptions = {}): string {
+export interface DeckHtmlOptions extends RenderOptions {
+  /**
+   * Speaker notes next to every slide: pages twice as wide, slide on the left, notes on the
+   * right. Presenter programs like pympress recognize this layout (as in beamer's
+   * „notes on second screen“) and show only the left half to the audience.
+   */
+  notes?: boolean;
+}
+
+/** Page size of the printable deck: slide size, or twice as wide with notes. */
+export function deckPageSize(scene: DeckScene, opts: DeckHtmlOptions = {}): { width: number; height: number } {
+  return { width: scene.width * (opts.notes ? 2 : 1), height: scene.height };
+}
+
+/** Speaker notes as HTML: rich text markup like slide text, blank lines separate paragraphs. */
+function notesHtml(text: string): string {
+  return text
+    .split(/\n\s*\n/)
+    .filter((p) => p.trim())
+    .map(
+      (p) =>
+        `<p>${parseRich(p.trim())
+          .map((r) => {
+            let h = esc(r.text).replace(/\n/g, '<br>');
+            if (r.bold) h = `<b>${h}</b>`;
+            if (r.italic) h = `<i>${h}</i>`;
+            if (r.color) h = `<span style="color:${esc(r.color)}">${h}</span>`;
+            return h;
+          })
+          .join('')}</p>`,
+    )
+    .join('');
+}
+
+function notesPanel(scene: DeckScene, slide: SlideScene, total: number): string {
+  const title = slide.byId.get('title');
+  const head = [`Folie ${slide.n} von ${total}`, slide.section, title && typeof title.props.text === 'string' && !title.placeholder ? plainText(title.props.text) : '']
+    .filter(Boolean)
+    .map(esc)
+    .join(' · ');
+  const text = slide.notes.trim();
+  // long notes get a smaller font so they fit on the page
+  const len = text.length;
+  const size = Math.round(scene.height * (len > 1400 ? 0.024 : len > 800 ? 0.03 : len > 400 ? 0.037 : 0.044));
+  return `<div class="notes" style="font-size:${size}px"><div class="notes-head">${head}</div>${text ? notesHtml(text) : '<p class="notes-empty">Keine Notizen</p>'}</div>`;
+}
+
+export function renderDeckHtml(scene: DeckScene, opts: DeckHtmlOptions = {}): string {
   const W = scene.width;
   const H = scene.height;
-  const pages = scene.slides
-    .filter((s) => !s.hidden)
-    .map((s) => `<div class="page">${renderSlideSvg(scene, s, { ...opts, editor: false, embedFonts: false, idPrefix: `${s.id}-` })}</div>`)
+  const page = deckPageSize(scene, opts);
+  const visible = scene.slides.filter((s) => !s.hidden);
+  const pages = visible
+    .map((s) => {
+      const svg = renderSlideSvg(scene, s, { ...opts, editor: false, embedFonts: false, idPrefix: `${s.id}-` });
+      return `<div class="page">${svg}${opts.notes ? notesPanel(scene, s, visible.length) : ''}</div>`;
+    })
     .join('\n');
+  const pad = Math.round(H * 0.07);
+  const notesCss = opts.notes
+    ? `.page { display: flex; }
+.notes { width: ${W}px; height: ${H}px; box-sizing: border-box; padding: ${pad}px ${pad}px; overflow: hidden; background: #fff; color: #111827; border-left: 2px solid #E5E7EB; font-family: ${FONT_FALLBACK}; line-height: 1.4; }
+.notes-head { font-size: ${Math.round(H * 0.024)}px; color: #6B7280; margin-bottom: ${Math.round(H * 0.03)}px; padding-bottom: ${Math.round(H * 0.015)}px; border-bottom: 2px solid #E5E7EB; }
+.notes p { margin: 0 0 0.6em; }
+.notes-empty { color: #9CA3AF; }
+`
+    : '';
   return `<!doctype html>
 <html><head><meta charset="utf-8"><title>${esc(scene.title)}</title>
 <style>
-@page { size: ${W}px ${H}px; margin: 0; }
+@page { size: ${page.width}px ${page.height}px; margin: 0; }
 html, body { margin: 0; padding: 0; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.page { width: ${W}px; height: ${H}px; overflow: hidden; page-break-after: always; break-after: page; }
+.page { width: ${page.width}px; height: ${page.height}px; overflow: hidden; page-break-after: always; break-after: page; }
 .page:last-child { page-break-after: auto; break-after: auto; }
-.page svg { display: block; }
-${fontFaceCss(scene.theme.fonts, opts.resolveAsset)}
+.page svg { display: block; flex: none; }
+${notesCss}${fontFaceCss(scene.theme.fonts, opts.resolveAsset)}
 </style></head><body>
 ${pages}
 </body></html>`;

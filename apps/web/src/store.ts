@@ -27,7 +27,8 @@ import { baseName, relativeTo, resolveFrom } from './platform/paths.js';
 import type { OpenProject, ProjectInfo } from './platform/projects.js';
 import { downloadBlob, listProjects, openProject, safeFileName, saveInfo, saveToFolder, touchProject, zipProject } from './platform/projects.js';
 
-export type ExportKind = 'pdf' | 'pptx' | 'odp';
+/** 'pdf-notes': PDF with the speaker notes next to every slide (for pympress). */
+export type ExportKind = 'pdf' | 'pdf-notes' | 'pptx' | 'odp';
 
 export type Tool = 'select' | 'rect' | 'ellipse' | 'line' | 'arrow' | 'text' | 'image';
 export type ChangeOrigin = 'code' | 'canvas' | 'external' | 'undo' | 'load';
@@ -746,8 +747,8 @@ export const actions = {
       for (const f of s.scene.theme.fonts) if (f.file) paths.add(f.file);
       await prepareAssets([...paths].map((p) => projectPath(p)).filter((p): p is string => !!p));
       const name = safeFileName(s.scene.title || s.project?.name || 'praesentation');
-      if (kind === 'pdf') {
-        await printPdf(s.scene, (p) => resolveAsset(p));
+      if (kind === 'pdf' || kind === 'pdf-notes') {
+        await printPdf(s.scene, (p) => resolveAsset(p), kind === 'pdf-notes');
         return;
       }
       const fs = projectFs;

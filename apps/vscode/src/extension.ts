@@ -37,12 +37,16 @@ const COMPLETION_KINDS: Record<FormeCompletion['type'], vscode.CompletionItemKin
   class: vscode.CompletionItemKind.Class,
 };
 
-const FORMATS: { format: OutputFormat; label: string; detail: string }[] = [
-  { format: 'pdf', label: 'PDF', detail: 'wie der Druck aus der App (braucht Chrome, Edge oder Chromium)' },
-  { format: 'pptx', label: 'PowerPoint (PPTX)', detail: 'in PowerPoint editierbar' },
-  { format: 'html', label: 'HTML', detail: 'eine Seite pro Folie' },
-  { format: 'svg', label: 'SVG', detail: 'eine Datei pro Folie' },
-  { format: 'odp', label: 'OpenDocument (ODP)', detail: 'über LibreOffice (soffice muss installiert sein)' },
+/** Export choices; `pdf-notes` is a PDF with the speaker notes next to every slide (pympress). */
+type ExportChoice = OutputFormat | 'pdf-notes';
+
+const FORMATS: { id: ExportChoice; format: OutputFormat; label: string; detail: string; notes?: boolean }[] = [
+  { id: 'pdf', format: 'pdf', label: 'PDF', detail: 'wie der Druck aus der App (braucht Chrome, Edge oder Chromium)' },
+  { id: 'pdf-notes', format: 'pdf', label: 'PDF mit Notizen', detail: 'Notizen rechts neben jeder Folie, z. B. für pympress', notes: true },
+  { id: 'pptx', format: 'pptx', label: 'PowerPoint (PPTX)', detail: 'in PowerPoint editierbar' },
+  { id: 'html', format: 'html', label: 'HTML', detail: 'eine Seite pro Folie' },
+  { id: 'svg', format: 'svg', label: 'SVG', detail: 'eine Datei pro Folie' },
+  { id: 'odp', format: 'odp', label: 'OpenDocument (ODP)', detail: 'über LibreOffice (soffice muss installiert sein)' },
 ];
 
 let lastFormeEditor: vscode.TextEditor | undefined;
@@ -108,10 +112,10 @@ export function activate(context: vscode.ExtensionContext): void {
     track(new Preview(deckPath, panel, decks, context.extensionUri, () => lastFormeEditor));
   };
 
-  const exportDeck = async (uri: vscode.Uri | undefined, preset?: OutputFormat): Promise<void> => {
+  const exportDeck = async (uri: vscode.Uri | undefined, preset?: ExportChoice): Promise<void> => {
     const deckPath = await deckOfEditor(uri);
     if (!deckPath) return;
-    const choice = preset ? FORMATS.find((f) => f.format === preset) : await vscode.window.showQuickPick(FORMATS, { title: 'Forme: Exportieren als …' });
+    const choice = preset ? FORMATS.find((f) => f.id === preset) : await vscode.window.showQuickPick(FORMATS, { title: 'Forme: Exportieren als …' });
     if (!choice) return;
     const base = join(dirname(deckPath), basename(deckPath, extname(deckPath)));
     let out: string;
@@ -120,7 +124,7 @@ export function activate(context: vscode.ExtensionContext): void {
       if (!folder?.[0]) return;
       out = join(folder[0].fsPath, `${basename(base)}-{n}.svg`);
     } else {
-      const target = await vscode.window.showSaveDialog({ defaultUri: vscode.Uri.file(`${base}.${choice.format}`), filters: { [choice.label]: [choice.format] } });
+      const target = await vscode.window.showSaveDialog({ defaultUri: vscode.Uri.file(`${base}${choice.notes ? '-notizen' : ''}.${choice.format}`), filters: { [choice.label]: [choice.format] } });
       if (!target) return;
       out = target.fsPath;
       if (!formatOf(out)) out += `.${choice.format}`;
@@ -135,7 +139,7 @@ export function activate(context: vscode.ExtensionContext): void {
     const chromiumPath = vscode.workspace.getConfiguration('forme').get<string>('chromiumPath') || undefined;
     const chromium = new ChromiumSession(chromiumPath ? { executablePath: chromiumPath } : {});
     try {
-      const res = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: `Forme: ${choice.label} wird erzeugt …` }, () => writeOutput(loaded, out, chromium));
+      const res = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: `Forme: ${choice.label} wird erzeugt …` }, () => writeOutput(loaded, out, chromium, choice.notes ? { notes: true } : {}));
       for (const l of res.log) output.appendLine(`Export ${l}`);
       if (res.log.length) output.appendLine('');
       const first = res.files[0];
@@ -203,7 +207,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
     vscode.commands.registerCommand('forme.openPreview', (uri?: vscode.Uri) => openPreview(uri, false)),
     vscode.commands.registerCommand('forme.openPreviewToSide', (uri?: vscode.Uri) => openPreview(uri, true)),
-    vscode.commands.registerCommand('forme.export', (uri?: vscode.Uri, kind?: OutputFormat) => exportDeck(uri, kind)),
+    vscode.commands.registerCommand('forme.export', (uri?: vscode.Uri, kind?: ExportChoice) => exportDeck(uri, kind)),
     vscode.commands.registerCommand('forme.exportPdf', (uri?: vscode.Uri) => exportDeck(uri, 'pdf')),
     vscode.commands.registerCommand('forme.exportPptx', (uri?: vscode.Uri) => exportDeck(uri, 'pptx')),
     vscode.commands.registerCommand('forme.newProject', newProject),

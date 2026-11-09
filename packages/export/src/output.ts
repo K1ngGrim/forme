@@ -18,6 +18,8 @@ export function formatOf(path: string): OutputFormat | null {
 export interface OutputOptions {
   /** Only this slide (SVG). Without it, SVG renders the first slide, or every slide if the path contains `{n}`. */
   slide?: string;
+  /** PDF/HTML: speaker notes to the right of every slide (pages twice as wide, for pympress). */
+  notes?: boolean;
 }
 
 export interface OutputResult {
@@ -53,9 +55,9 @@ export async function writeOutput(loaded: LoadedDeck, out: string, chromium: Chr
       await write(path, renderSlideSvg(scene, slide, { resolveAsset: loaded.resolveUrl, embedFonts: true }));
     }
   } else if (format === 'html') {
-    await write(out, renderDeckHtml(scene, { resolveAsset: loaded.resolveUrl }));
+    await write(out, renderDeckHtml(scene, { resolveAsset: loaded.resolveUrl, ...(opts.notes ? { notes: true } : {}) }));
   } else if (format === 'pdf') {
-    await write(out, await exportPdf(scene, chromium.print, loaded.resolveUrl));
+    await write(out, await exportPdf(scene, chromium.print, loaded.resolveUrl, { notes: !!opts.notes }));
   } else {
     const res = await exportPptx(scene, {
       loadAsset: async (p) => {

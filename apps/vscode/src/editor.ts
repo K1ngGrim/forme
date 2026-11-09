@@ -40,7 +40,7 @@ export class FormeEditorProvider implements vscode.CustomTextEditorProvider {
   constructor(
     private readonly extensionUri: vscode.Uri,
     private readonly decks: Decks,
-    private readonly exportDeck: (uri: vscode.Uri, kind: 'pdf' | 'pptx' | 'odp') => Promise<void>,
+    private readonly exportDeck: (uri: vscode.Uri, kind: 'pdf' | 'pdf-notes' | 'pptx' | 'odp') => Promise<void>,
   ) {}
 
   /** The editor the user works in (for commands bound to keys). */
@@ -90,7 +90,7 @@ export class EditorSession implements vscode.Disposable {
     readonly deckPath: string,
     readonly mode: 'deck' | 'theme',
     private readonly extensionUri: vscode.Uri,
-    private readonly exportDeck: (uri: vscode.Uri, kind: 'pdf' | 'pptx' | 'odp') => Promise<void>,
+    private readonly exportDeck: (uri: vscode.Uri, kind: 'pdf' | 'pdf-notes' | 'pptx' | 'odp') => Promise<void>,
   ) {
     const editorDir = vscode.Uri.joinPath(extensionUri, 'dist', 'editor');
     panel.webview.options = { enableScripts: true, localResourceRoots: [editorDir, vscode.Uri.file(root)] };

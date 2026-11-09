@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { evaluate, parse } from '@forme/core';
-import { renderDeckHtml, renderSlideSvg } from '../src/index.js';
+import { deckPageSize, renderDeckHtml, renderSlideSvg } from '../src/index.js';
 import { createMathRenderer } from '../src/math.js';
 
 const root = resolve(__dirname, '../../../examples');
@@ -53,5 +53,17 @@ describe('math', () => {
     const svg = renderSlideSvg(scene, scene.slides[0]!);
     expect(svg).toMatch(/<svg x="100" y="100" width="[\d.]+" height="[\d.]+" viewBox="[-\d. ]+" preserveAspectRatio="xMidYMid meet" overflow="visible" color="#DC2626">/);
     expect(svg).toContain('data-mml-node="msqrt"');
+  });
+});
+
+describe('deck html with notes', () => {
+  it('puts the speaker notes right of every slide on pages twice as wide (pympress)', () => {
+    const scene = evaluate(parse('slide @a layout=content {\n  fill @title "Start"\n  notes """\n    Erst **das**,\n    dann <das>.\n\n    Zweiter Absatz.\n  """\n}\nslide @b\n'));
+    const html = renderDeckHtml(scene, { notes: true });
+    expect(html).toContain('@page { size: 3840px 1080px;');
+    expect(html).toContain('<div class="notes-head">Folie 1 von 2 · Start</div><p>Erst <b>das</b>,<br>dann &lt;das&gt;.</p><p>Zweiter Absatz.</p>');
+    expect(html).toContain('<p class="notes-empty">Keine Notizen</p>');
+    expect(deckPageSize(scene, { notes: true })).toEqual({ width: 3840, height: 1080 });
+    expect(renderDeckHtml(scene)).not.toContain('class="notes"');
   });
 });

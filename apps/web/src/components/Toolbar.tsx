@@ -3,7 +3,7 @@ import type { JSX, MouseEvent, ReactNode } from 'react';
 import { folderAccessSupported } from '../platform/fs.js';
 import { host, inVsCode } from '../platform/host.js';
 import { actions, displaySlide, toast, useEditor } from '../store.js';
-import type { Tool } from '../store.js';
+import type { ExportKind, Tool } from '../store.js';
 
 const I = (d: string): JSX.Element => (
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -192,14 +192,15 @@ export function Toolbar(): JSX.Element {
           value=""
           disabled={!!exporting}
           onChange={(e) => {
-            const v = e.target.value as 'pdf' | 'pptx' | 'odp';
+            const v = e.target.value as ExportKind;
             if (v) void actions.exportDeck(v);
           }}
           title="Exportieren"
           data-testid="export"
         >
-          <option value="">{exporting ? `Exportiere ${exporting.toUpperCase()} …` : 'Exportieren …'}</option>
+          <option value="">{exporting ? `Exportiere ${(exporting.split('-')[0] ?? '').toUpperCase()} …` : 'Exportieren …'}</option>
           <option value="pdf">{inVsCode() ? 'PDF' : 'PDF (Druckdialog)'}</option>
+          <option value="pdf-notes">PDF mit Notizen (für pympress)</option>
           <option value="pptx">PowerPoint (PPTX)</option>
           <option value="odp" disabled={!inVsCode()}>
             {inVsCode() ? 'OpenDocument (ODP, braucht LibreOffice)' : 'OpenDocument (ODP) – nur per CLI'}
