@@ -23,8 +23,10 @@ export const CREATE_VERBS = [
 export const MODIFY_VERBS = ['set', 'move', 'resize', 'round', 'style', 'stroke', 'shadow', 'opacity', 'hide', 'show', 'z'] as const;
 export const ARRANGE_VERBS = ['align', 'distribute', 'stack', 'grid'] as const;
 export const SLIDE_VERBS = ['fill', 'notes', 'background', 'number'] as const;
-export const DECK_VERBS = ['deck', 'theme', 'include', 'slide', 'section', 'counter'] as const;
-export const THEME_VERBS = ['theme', 'size', 'token', 'color', 'font', 'style', 'master', 'layout', 'component', 'counter'] as const;
+export const DECK_VERBS = ['deck', 'theme', 'include', 'bibliography', 'slide', 'section', 'counter'] as const;
+export const THEME_VERBS = ['theme', 'size', 'token', 'color', 'font', 'style', 'master', 'layout', 'component', 'counter', 'cite'] as const;
+/** Control flow: repeat or skip a block. */
+export const FLOW_VERBS = ['for', 'if'] as const;
 export const LAYOUT_VERBS = ['slot', 'region', 'background', 'hide'] as const;
 
 export const ALL_VERBS: string[] = Array.from(
@@ -36,6 +38,7 @@ export const ALL_VERBS: string[] = Array.from(
     ...DECK_VERBS,
     ...THEME_VERBS,
     ...LAYOUT_VERBS,
+    ...FLOW_VERBS,
     'item',
     'row',
   ]),
@@ -85,6 +88,7 @@ export const KEYS_BY_VERB: Record<string, string[]> = {
   style: ['font', 'size', 'weight', 'italic', 'color', 'line', 'align', 'valign', 'pad', 'fill', 'stroke', 'stroke.width', 'radius', 'base'],
   region: BOX,
   counter: ['start'],
+  cite: ['format', 'supplement'],
   component: ['w', 'h'],
   item: ['level'],
 };

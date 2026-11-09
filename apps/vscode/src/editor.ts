@@ -161,7 +161,7 @@ export class EditorSession implements vscode.Disposable {
     const uri = vscode.Uri.file(abs);
     switch (op) {
       case 'readText': {
-        if (abs.endsWith('.forme')) this.watched.add(abs);
+        if (abs.endsWith('.forme') || abs.endsWith('.bib')) this.watched.add(abs);
         const live = liveSource(abs);
         if (live !== undefined) return live;
         try {

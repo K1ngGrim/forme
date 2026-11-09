@@ -70,6 +70,11 @@ export function activate(context: vscode.ExtensionContext): void {
   lastFormeEditor = vscode.window.activeTextEditor && isForme(vscode.window.activeTextEditor.document) ? vscode.window.activeTextEditor : undefined;
 
   const schedule = (doc: vscode.TextDocument, delay = 150): void => {
+    if (doc.uri.scheme === 'file' && doc.uri.fsPath.endsWith('.bib')) {
+      // a bibliography: the decks citing from it follow its (unsaved) text
+      for (const d of decks.dependents(doc.uri.fsPath)) void decks.load(d).catch(() => undefined);
+      return;
+    }
     if (!isForme(doc)) return;
     const key = doc.uri.toString();
     clearTimeout(timers.get(key));
@@ -193,7 +198,7 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
     // fonts and images changed by other programs
     (() => {
-      const w = vscode.workspace.createFileSystemWatcher('**/*.{woff,woff2,ttf,otf,png,jpg,jpeg,gif,webp,svg,forme}');
+      const w = vscode.workspace.createFileSystemWatcher('**/*.{woff,woff2,ttf,otf,png,jpg,jpeg,gif,webp,svg,forme,bib}');
       const reload = (uri: vscode.Uri): void => {
         for (const p of previews.keys()) {
           const loaded = decks.last(p);

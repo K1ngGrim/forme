@@ -6,7 +6,7 @@ export type { Template } from '@forme/core';
 
 /** Templates shipped with the app: the folders under /examples, bundled at build time. */
 
-const texts = import.meta.glob<string>(['../../../../examples/**/*.forme'], { query: '?raw', import: 'default', eager: true });
+const texts = import.meta.glob<string>(['../../../../examples/**/*.{forme,bib}'], { query: '?raw', import: 'default', eager: true });
 const binaries = import.meta.glob<string>(['../../../../examples/**/*.{woff,woff2,ttf,otf,png,jpg,jpeg,svg,gif,webp}', '!**/__golden__/**'], {
   query: '?url',
   import: 'default',

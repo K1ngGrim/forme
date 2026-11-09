@@ -2,6 +2,7 @@ import type { Diagnostic, FileRole } from './diagnostics.js';
 import { diag } from './diagnostics.js';
 import type { Expr } from './expr.js';
 import { parseInterpolation } from './expr.js';
+import { isRawString } from './lexer.js';
 import type { Box, PropValue, SceneNode } from './scene.js';
 
 export type Axis = 'x' | 'y' | null;
@@ -29,6 +30,14 @@ export interface EvalEnv {
   params: Record<string, PropValue> | null;
   /** Folder of an included file relative to the deck: its image paths are rebased onto the deck. */
   assetDir?: string;
+  /** Loop variables (`for ref in …`) and other names bound by the evaluator. */
+  vars?: Record<string, PropValue | Record<string, PropValue>>;
+  /** Replaces citations `@key` in a text (set when the deck has a bibliography). */
+  cite?: (text: string) => string;
+  /** Number of sources cited on the slide and in the deck (`slide.refs`, `deck.refs`). */
+  refs?: { slide: number; deck: number };
+  /** Id suffixes of the enclosing loops, innermost last (`@q` -> `@q_2`). */
+  idSuffixes?: string[];
   /** Inner size of the enclosing box (null on an axis without fixed size); null outside boxes. */
   box?: { w: number | null; h: number | null } | null;
 }
@@ -133,11 +142,30 @@ function callFn(env: EvalEnv, e: Extract<Expr, { k: 'call' }>, axis: Axis): Prop
   }
 }
 
+/** An object by id; inside loops the object of the current iteration comes first. */
+export function objectOf(env: EvalEnv, objects: Map<string, SceneNode> | null, name: string): SceneNode | undefined {
+  if (!objects) return undefined;
+  const sfx = env.idSuffixes ?? [];
+  for (let i = sfx.length - 1; i >= 0; i--) {
+    const hit = objects.get(`${name}${sfx[i] as string}`);
+    if (hit) return hit;
+  }
+  return objects.get(name);
+}
+
 function lookupName(env: EvalEnv, path: string[], e: Expr, axis: Axis): PropValue | undefined {
   const [head, ...rest] = path;
   const prop = rest.join('.');
+  if (head !== undefined && env.vars && head in env.vars) {
+    const v = env.vars[head] as PropValue | Record<string, PropValue>;
+    if (typeof v !== 'object') return prop ? err(env, `„${head}“ hat keine Eigenschaften`, e) : v;
+    if (!prop) return err(env, `„${head}“ braucht ein Feld, z. B. ${head}.title`, e);
+    // missing fields of a source are empty, not an error (entries differ in their fields)
+    return v[prop] ?? '';
+  }
   switch (head) {
     case 'slide':
+      if (prop === 'refs' || prop === 'refs.count') return env.refs?.slide ?? 0;
       if (prop === 'w' || prop === 'width') return env.slideW;
       if (prop === 'h' || prop === 'height') return env.slideH;
       if (prop === 'n') return env.slideN;
@@ -148,6 +176,7 @@ function lookupName(env: EvalEnv, path: string[], e: Expr, axis: Axis): PropValu
       if (prop === 'total') return env.deckTotal;
       if (prop === 'title') return env.deckTitle;
       if (prop === 'sections') return env.deckSections;
+      if (prop === 'refs' || prop === 'refs.count') return env.refs?.deck ?? 0;
       return err(env, `Unbekannte Eigenschaft „deck.${prop}“`, e);
     case 'section':
       if (!prop) return env.section;
@@ -221,7 +250,7 @@ export function evalExpr(env: EvalEnv, e: Expr, axis: Axis = null): PropValue | 
       return lookupName(env, [e.name], e, axis);
     case 'member': {
       if (e.obj.k === 'id') {
-        const node = env.objects?.get(e.obj.name);
+        const node = objectOf(env, env.objects, e.obj.name);
         if (!node) {
           return err(
             env,
@@ -281,6 +310,12 @@ function formatInterp(v: PropValue): string {
 }
 
 export function interpolate(env: EvalEnv, e: Extract<Expr, { k: 'str' }>): string {
+  const text = interpolateRaw(env, e);
+  // citations only in normal strings: raw strings hold code and formulas
+  return env.cite && text.includes('@') && !isRawString(e.raw) ? env.cite(text) : text;
+}
+
+function interpolateRaw(env: EvalEnv, e: Extract<Expr, { k: 'str' }>): string {
   if (!e.raw.includes('{')) return e.value;
   const parts = parseInterpolation(env.src, e.span, env.diags);
   let out = '';

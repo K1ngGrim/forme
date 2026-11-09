@@ -17,3 +17,4 @@ export * from './templates.js';
 export * from './highlight.js';
 export * from './migrate.js';
 export * from './codehl.js';
+export * from './bib.js';

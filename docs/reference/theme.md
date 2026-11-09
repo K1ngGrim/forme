@@ -17,13 +17,15 @@ color primary #1E40AF
 font heading "Inter" weight=700 file="./fonts/Inter-Bold.ttf"
 style h1 font=heading size=64 color=$primary
 
-master default
+master default {
   background fill=#FFFFFF
   text @pagenum "{slide.n}" style=footer x=(slide.w-$margin) y=(slide.h-60) anchor=right
+}
 
-layout content master=default
+layout content master=default {
   slot @title style=h1 x=$margin y=$margin w=(slide.w-2*$margin)
   region content x=$margin y=240 w=(slide.w-2*$margin) h=(slide.h-360)
+}
 ```
 
 Die Beispiele auf diesen Seiten zeigen oben Theme-Code und nach `---` eine Folie. Der

@@ -107,10 +107,21 @@
 </text>
 </g>
 <g>
+<g>
+<text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="15" font-weight="400" fill="#737373">
+<tspan x="128" y="1025.71">
+<tspan>[2] M. Polese, L. Bonati, S. D'Oro, S. Basagni und T. Melodia: </tspan>
+<tspan font-style="italic">Understanding O-RAN: Architecture, Interfaces, Algorithms, Security, and Research Challenges</tspan>
+<tspan>. IEEE Communications Surveys &amp; Tutorials, 2023.</tspan>
+</tspan>
+</text>
+</g>
+</g>
+<g>
 <rect x="128" y="128" width="1200" height="104" rx="52" fill="rgba(255,255,255,0.76)"/>
 <text xml:space="preserve" font-family="&quot;Inter&quot;, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#000000">
 <tspan x="152" y="196.73">
-<tspan>Unterschiede zu 5G NR</tspan>
+<tspan>Unterschiede zu 5G NR [2]</tspan>
 </tspan>
 </text>
 </g>

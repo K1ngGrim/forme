@@ -55,6 +55,10 @@ const VERB_INFO: Record<string, string> = {
   box: 'Box (Container mit Hintergrund, Kinder frei darin)',
   section: 'Abschnitt',
   include: 'Folien aus einer anderen Datei einbinden',
+  bibliography: 'Literaturdatei (.bib) für Zitate @schlüssel',
+  cite: 'Aussehen der Zitate (Theme)',
+  for: 'Block für jede Quelle wiederholen: for ref in slide.refs',
+  if: 'Block nur, wenn die Bedingung zutrifft',
   counter: 'Zähler',
 };
 
@@ -71,7 +75,14 @@ export function completeLine(line: string, col: number, scene: DeckScene, slide:
     return [...own, ...others];
   };
 
-  let m = /@([\wÀ-ɏ]*)$/.exec(before);
+  // inside a string: @ starts a citation of the bibliography
+  const inString = (before.replace(/\\./g, '').match(/"/g)?.length ?? 0) % 2 === 1;
+  let m = /@([\p{L}\p{N}_:./-]*)$/u.exec(before);
+  if (m && inString) {
+    if (!scene.bibliography.length) return null;
+    return { from: col - m[0].length, items: scene.bibliography.map((b) => ({ label: `@${b.key}`, type: 'constant' as const, detail: b.label })) };
+  }
+  m = /@([\wÀ-ɏ]*)$/.exec(before);
   if (m) return { from: col - m[0].length, items: ids() };
 
   m = /\$([\w.]*)$/.exec(before);

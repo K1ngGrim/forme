@@ -3,15 +3,22 @@
 import { highlightSource, parse } from '@forme/core';
 import type { Document, ImageSize, MathRenderer, TextMeasurer } from '@forme/core';
 import { createFontMeasurer } from '@forme/render';
-import { assetResolver, prepareExample, renderExample } from '../examples.js';
+import { assetResolver, EXAMPLE_BIB, prepareExample, renderExample } from '../examples.js';
 
 interface ExamplesData {
   themes: { guide: string };
   imageSizes: Record<string, ImageSize>;
   fonts: { file: string; weight: number; italic: boolean }[];
+  bib: string;
 }
 
-let shared: Promise<{ measurer: TextMeasurer; themes: { name: string; doc: Document | null }[]; imageSizes: Record<string, ImageSize>; math: MathRenderer }> | null = null;
+let shared: Promise<{
+  measurer: TextMeasurer;
+  themes: { name: string; doc: Document | null }[];
+  imageSizes: Record<string, ImageSize>;
+  math: MathRenderer;
+  bibliographies: Record<string, string>;
+}> | null = null;
 
 function load(root: string): NonNullable<typeof shared> {
   shared ??= (async () => {
@@ -23,6 +30,7 @@ function load(root: string): NonNullable<typeof shared> {
     const { createMathRenderer } = await import('@forme/render/math');
     return {
       math: createMathRenderer(),
+      bibliographies: { [EXAMPLE_BIB]: data.bib },
       measurer: createFontMeasurer(fonts),
       themes: [
         { name: 'standard', doc: null },

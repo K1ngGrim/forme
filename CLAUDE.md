@@ -224,8 +224,13 @@ Master/Layout per `set @id ...` überschreiben oder per `hide @id` ausblenden.
   des Haupt-Decks; die Datei wird von den Aufrufern geladen und als `includes` an `evaluate`
   übergeben, Diagnosen mit `file: 'include'` und `path`; eingebundene Folien sind im Deck
   schreibgeschützt und werden in ihrer Datei bearbeitet)
+- **Quellen:** `bibliography "./quellen.bib"` (Deck), `@schlüssel` / `@schlüssel[S. 4]` in Texten,
+  `cite format="[{ref.n}{supplement}]"` (Theme), `for ref in slide.refs|deck.refs|bib { … }` und
+  `if <ausdruck> { … }` (IDs im Schleifenblock bekommen `_1`, `_2` …). BibTeX-Parser in
+  `core/bib.ts`; die .bib laden die Aufrufer (`bibliographies` an `evaluate`). Zitate werden vor
+  der Auswertung aus den Texten der Folie gesammelt, damit Master/Layout sie kennen.
 - **Definitionen (nur Theme):** `token`, `color`, `font`, `style`, `master`, `layout`,
-  `region`, `component`
+  `region`, `component`, `cite`
 - **Sonstiges:** `notes` (Sprechernotizen, werden nach PPTX exportiert)
 
 Text unterstützt Rich-Text-Runs (fett, kursiv, Farbe, Links) und Listen mit Ebenen.

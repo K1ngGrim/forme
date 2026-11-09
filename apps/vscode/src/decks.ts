@@ -50,6 +50,11 @@ export class Decks implements vscode.Disposable {
     return this.loaded.get(deckPath);
   }
 
+  /** Loaded decks built from a file (theme, include, bibliography, font, image). */
+  dependents(path: string): string[] {
+    return [...this.loaded.values()].filter((l) => l.dependencies.includes(path)).map((l) => l.deckPath);
+  }
+
   async load(deckPath: string): Promise<LoadedDeck> {
     let cache = this.caches.get(deckPath);
     if (!cache) this.caches.set(deckPath, (cache = createLoadCache()));

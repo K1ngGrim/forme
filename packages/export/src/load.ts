@@ -2,7 +2,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { dirname, isAbsolute, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { DeckScene, Document, EvalCache, ImageSize, TextMeasurer } from '@forme/core';
-import { collectImagePaths, createEvalCache, evaluate, imageSize, includePathsOf, parse, themePathOf } from '@forme/core';
+import { bibliographyPathsOf, collectImagePaths, createEvalCache, evaluate, imageSize, includePathsOf, parse, themePathOf } from '@forme/core';
 import type { LoadedFont } from '@forme/render';
 import { createFontMeasurer } from '@forme/render';
 import { createMathRenderer } from '@forme/render/math';
@@ -57,7 +57,7 @@ export interface LoadOverrides {
   deckSource?: string;
   /** In-memory theme source. */
   themeSource?: string | null;
-  /** In-memory source of an included file by absolute path (undefined: read from disk). */
+  /** In-memory source of an included file or bibliography by absolute path (undefined: read from disk). */
   includeSource?: (absPath: string) => string | undefined;
   /** Reuse fonts, image sizes and slide evaluations from earlier loads. */
   cache?: LoadCache;
@@ -88,11 +88,19 @@ export async function loadDeck(deckPath: string, over: LoadOverrides = {}): Prom
     if (doc) includeDocs[p] = doc;
     includes.push({ path: p, abs: incAbs, doc });
   }
+  const bibliographies: Record<string, string> = {};
+  const bibFiles: string[] = [];
+  for (const p of bibliographyPathsOf(deck)) {
+    const bibAbs = resolvePath(p);
+    bibFiles.push(bibAbs);
+    const src = over.includeSource?.(bibAbs) ?? (await readFile(bibAbs, 'utf8').catch(() => null));
+    if (src !== null) bibliographies[p] = src;
+  }
   const evaluateWith = (extra: { measurer?: TextMeasurer; imageSizes?: Record<string, ImageSize> }): DeckScene =>
-    evaluate(deck, { theme, math, includes: includeDocs, ...extra, ...(cache ? { cache: cache.evalCache } : {}) });
+    evaluate(deck, { theme, math, includes: includeDocs, bibliographies, ...extra, ...(cache ? { cache: cache.evalCache } : {}) });
   // first pass: discover fonts and images
-  let scene = evaluate(deck, { theme, math, includes: includeDocs });
-  const dependencies = [abs, ...(themeAbs ? [themeAbs] : []), ...includes.map((i) => i.abs)];
+  let scene = evaluate(deck, { theme, math, includes: includeDocs, bibliographies });
+  const dependencies = [abs, ...(themeAbs ? [themeAbs] : []), ...includes.map((i) => i.abs), ...bibFiles];
   const fonts: LoadedFont[] = [];
   const fontKey: string[] = [];
   for (const f of scene.theme.fonts) {

@@ -8,7 +8,7 @@ import { EditorState as CMState, RangeSetBuilder, StateEffect, StateField } from
 import type { Extension } from '@codemirror/state';
 import { Decoration, drawSelection, EditorView, highlightActiveLine, highlightActiveLineGutter, keymap, lineNumbers, ViewPlugin, WidgetType } from '@codemirror/view';
 import type { DecorationSet, ViewUpdate } from '@codemirror/view';
-import { classifySource, isRawString, lex } from '@forme/core';
+import { classifySource, findCitations, isRawString, lex } from '@forme/core';
 import type { Token } from '@forme/core';
 import { completeLine } from '@forme/core';
 import { actions, displaySlide, useEditor } from '../store.js';
@@ -52,16 +52,21 @@ function buildHighlights(view: EditorView): DecorationSet {
     const end = t.end;
     if (!ranges.some((r) => end >= r.from && start <= r.to)) continue;
     if (kind === 'color') b.add(start, start, Decoration.widget({ widget: new SwatchWidget(t.text), side: -1 }));
-    if (kind === 'string' && t.text.includes('{') && !isRawString(t.text)) {
-      // highlight {interpolations} inside strings
-      let last = start;
+    if (kind === 'string' && /[{@]/.test(t.text) && !isRawString(t.text)) {
+      // highlight {interpolations} and @citations inside strings
+      const spots: [number, number][] = [];
       const re = /\{[^}]*\}/g;
       let m: RegExpExecArray | null;
-      while ((m = re.exec(t.text))) {
-        const s = start + m.index;
+      while ((m = re.exec(t.text))) spots.push([m.index, m.index + m[0].length]);
+      for (const c of findCitations(t.text)) spots.push([c.index, c.index + c.length]);
+      spots.sort((a, b) => a[0] - b[0]);
+      let last = start;
+      for (const [from, to] of spots) {
+        const s = start + from;
+        if (s < last) continue;
         if (s > last) b.add(last, s, MARKS.string as Decoration);
-        b.add(s, s + m[0].length, MARKS.interp as Decoration);
-        last = s + m[0].length;
+        b.add(s, start + to, MARKS.interp as Decoration);
+        last = start + to;
       }
       if (last < end) b.add(last, end, MARKS.string as Decoration);
       continue;

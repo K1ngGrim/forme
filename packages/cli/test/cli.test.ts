@@ -92,6 +92,15 @@ describe('commands', () => {
     expect(lines.join('\n')).toContain('2 Folien');
   });
 
+  it('loads the bibliography of a deck and reports unknown sources', async () => {
+    await writeFile(join(dir, 'q.bib'), '@book{knuth1984, author={Donald E. Knuth}, title={The TeXbook}, year=1984}\n');
+    await writeFile(join(dir, 'deck.forme'), 'deck "x"\nbibliography "./q.bib"\nslide @a {\n  text @t "Siehe @knuth1984 und @fehlt"\n}\n');
+    expect(await run(['check', 'deck.forme'], io())).toBe(0);
+    expect(lines.join('\n')).toContain('Quelle „@fehlt“ steht nicht in der Bibliografie');
+    expect(await run(['compile', 'deck.forme', 'a.svg'], io())).toBe(0);
+    expect(await readFile(join(dir, 'a.svg'), 'utf8')).toContain('Siehe [1] und @fehlt');
+  });
+
   it('unknown command and format', async () => {
     expect(await run(['nope'], io())).toBe(1);
     await writeFile(join(dir, 'deck.forme'), 'deck "X"\n');

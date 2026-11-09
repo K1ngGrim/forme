@@ -65,7 +65,7 @@ export interface Document {
 }
 
 /** Verbs whose block holds further ops; used to recognise the old indentation syntax. */
-const BLOCK_VERBS = new Set(['slide', 'master', 'layout', 'component', 'group', 'row', 'column', 'box', 'list', 'table']);
+const BLOCK_VERBS = new Set(['slide', 'master', 'layout', 'component', 'group', 'row', 'column', 'box', 'list', 'table', 'for', 'if']);
 
 function splitLines(tokens: Token[]): Token[][] {
   const out: Token[][] = [];

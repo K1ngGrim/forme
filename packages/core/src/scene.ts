@@ -208,6 +208,8 @@ export interface DeckScene {
   /** Theme file path as written in the deck, if any. */
   themePath: string | null;
   diagnostics: Diagnostic[];
+  /** Sources of the bibliography (for completion of `@key`): key and a short label. */
+  bibliography: { key: string; label: string }[];
 }
 
 /** A typeset formula: SVG content in its own coordinate system. */

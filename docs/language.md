@@ -88,6 +88,13 @@ slide @zitat layout=content {
 }
 ```
 
+### Zitate
+
+In normalen Zeichenketten zitiert `@schlüssel` eine Quelle aus der `bibliography`-Datei,
+`@schlüssel[S. 4]` mit Seitenangabe. Das Aussehen legt das Theme mit `cite` fest; mit
+`for ref in slide.refs { … }` baut es Quellenangaben pro Folie auf. Details in
+[Quellen und Zitate](reference/quellen.md).
+
 ### Rich Text
 
 Innerhalb von Text-Zeichenketten:
@@ -117,10 +124,11 @@ slide @intro layout=title [master=default] [hidden=true] {
 }
   …
 include "./kapitel/backup.forme"     // Folien einer anderen Datei an dieser Stelle
+bibliography "./quellen.bib"         // Literatur für Zitate @schlüssel in Texten
 ```
 
-Auf oberster Ebene eines Decks sind nur `deck`, `theme`, `include`, `section`, `counter` und
-`slide` erlaubt. Eingebundene Dateien ([`include`](reference/folien/include.md)) sind normale
+Auf oberster Ebene eines Decks sind nur `deck`, `theme`, `include`, `bibliography`, `section`,
+`counter` und `slide` erlaubt. Eingebundene Dateien ([`include`](reference/folien/include.md)) sind normale
 Decks; es gilt das Theme des einbindenden Decks, Bildpfade sind relativ zur eingebundenen Datei.
 Definitionen (`token`, `color`, `font`, `style`, `master`, `layout`, `component`, `size`)
 gehören ausschließlich in eine Theme-Datei.
@@ -178,6 +186,7 @@ Schlüssel aus `packages/core/src/vocab.ts` dort beschrieben ist).
 | [Erzeugen](reference/erzeugen.md) | `rect` `ellipse` `line` `arrow` `polygon` `path` `text` `code` `math` `list` `item` `image` `table` `group` `use` |
 | [Layout](reference/layout.md) | `row` `column` `box` `align` `distribute` `stack` `grid` |
 | [Verändern](reference/veraendern.md) | `set` `move` `resize` `round` `style` `stroke` `shadow` `opacity` `hide` `show` `z` |
+| [Quellen und Zitate](reference/quellen.md) | `bibliography` `cite` `for` `if` |
 | [Folien und Deck](reference/folien.md) | `deck` `theme` `include` `slide` `section` `fill` `notes` `background` `number` `counter` |
 | [Theme](reference/theme.md) | `theme` `size` `token` `color` `font` `style` `master` `layout` `slot` `region` `component` |
 

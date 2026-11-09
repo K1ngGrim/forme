@@ -5,6 +5,7 @@ import {
   createEvalCache,
   createMetricMeasurer,
   evaluate,
+  bibliographyPathsOf,
   imageSize,
   includePathsOf,
   migrationEdits,
@@ -93,6 +94,8 @@ export interface EditorState {
   codeVisible: boolean;
   /** Files brought in with `include`, keyed by the path as written in the deck. */
   includes: Record<string, IncludedFile>;
+  /** `bibliography` files (.bib), keyed by the path as written in the deck. */
+  bibliographies: Record<string, { path: string; source: string }>;
   /** Decks this one was opened from via „Datei öffnen“ on an included slide (for „Zurück“). */
   includedFrom: string[];
 }
@@ -130,14 +133,26 @@ function includeDocs(includes: Record<string, IncludedFile>): Record<string, Doc
   return Object.fromEntries(Object.entries(includes).map(([k, f]) => [k, f.doc]));
 }
 
-function evalScene(deck: SourceFile, theme: SourceFile | null, measurer: TextMeasurer, imageSizes: Record<string, ImageSize>, includes: Record<string, IncludedFile> = {}): DeckScene {
-  loadMathIfNeeded(deck, theme, ...Object.values(includes));
-  return evaluate(deck.doc, { theme: theme ? theme.doc : null, measurer, imageSizes, cache: evalCache, includes: includeDocs(includes), ...(math ? { math } : {}) });
+function bibSources(bibs: EditorState['bibliographies']): Record<string, string> {
+  return Object.fromEntries(Object.entries(bibs).map(([k, f]) => [k, f.source]));
+}
+
+function evalScene(s: Pick<EditorState, 'deck' | 'theme' | 'measurer' | 'imageSizes' | 'includes' | 'bibliographies'>): DeckScene {
+  loadMathIfNeeded(s.deck, s.theme, ...Object.values(s.includes));
+  return evaluate(s.deck.doc, {
+    theme: s.theme ? s.theme.doc : null,
+    measurer: s.measurer,
+    imageSizes: s.imageSizes,
+    cache: evalCache,
+    includes: includeDocs(s.includes),
+    bibliographies: bibSources(s.bibliographies),
+    ...(math ? { math } : {}),
+  });
 }
 
 const initialDeck = makeFile('deck', null, NEW_DECK_SOURCE);
 const initialMeasurer = createMetricMeasurer();
-const initialScene = evalScene(initialDeck, null, initialMeasurer, {});
+const initialScene = evalScene({ deck: initialDeck, theme: null, measurer: initialMeasurer, imageSizes: {}, includes: {}, bibliographies: {} });
 
 export const useEditor = create<EditorState>(() => ({
   deck: initialDeck,
@@ -167,6 +182,7 @@ export const useEditor = create<EditorState>(() => ({
   assetVersion: 0,
   codeVisible: !host,
   includes: {},
+  bibliographies: {},
   includedFrom: [],
 }));
 
@@ -230,7 +246,7 @@ export function isDirty(s: EditorState = get()): boolean {
 
 function reevaluate(partial: Partial<EditorState> = {}): void {
   const s = { ...get(), ...partial };
-  const scene = evalScene(s.deck, s.theme, s.measurer, s.imageSizes, s.includes);
+  const scene = evalScene(s);
   const lastGood = { ...s.lastGood };
   for (const slide of scene.slides) if (!slide.hasErrors) lastGood[slide.id] = slide;
   let slideId = s.slideId;
@@ -293,11 +309,29 @@ async function syncIncludes(force = false): Promise<void> {
     }
   }
   if (Object.keys(s.includes).some((k) => !(k in next))) changed = true;
-  if (changed && fs === projectFs) reevaluate({ includes: next });
+  // bibliographies the same way
+  const bibs: EditorState['bibliographies'] = {};
+  for (const rel of bibliographyPathsOf(s.deck.doc)) {
+    const path = resolveFrom(s.deck.path ?? 'deck.forme', rel);
+    const old = s.bibliographies[rel];
+    if (old && !force && old.path === path) {
+      bibs[rel] = old;
+      continue;
+    }
+    changed = true;
+    const source = path && fs ? await fs.readText(path) : null;
+    if (path && source !== null) {
+      bibs[rel] = { path, source };
+      void rememberModified(path);
+    }
+  }
+  if (Object.keys(s.bibliographies).some((k) => !(k in bibs))) changed = true;
+  if (changed && fs === projectFs) reevaluate({ includes: next, bibliographies: bibs });
 }
 
 function includesChanged(a: Document, b: Document): boolean {
-  return includePathsOf(a).join('\n') !== includePathsOf(b).join('\n');
+  const files = (d: Document): string => [...includePathsOf(d), '|', ...bibliographyPathsOf(d)].join('\n');
+  return files(a) !== files(b);
 }
 
 /** (Re)load the theme referenced by the deck when its path changed. */
@@ -430,7 +464,7 @@ async function pollExternalChanges(): Promise<void> {
   const s = get();
   const fs = projectFs;
   if (!fs || s.project?.kind !== 'folder' || document.visibilityState !== 'visible') return;
-  for (const path of [s.deck.path, s.theme?.path, ...Object.values(s.includes).map((i) => i.path)]) {
+  for (const path of [s.deck.path, s.theme?.path, ...Object.values(s.includes).map((i) => i.path), ...Object.values(s.bibliographies).map((b) => b.path)]) {
     if (!path) continue;
     const m = await fs.modified(path);
     if (m === null || m === seenModified.get(path)) continue;
@@ -485,7 +519,8 @@ export const actions = {
       theme: s.theme?.doc ?? null,
       scene: s.scene,
       mode: s.mode,
-      evaluate: (src: string) => evaluate(parse(src), { theme: s.theme?.doc ?? null, measurer: s.measurer, imageSizes: s.imageSizes, includes: includeDocs(s.includes), ...(math ? { math } : {}) }),
+      evaluate: (src: string) =>
+        evaluate(parse(src), { theme: s.theme?.doc ?? null, measurer: s.measurer, imageSizes: s.imageSizes, includes: includeDocs(s.includes), bibliographies: bibSources(s.bibliographies), ...(math ? { math } : {}) }),
     };
     let res: EditResult = computeEdit(ctx, intent);
     if (res.error && intent.type === 'delete' && res.warnings.length) {
@@ -612,7 +647,7 @@ export const actions = {
     }
     const deck = makeFile('deck', project.info.deckPath, source);
     const from = get().project?.id === project.info.id && get().includedFrom;
-    set({ undoStack: [], redoStack: [], lastGood: {}, selection: [], mode: 'deck', theme: null, themeError: null, imageSizes: {}, includes: {}, project: project.info, projectsOpen: false, ...(from ? {} : { includedFrom: [] }) });
+    set({ undoStack: [], redoStack: [], lastGood: {}, selection: [], mode: 'deck', theme: null, themeError: null, imageSizes: {}, includes: {}, bibliographies: {}, project: project.info, projectsOpen: false, ...(from ? {} : { includedFrom: [] }) });
     reevaluate({ deck, revision: get().revision + 1, lastOrigin: 'load', slideId: null });
     set({ slideId: get().scene.slides[0]?.id ?? null });
     void rememberModified(project.info.deckPath);
@@ -710,6 +745,11 @@ export const actions = {
   /** External change of a watched file. */
   fileChanged(path: string, source: string): void {
     const s = get();
+    const bibRel = Object.keys(s.bibliographies).find((k) => s.bibliographies[k]?.path === path);
+    if (bibRel) {
+      if (s.bibliographies[bibRel]?.source !== source) reevaluate({ bibliographies: { ...s.bibliographies, [bibRel]: { path, source } } });
+      return;
+    }
     const rel = Object.keys(s.includes).find((k) => s.includes[k]?.path === path);
     if (rel && s.includes[rel]?.source !== source) {
       reevaluate({ includes: { ...s.includes, [rel]: { path, source, doc: parse(source) } } });

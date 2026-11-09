@@ -54,12 +54,14 @@ export function prepareExample(code: string): PreparedExample | null {
   // included files are not available to the examples
   if (/^\s*include\b/m.test(code)) return null;
   if (/^deck\b/m.test(code)) return { source: code, wrapped: false };
-  if (/^slide\b/m.test(code)) return { source: `deck "Beispiel"\n\n${code}`, wrapped: false };
+  // citations without their own bibliography line use the example bibliography
+  const bibLine = /"[^"\n]*@\w/.test(code) && !/^bibliography\b/m.test(code) ? `bibliography "${EXAMPLE_BIB}"\n` : '';
+  if (/^slide\b/m.test(code)) return { source: `deck "Beispiel"\n${bibLine}\n${code}`, wrapped: false };
   const body = code
     .split('\n')
     .map((l) => (l.trim() ? `  ${l}` : l))
     .join('\n');
-  return { source: `deck "Beispiel"\n\nslide @beispiel layout=content {\n${body.replace(/\n*$/, '')}\n}\n`, wrapped: true };
+  return { source: `deck "Beispiel"\n${bibLine}\nslide @beispiel layout=content {\n${body.replace(/\n*$/, '')}\n}\n`, wrapped: true };
 }
 
 export interface ExampleContext {
@@ -69,7 +71,12 @@ export interface ExampleContext {
   imageSizes: Record<string, ImageSize>;
   resolveAsset: (path: string) => string;
   math?: MathRenderer;
+  /** .bib sources for examples with citations (docs/reference/quellen.bib). */
+  bibliographies?: Record<string, string>;
 }
+
+/** The bibliography of the documentation examples. */
+export const EXAMPLE_BIB = './quellen.bib';
 
 export interface RenderedExample {
   theme: string;
@@ -91,7 +98,13 @@ export function renderExample(ex: PreparedExample, ctx: ExampleContext, prefix: 
     const layouts = ex.wrapped ? WRAP_LAYOUTS : [null];
     for (const layout of layouts) {
       const source = layout ? ex.source.replace('slide @beispiel layout=content', `slide @beispiel layout=${layout}`) : ex.source;
-      const scene: DeckScene = evaluate(parse(source), { theme: t.doc, measurer: ctx.measurer, imageSizes: ctx.imageSizes, ...(ctx.math ? { math: ctx.math } : {}) });
+      const scene: DeckScene = evaluate(parse(source), {
+        theme: t.doc,
+        measurer: ctx.measurer,
+        imageSizes: ctx.imageSizes,
+        ...(ctx.math ? { math: ctx.math } : {}),
+        ...(ctx.bibliographies ? { bibliographies: ctx.bibliographies } : {}),
+      });
       if (layout && !scene.theme.layouts.includes(layout)) continue;
       const errors = scene.diagnostics.filter((d) => d.severity === 'error').map((d) => d.message);
       const warnings = scene.diagnostics.filter((d) => d.severity === 'warning').map((d) => d.message);

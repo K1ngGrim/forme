@@ -705,6 +705,19 @@ grid @a @b … [cols=] [gap=] [within=] [x= y= w=] [rowh=]
 
 // Dateien (oberste Ebene)
 include "./kapitel.forme"   // Folien einer anderen Deck-Datei hier einfügen
+bibliography "./quellen.bib"  // Zitate in Texten: "… @geirhos2020[S. 4] …"
+
+// Quellen im Theme
+cite format="[{ref.n}{supplement}]"   // Aussehen der Zitate
+master default {                       // Quellen pro Folie, nur wenn zitiert wird
+  if slide.refs {
+    column @quellen x=… y=… w=… {
+      for ref in slide.refs {             // auch deck.refs (alle) oder bib (ganze .bib)
+        text @q "[{ref.n}] {ref.authors}: *{ref.title}*. {ref.venue}, {ref.year}."
+      }
+    }
+  }
+}
 
 // Sonstiges (Folie)
 number zähler [@ziel] [caption="… {zähler} …"] [pos=below|above] [gap=] [style=]

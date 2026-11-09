@@ -43,6 +43,10 @@ style strong base=body font=heading
 style caption font=body size=19 color=$muted
 style footer font=body size=19 color=#FFFFFF
 style table font=body size=23 color=$ink pad=20 border=$line fill=$panel header.fill=$panel line=1.4
+style source font=body size=15 color=$muted line=1.3
+
+// Zitate im Text (@schlüssel): Nummer in eckigen Klammern, mit Seitenangabe [2, S. 4]
+cite format="[{ref.n}{supplement}]"
 
 counter figure start=0
 
@@ -105,6 +109,14 @@ master default {
   text @foottitle "{deck.title}" style=footer x=16 y=1040 w=608 h=40 valign=middle
   text @footsection "{section}" style=footer color=$primary x=640 y=1040 w=640 h=40 valign=middle align=center
   text @pagenum "{slide.n}" style=footer color=$primary x=1904 y=1040 h=40 valign=middle anchor=right
+  // Quellen der Folie direkt über der Fußzeile, nur wenn die Folie etwas zitiert
+  if slide.refs {
+    column @quellen x=$margin y=930 w=1600 h=100 justify=end gap=2 {
+      for ref in slide.refs {
+        text @quelle "[{ref.n}] {ref.authors}: *{ref.title}*. {ref.venue}, {ref.year}." style=source
+      }
+    }
+  }
 }
 
 // ---------------------------------------------------------------- Layouts

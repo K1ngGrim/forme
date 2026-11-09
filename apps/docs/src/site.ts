@@ -45,7 +45,7 @@ export const PAGES: PageSpec[] = [
 ];
 
 /** Operation reference: docs/reference/<category>.md and docs/reference/<category>/<op>.md, in this order. */
-export const REFERENCE_CATEGORIES = ['erzeugen', 'layout', 'veraendern', 'folien', 'theme'] as const;
+export const REFERENCE_CATEGORIES = ['erzeugen', 'layout', 'veraendern', 'folien', 'quellen', 'theme'] as const;
 /** Pages of the reference live below this path (`referenz/erzeugen/rect/`). */
 export const REFERENCE_SLUG = 'referenz';
 

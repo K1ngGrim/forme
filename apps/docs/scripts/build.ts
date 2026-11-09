@@ -9,7 +9,7 @@ import type { LoadedFont } from '@forme/render';
 import { build as esbuild } from 'esbuild';
 import { Marked } from 'marked';
 import type { Tokens } from 'marked';
-import { assetResolver, isFormeCode, prepareExample, renderExample, showsError } from '../src/examples.js';
+import { assetResolver, EXAMPLE_BIB, isFormeCode, prepareExample, renderExample, showsError } from '../src/examples.js';
 import type { ExampleContext } from '../src/examples.js';
 import { esc, hrefOf, pageHtml, rootOf } from '../src/layout.js';
 import type { SitePage, TocEntry } from '../src/layout.js';
@@ -32,6 +32,7 @@ export const FONT_FILES = [
 const FONT_SRC = join(repo, 'examples/hka-seminar/fonts');
 const IMAGES = [join(repo, 'examples/img/umsatz.svg')];
 const GUIDE_THEME = join(repo, 'examples/guide/themes/mein-theme.forme');
+const EXAMPLE_BIB_FILE = join(repo, 'docs/reference/quellen.bib');
 
 export interface BuildReport {
   pages: number;
@@ -192,6 +193,8 @@ export async function buildDocs(outDir: string): Promise<BuildReport> {
   }
   const measurer = createFontMeasurer(fonts);
   const guideTheme = await readFile(GUIDE_THEME, 'utf8');
+  const bib = await readFile(EXAMPLE_BIB_FILE, 'utf8');
+  const bibliographies = { [EXAMPLE_BIB]: bib };
   const imageSizes: Record<string, ImageSize> = {};
   for (const img of IMAGES) {
     const size = imageSize(new Uint8Array(await readFile(img)));
@@ -211,7 +214,7 @@ export async function buildDocs(outDir: string): Promise<BuildReport> {
     const root = rootOf(page.slug);
     const toc: TocEntry[] = [];
     let exampleNo = 0;
-    const ctx: ExampleContext = { themes, measurer, imageSizes, resolveAsset: assetResolver(root), math: createMathRenderer() };
+    const ctx: ExampleContext = { themes, measurer, imageSizes, resolveAsset: assetResolver(root), math: createMathRenderer(), bibliographies };
     const fileDir = posix.dirname(page.file);
 
     /** Links in the Markdown: other docs files become site pages, repository files GitHub links. */
@@ -350,7 +353,7 @@ export async function buildDocs(outDir: string): Promise<BuildReport> {
   for (const img of IMAGES) await cp(img, join(assets, 'img', img.split('/').pop() as string));
   await cp(join(app, 'src/style.css'), join(assets, 'style.css'));
   await writeFile(join(assets, 'search.json'), JSON.stringify(search));
-  await writeFile(join(assets, 'examples.json'), JSON.stringify({ themes: { guide: guideTheme }, imageSizes, fonts: FONT_FILES }));
+  await writeFile(join(assets, 'examples.json'), JSON.stringify({ themes: { guide: guideTheme }, imageSizes, fonts: FONT_FILES, bib }));
   await esbuild({
     entryPoints: { client: join(app, 'src/client/main.ts') },
     outdir: assets,

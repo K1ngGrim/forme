@@ -296,4 +296,20 @@ test.describe('Forme im Browser', () => {
     await expect.poll(() => code(page)).toContain('deck "Mit Rezepten"');
     await expect(page.locator('[data-testid="include-bar"]')).toHaveCount(0);
   });
+
+  test('citations from the template bibliography, sources per slide', async ({ page }) => {
+    await openTemplate(page, 'hka-seminar');
+    await page.click('[data-testid="slide-unterschiede"]');
+    await expect(page.locator('.slide-svg g[data-id="title"]')).toContainText('[2]');
+    await expect(page.locator('.slide-svg g[data-id="quelle_1"]')).toContainText('Understanding O-RAN');
+    // the .bib is a project file: editing the citation updates the slide
+    await page.click('.cm-content');
+    await page.keyboard.press('Control+f');
+    await page.keyboard.press('Escape');
+    await page.locator('.cm-line', { hasText: 'Unterschiede zu 5G NR' }).click();
+    await page.keyboard.press('End');
+    await page.keyboard.press('ArrowLeft');
+    await page.keyboard.type(' @oran2018');
+    await expect(page.locator('.slide-svg g[data-id="quelle_2"]')).toContainText('O-RAN Alliance');
+  });
 });

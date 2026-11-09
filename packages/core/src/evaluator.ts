@@ -6,7 +6,9 @@ import { isLiteral } from './expr.js';
 import type { FontSpec, TextMeasurer } from './metrics.js';
 import { createMetricMeasurer } from './metrics.js';
 import type { Arg, Document, OpNode } from './parser.js';
-import { argByKey, parse, positional } from './parser.js';
+import { argByKey, parse, positional, walkOps } from './parser.js';
+import type { BibEntry } from './bib.js';
+import { findCitations, lineCol, parseBib, refFields } from './bib.js';
 import { layoutParagraphs, parseRich } from './richtext.js';
 import { isRawString } from './lexer.js';
 import { CODE_PALETTES, codeLanguage, highlightCode } from './codehl.js';
@@ -31,7 +33,7 @@ import type {
   ThemeInfo,
 } from './scene.js';
 import type { Axis, EvalEnv } from './values.js';
-import { assetPath, axisOf, evalExpr } from './values.js';
+import { assetPath, axisOf, evalExpr, interpolate, objectOf } from './values.js';
 import {
   ALIGN_MODES,
   ARRANGE_VERBS,
@@ -58,6 +60,8 @@ export interface EvaluateOptions {
   math?: MathRenderer;
   /** Parsed files for `include`, keyed by the path as written (see `includePathsOf`). */
   includes?: Record<string, Document>;
+  /** Sources of `bibliography` files (.bib), keyed by the path as written (see `bibliographyPathsOf`). */
+  bibliographies?: Record<string, string>;
   /**
    * Reuse slides whose source and context did not change since the last call
    * (incremental re-evaluation). Pass the same object on every call.
@@ -151,6 +155,8 @@ interface Theme {
   layouts: Map<string, { op: OpNode; master: string | null }>;
   components: Map<string, { op: OpNode; defaults: Props }>;
   counters: Record<string, number>;
+  /** `cite`: how citations look in the text. */
+  cite: { format?: Extract<Expr, { k: 'str' }>; supplement?: Extract<Expr, { k: 'str' }> };
 }
 
 interface Ctx {
@@ -168,6 +174,15 @@ interface Ctx {
   /** Body of each box, to evaluate it again when the box gets a new size. */
   boxBodies: Map<SceneNode, BoxBody>;
   math: MathRenderer | null;
+  /** Bibliography and the sources cited on this slide and in the deck (in order of first citation). */
+  refs: Refs;
+}
+
+interface Refs {
+  bib: Map<string, BibEntry>;
+  /** Keys cited in the deck, in order: index + 1 = number. */
+  deck: string[];
+  slide: string[];
 }
 
 interface BoxBody {
@@ -177,6 +192,9 @@ interface BoxBody {
   size: string;
   /** Diagnostics of the last evaluation (replaced when the body is evaluated again). */
   diags: Diagnostic[];
+  /** Loop variables and id suffixes at the box (a box inside `for`). */
+  vars: EvalEnv['vars'];
+  idSuffixes: EvalEnv['idSuffixes'];
 }
 
 const DEFAULT_FILL = '#D1D5DB';
@@ -261,6 +279,7 @@ function evalTheme(doc: Document, diags: Diagnostic[]): Theme {
       regions: {},
       slots: {},
     },
+    cite: {},
     doc,
     tokens: env.tokens,
     styles: new Map(),
@@ -400,6 +419,16 @@ function evalTheme(doc: Document, diags: Diagnostic[]): Theme {
         const name = nameArg(op);
         if (!name) report(env, '„counter“ erwartet einen Namen', op.span);
         else theme.counters[name] = num(evalExpr(env, argByKey(op, 'start')?.value ?? { k: 'num', value: 0, unit: '', span: op.span }), 0);
+        break;
+      }
+      case 'cite': {
+        for (const k of ['format', 'supplement'] as const) {
+          const a = argByKey(op, k);
+          if (!a) continue;
+          if (a.value.k === 'str') theme.cite[k] = a.value;
+          else report(env, `„${k}“ erwartet eine Zeichenkette, z. B. "[{ref.n}]"`, a.value.span);
+        }
+        for (const a of op.args) if (a.key !== 'format' && a.key !== 'supplement') report(env, 'Unerwartetes Argument', a.span, 'warning');
         break;
       }
       case 'deck':
@@ -873,7 +902,7 @@ export function unionBoxes(boxes: Box[]): Box {
 // Op evaluation
 
 function lookup(ctx: Ctx, id: string): SceneNode | undefined {
-  return ctx.componentObjects?.get(id) ?? (ctx.componentObjects ? undefined : ctx.slide.byId.get(id));
+  return objectOf(ctx.env, ctx.componentObjects ?? ctx.slide.byId, id);
 }
 
 function resolveTargets(ctx: Ctx, op: OpNode, args: Arg[]): SceneNode[] {
@@ -1047,6 +1076,7 @@ function createOp(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null): voi
   let rest = idArg ? pos.slice(1) : pos;
   let id = idArg && idArg.value.k === 'id' ? idArg.value.name : '';
   if (!id) id = `_${verb}${++ctx.autoId}`;
+  else if (ctx.env.idSuffixes?.length) id += ctx.env.idSuffixes[ctx.env.idSuffixes.length - 1] as string;
 
   if (verb === 'use') {
     createUse(ctx, op, src, parent, id, rest);
@@ -1126,7 +1156,7 @@ function createOp(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null): voi
   refresh(ctx, node);
 
   if (kind === 'box') {
-    ctx.boxBodies.set(node, { op, src, size: '', diags: [] });
+    ctx.boxBodies.set(node, { op, src, size: '', diags: [], vars: ctx.env.vars, idSuffixes: ctx.env.idSuffixes });
     buildBox(ctx, node);
   }
 
@@ -1233,7 +1263,9 @@ function buildBox(ctx: Ctx, node: SceneNode): void {
     const i = ctx.env.diags.indexOf(d);
     if (i >= 0) ctx.env.diags.splice(i, 1);
   }
-  const saved = { origin: ctx.env.origin, box: ctx.env.box, src: ctx.env.src, file: ctx.env.file };
+  const saved = { origin: ctx.env.origin, box: ctx.env.box, src: ctx.env.src, file: ctx.env.file, vars: ctx.env.vars, idSuffixes: ctx.env.idSuffixes };
+  ctx.env.vars = body.vars;
+  ctx.env.idSuffixes = body.idSuffixes;
   const o = originOf(ctx, node);
   const pad = num(node.props.pad, 0);
   ctx.env.origin = { x: o.x + num(node.props.x, 0) + pad, y: o.y + num(node.props.y, 0) + pad };
@@ -1556,6 +1588,43 @@ function modifyOp(ctx: Ctx, op: OpNode, src: Src): void {
 
 type Place = 'master' | 'layout' | 'slide' | 'group' | 'component';
 
+/**
+ * `for ref in slide.refs { … }`: the block once per source (slide.refs, deck.refs or bib), with
+ * `ref.<field>` bound. Ids in the block get the iteration as suffix (`@q` -> `@q_1`, `@q_2` …).
+ */
+function forOp(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null, place: Place): void {
+  const [v, kw, coll] = positional(op);
+  const collPath = coll ? exprPath(coll.value) : null;
+  if (!v || v.value.k !== 'name' || !kw || kw.value.k !== 'name' || kw.value.name !== 'in' || !coll || !collPath) {
+    report(ctx.env, '„for“ erwartet „for <name> in <liste>“, z. B. for ref in slide.refs', op.verbSpan);
+    return;
+  }
+  const lists: Record<string, string[]> = { 'slide.refs': ctx.refs.slide, 'deck.refs': ctx.refs.deck, bib: [...ctx.refs.bib.keys()] };
+  const keys = lists[collPath];
+  if (!keys) {
+    report(ctx.env, `Unbekannte Liste „${collPath}“ (möglich: slide.refs, deck.refs, bib)`, coll.value.span);
+    return;
+  }
+  const name = v.value.name;
+  const saved = { vars: ctx.env.vars, sfx: ctx.env.idSuffixes };
+  keys.forEach((key, i) => {
+    ctx.env.vars = { ...saved.vars, [name]: { ...refVars(ctx.refs, key), i: i + 1 } };
+    ctx.env.idSuffixes = [...(saved.sfx ?? []), `${saved.sfx?.[saved.sfx.length - 1] ?? ''}_${i + 1}`];
+    for (const c of op.children) evalOp(ctx, c, src, parent, place);
+  });
+  ctx.env.vars = saved.vars;
+  ctx.env.idSuffixes = saved.sfx;
+}
+
+function exprPath(e: Expr): string | null {
+  if (e.k === 'name') return e.name;
+  if (e.k === 'member') {
+    const p = exprPath(e.obj);
+    return p ? `${p}.${e.prop}` : null;
+  }
+  return null;
+}
+
 function evalOp(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null, place: Place): void {
   const verb = op.verb;
   if ((CREATE_VERBS as readonly string[]).includes(verb)) {
@@ -1572,6 +1641,19 @@ function evalOp(ctx: Ctx, op: OpNode, src: Src, parent: SceneNode | null, place:
     return;
   }
   switch (verb) {
+    case 'for':
+      forOp(ctx, op, src, parent, place);
+      return;
+    case 'if': {
+      const cond = positional(op)[0];
+      if (!cond) {
+        report(ctx.env, '„if“ erwartet eine Bedingung, z. B. if slide.refs { … }', op.verbSpan);
+        return;
+      }
+      const v = evalExpr(ctx.env, cond.value);
+      if (v !== undefined && v !== false && v !== 0 && v !== '' && v !== 'false') for (const c of op.children) evalOp(ctx, c, src, parent, place);
+      return;
+    }
     case 'slot':
       if (place !== 'layout' && place !== 'master') report(ctx.env, '„slot“ ist nur in Layouts erlaubt', op.verbSpan);
       else createOp(ctx, op, src, parent);
@@ -1954,11 +2036,33 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
     for (const d of incDiags) diags.push({ ...d, file: 'include', path });
   };
 
+  const bib = new Map<string, BibEntry>();
+  let hasBibliography = false;
   deck.ops.forEach((op, i) => {
     switch (op.verb) {
       case 'include':
         include(op);
         break;
+      case 'bibliography': {
+        hasBibliography = true;
+        const p = positional(op)[0];
+        if (!p || p.value.k !== 'str') {
+          report(deckEnv, '„bibliography“ erwartet einen Dateipfad in Anführungszeichen, z. B. "./quellen.bib"', op.verbSpan);
+          break;
+        }
+        const src = opts.bibliographies?.[p.value.value];
+        if (src === undefined) {
+          report(deckEnv, `Datei „${p.value.value}“ nicht gefunden`, p.value.span);
+          break;
+        }
+        const parsed = parseBib(src);
+        for (const e of parsed.errors) {
+          const lc = lineCol(src, e.offset);
+          report(deckEnv, `${p.value.value}:${lc.line}:${lc.column}: ${e.message}`, p.value.span, 'warning');
+        }
+        for (const e of parsed.entries) if (!bib.has(e.key)) bib.set(e.key, e);
+        break;
+      }
       case 'deck': {
         if (i !== 0) report(deckEnv, '„deck“ sollte in der ersten Zeile stehen', op.verbSpan, 'warning');
         const p = positional(op)[0];
@@ -1982,6 +2086,9 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
   for (const d of themeDoc.diagnostics) diags.push({ ...d, file: 'theme' });
   for (const d of deck.diagnostics) diags.push({ ...d, file: 'deck' });
 
+  // bibliography content is part of the cache key (it changes texts on every slide)
+  let bibKey = '';
+  if (hasBibliography) for (const s of Object.values(opts.bibliographies ?? {})) bibKey += `${s.length}:${hashText(s)};`;
   const cache = opts.cache;
   if (cache && (cache.theme !== themeDoc || cache.measurer !== m || cache.imageSizes !== opts.imageSizes || cache.math !== opts.math)) {
     cache.slides.clear();
@@ -1993,6 +2100,33 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
     else delete cache.imageSizes;
   }
   if (cache) cache.reused = 0;
+  // citations are collected before evaluating, so masters and layouts can list them
+  const slideRefs: string[][] = [];
+  const refWarnings: Diagnostic[][] = [];
+  const deckRefs: string[] = [];
+  for (const { op, src } of slideOps) {
+    const keys: string[] = [];
+    const warns: Diagnostic[] = [];
+    if (hasBibliography) {
+      for (const c of walkOps(op.children)) {
+        // notes get numbers, but do not count as sources shown on the slide
+        const shown = c.verb !== 'notes';
+        for (const a of c.args) {
+          if (a.value.k !== 'str' || isRawString(a.value.raw) || !a.value.value.includes('@')) continue;
+          for (const cit of findCitations(a.value.value)) {
+            if (!bib.has(cit.key)) {
+              warns.push({ ...diag('warning', `Quelle „@${cit.key}“ steht nicht in der Bibliografie`, a.value.span, src.file), ...(src.path !== undefined ? { path: src.path } : {}) });
+              continue;
+            }
+            if (shown && !keys.includes(cit.key)) keys.push(cit.key);
+            if (!deckRefs.includes(cit.key)) deckRefs.push(cit.key);
+          }
+        }
+      }
+    }
+    slideRefs.push(keys);
+    refWarnings.push(warns);
+  }
   const total = slideOps.filter((s) => !isHiddenSlide(s.op)).length;
   const counters: Record<string, number> = { ...theme.counters, ...deckCounters };
   const slides: SlideScene[] = [];
@@ -2004,7 +2138,7 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
     if (!hidden) visible++;
     const id = slideIdOf(op, index);
     const key = cache
-      ? [id, visible, total, sec, secN, sectionN, title, JSON.stringify(counters), seenIds.has(id), slideSrc.path ?? '', slideSrc.doc.source.slice(op.line.start, op.blockEnd)].join('\u0000')
+      ? [id, visible, total, sec, secN, sectionN, title, JSON.stringify(counters), seenIds.has(id), slideSrc.path ?? '', deckRefs.join(' '), bibKey, slideSrc.doc.source.slice(op.line.start, op.blockEnd)].join('\u0000')
       : '';
     const cached = cache?.slides.get(id);
     if (cache && cached && cached.key === key) {
@@ -2019,7 +2153,7 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
       slides.push(cached.scene);
       return;
     }
-    const slideDiags: Diagnostic[] = [];
+    const slideDiags: Diagnostic[] = [...(refWarnings[index] ?? [])];
     if (seenIds.has(id)) slideDiags.push(diag('error', `Folien-ID „@${id}“ ist bereits vergeben`, op.span, slideSrc.file));
     seenIds.add(id);
     const scene: SlideScene = {
@@ -2059,7 +2193,10 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
       objects: scene.byId,
       params: null,
       origin: { x: 0, y: 0 },
+      refs: { slide: slideRefs[index]?.length ?? 0, deck: deckRefs.length },
     };
+    const refs: Refs = { bib, deck: deckRefs, slide: slideRefs[index] ?? [] };
+    if (hasBibliography) env.cite = (text) => citeText(env, theme, refs, text);
     const ctx: Ctx = {
       theme,
       slide: scene,
@@ -2073,6 +2210,7 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
       autoId: 0,
       componentObjects: null,
       boxBodies: new Map(),
+      refs,
     };
     for (const c of op.children) {
       if (c.verb === 'fill') {
@@ -2130,6 +2268,10 @@ export function evaluate(deck: Document, opts: EvaluateOptions = {}): DeckScene 
     theme: theme.info,
     themePath,
     diagnostics: all,
+    bibliography: [...bib.values()].map((e) => {
+      const f = refFields(e, 0);
+      return { key: e.key, label: [f.author, f.year].filter(Boolean).join(' ') + (f.title ? `: ${String(f.title)}` : '') };
+    }),
   };
 }
 
@@ -2146,6 +2288,53 @@ function dedupe(ds: Diagnostic[]): Diagnostic[] {
 }
 
 /** Find the theme path declared in a deck without evaluating it. */
+function hashText(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(h, 31) + s.charCodeAt(i)) | 0;
+  return h;
+}
+
+/** Paths of the `bibliography` files of a deck, as written (relative to the deck file). */
+export function bibliographyPathsOf(deck: Document): string[] {
+  const out: string[] = [];
+  for (const op of deck.ops) {
+    if (op.verb !== 'bibliography') continue;
+    const p = positional(op)[0];
+    if (p && p.value.k === 'str' && !out.includes(p.value.value)) out.push(p.value.value);
+  }
+  return out;
+}
+
+/** Fields of a source for `ref.<field>`, numbered by its first citation in the deck (0 if not cited). */
+function refVars(refs: Refs, key: string): Record<string, PropValue> {
+  const e = refs.bib.get(key) as BibEntry;
+  return refFields(e, refs.deck.indexOf(key) + 1);
+}
+
+/** Evaluate a format string of the theme with names bound (`ref`, `page`, `supplement`). */
+function formatWith(env: EvalEnv, theme: Theme, e: Extract<Expr, { k: 'str' }>, vars: NonNullable<EvalEnv['vars']>): string {
+  const sub: EvalEnv = { ...env, src: theme.doc.source, file: 'theme', vars: { ...env.vars, ...vars } };
+  delete sub.cite;
+  return interpolate(sub, e);
+}
+
+/** Replace the citations of a text with the theme's citation format (default „[n]“, „[n, S. 4]“). */
+function citeText(env: EvalEnv, theme: Theme, refs: Refs, text: string): string {
+  const cites = findCitations(text).filter((c) => refs.bib.has(c.key));
+  if (!cites.length) return text;
+  let out = '';
+  let pos = 0;
+  for (const c of cites) {
+    const ref = refVars(refs, c.key);
+    const page = c.supplement ?? '';
+    const supplement = !page ? '' : theme.cite.supplement ? formatWith(env, theme, theme.cite.supplement, { ref, page }) : `, ${page}`;
+    const shown = theme.cite.format ? formatWith(env, theme, theme.cite.format, { ref, page, supplement }) : `[${String(ref.n)}${supplement}]`;
+    out += text.slice(pos, c.index) + shown;
+    pos = c.index + c.length;
+  }
+  return out + text.slice(pos);
+}
+
 /** Paths of the files included with `include`, as written (relative to the deck file). */
 export function includePathsOf(deck: Document): string[] {
   const out: string[] = [];

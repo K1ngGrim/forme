@@ -1,5 +1,6 @@
 deck "Offene und Programmierbare zellulare Netze mit OpenRAN"
 theme "./theme.forme"
+bibliography "./quellen.bib"
 
 slide @titel layout=title {
   fill @title "Offene und Programmierbare zellulare Netze mit OpenRAN"
@@ -37,11 +38,11 @@ section "Was ist OpenRAN?"
 
 slide @ueberblick layout=statement {
   fill @title "Überblick"
-  fill @statement "Offener Standard für Mobilfunknetze, der offene Schnittstellen und Komponenten für Interoperabilität definiert und eine flexible, anbieterunabhängige Netzwerkinfrastruktur ermöglicht"
+  fill @statement "Offener Standard für Mobilfunknetze, der offene Schnittstellen und Komponenten für Interoperabilität definiert und eine flexible, anbieterunabhängige Netzwerkinfrastruktur ermöglicht @oran2018"
 }
 
 slide @unterschiede layout=content {
-  fill @title "Unterschiede zu 5G NR"
+  fill @title "Unterschiede zu 5G NR @polese2023"
   table @vergleich x=$margin y=$content.y w=1664 style=table cols="1,2.4,2.4" {
     row "" "**5G RAN**" "**OpenRAN**"
     row "**Hardware & Software**" "Proprietär und fest gekoppelt" "Entkoppelt – COTS-Hardware"
